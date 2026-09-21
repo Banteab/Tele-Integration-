@@ -10,6 +10,8 @@ interface Props {
   userPhone?: string;
   onBack?: () => void;
   showBack?: boolean;
+  /** Compact brand bar only — no greeting/title line below it. */
+  minimal?: boolean;
 }
 
 function getInitials(name?: string): string {
@@ -81,12 +83,13 @@ export default function MobileHeader({
   userPhone,
   onBack,
   showBack = false,
+  minimal = false,
 }: Props) {
   const { t } = useTranslation();
 
   return (
     <header
-      className="lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 pb-8 min-[375px]:pb-10"
+      className={`lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-4 min-[375px]:pb-5' : 'pb-8 min-[375px]:pb-10'}`}
       style={{
         background: `linear-gradient(175deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)`,
       }}
@@ -115,23 +118,27 @@ export default function MobileHeader({
                 {BRAND.nameAm}
               </span>
             </div>
-            <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{BRAND.tagline}</p>
+            {!minimal && <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{BRAND.tagline}</p>}
           </div>
         </div>
         <div className="flex items-center gap-1.5 min-[375px]:gap-2 shrink-0">
           <LanguageSelector variant="header" />
-          <ProfileChip userName={userName} userPhone={userPhone} compact={showBack} />
+          <ProfileChip userName={userName} userPhone={userPhone} compact={showBack || minimal} />
         </div>
       </div>
 
-      <h1 className="relative text-lg min-[375px]:text-xl min-[400px]:text-[22px] font-bold text-white leading-snug tracking-tight">
-        {title ||
-          (userName
-            ? t('header.greetingNamed', { name: userName.split(' ')[0] })
-            : t('header.greeting'))}
-      </h1>
-      {subtitle && (
-        <p className="relative text-white/80 text-sm mt-1">{subtitle}</p>
+      {!minimal && (
+        <>
+          <h1 className="relative text-lg min-[375px]:text-xl min-[400px]:text-[22px] font-bold text-white leading-snug tracking-tight">
+            {title ||
+              (userName
+                ? t('header.greetingNamed', { name: userName.split(' ')[0] })
+                : t('header.greeting'))}
+          </h1>
+          {subtitle && (
+            <p className="relative text-white/80 text-sm mt-1">{subtitle}</p>
+          )}
+        </>
       )}
     </header>
   );

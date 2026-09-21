@@ -61,6 +61,8 @@ export default {
     headline: 'Travel Across Ethiopia, Simply.',
     headlineNamed: 'Welcome back, {{name}}. Where to next?',
     subcopy: 'Search routes, choose your seat, and book your journey — all in one place.',
+    searchHeadline: 'Where do you want to go?',
+    selectDestination: 'Select destination',
     journeyLabel: 'Your next journey',
     journeyCta: 'Digital ticket, ready to board',
   },
@@ -251,6 +253,7 @@ export default {
   routes: {
     title: 'Popular routes',
     subtitle: 'Frequently booked journeys across Ethiopia',
+    recentTitle: 'Recent routes',
     viewBuses: 'View buses',
     multipleDepartures: 'Multiple departures available daily.',
   },

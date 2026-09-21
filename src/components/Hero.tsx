@@ -5,6 +5,7 @@ import {
   Search,
   ArrowUpDown,
   ArrowRight,
+  Clock,
   Loader2,
   Users,
   Bus,
@@ -40,6 +41,38 @@ interface RoutePair {
   to: string;
 }
 
+/** Client-side "recently searched" list — reflects the user's own real searches, never fabricated. */
+const RECENT_ROUTES_KEY = 'menahariya_recent_routes';
+
+function loadRecentRoutes(): RoutePair[] {
+  try {
+    const raw = localStorage.getItem(RECENT_ROUTES_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.filter(
+      (r): r is RoutePair => Boolean(r) && typeof r.from === 'string' && typeof r.to === 'string',
+    );
+  } catch {
+    return [];
+  }
+}
+
+function saveRecentRoute(route: RoutePair): RoutePair[] {
+  try {
+    const existing = loadRecentRoutes();
+    const deduped = existing.filter((r) => !(r.from === route.from && r.to === route.to));
+    const updated = [route, ...deduped].slice(0, 5);
+    localStorage.setItem(RECENT_ROUTES_KEY, JSON.stringify(updated));
+    return updated;
+  } catch {
+    return [route];
+  }
+}
+
+function todayIsoDate(): string {
+  return new Date().toISOString().slice(0, 10);
+}
+
 interface Props {
   userName?: string;
   userPhone?: string;
@@ -48,17 +81,22 @@ interface Props {
 
 export default function Hero({ userName, userPhone, onSearch }: Props) {
   const [activeTab, setActiveTab] = useState<HomeTab>('home');
-  const [from, setFrom] = useState('');
+  const [from, setFrom] = useState('Addis Ababa');
   const [to, setTo] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(todayIsoDate());
   const [seats, setSeats] = useState('1');
   const { t } = useTranslation();
   const [fromOptions, setFromOptions] = useState<string[]>([]);
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
+  const [recentRoutes, setRecentRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    setRecentRoutes(loadRecentRoutes().slice(0, 2));
+  }, []);
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -118,6 +156,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
       toast.error(t('hero.fillRequired'));
       return;
     }
+    setRecentRoutes(saveRecentRoute({ from, to }).slice(0, 2));
     onSearch?.({ from, to, date });
   };
 
@@ -257,56 +296,56 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
         userName={userName}
         userPhone={userPhone}
         title={TAB_TITLE_KEYS[activeTab] ? t(TAB_TITLE_KEYS[activeTab]!) : undefined}
+        minimal={activeTab === 'home'}
       />
 
       {activeTab === 'home' && (
         <>
-          {/* ============ MOBILE / TABLET ============ */}
+          {/* ============ MOBILE / TABLET — one focused screen ============ */}
           <div className="lg:hidden">
-            <div className="relative z-10 -mt-5 app-gutter-x" ref={searchRef}>
-              <div className="rounded-2xl bg-white p-4 space-y-3" style={{ boxShadow: 'var(--shadow-md)' }}>
-                <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                  <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
-                    <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-                    {fromOptions.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                  <button
-                    type="button"
-                    onClick={swapCities}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-[var(--border-strong)] bg-white flex items-center justify-center shadow-sm"
-                    style={{ color: THEME.brand }}
-                    aria-label={t('common.swap')}
-                  >
-                    <ArrowUpDown className="w-4 h-4" />
-                  </button>
-                </div>
+            <div className="relative z-10 app-gutter-x pt-5" ref={searchRef}>
+              <div className="rounded-2xl bg-white p-4 space-y-4" style={{ boxShadow: 'var(--shadow-md)' }}>
+                <h1 className="text-xl font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
+                  {t('hero.searchHeadline')}
+                </h1>
 
-                <div className="relative">
-                  <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                  <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
-                    <option value="">{loadingRoutes ? t('common.loading') : t('common.to')}</option>
-                    {toOptions.map((city) => (
-                      <option key={city} value={city}>{city}</option>
-                    ))}
-                  </select>
-                </div>
-
-                <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
+                <div className="space-y-1">
                   <div className="relative">
-                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                    <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
-                  </div>
-                  <div className="relative">
-                    <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                    <select value={seats} onChange={(e) => setSeats(e.target.value)} className={fieldClass}>
-                      {[1, 2, 3, 4, 5].map((n) => (
-                        <option key={n} value={String(n)}>{t('common.seat', { count: n })}</option>
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                    <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
+                      <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+                      {fromOptions.map((city) => (
+                        <option key={city} value={city}>{city}</option>
                       ))}
                     </select>
                   </div>
+
+                  <div className="relative z-10 flex justify-center -my-4">
+                    <button
+                      type="button"
+                      onClick={swapCities}
+                      className="w-9 h-9 rounded-full border-4 border-white bg-white shadow-md flex items-center justify-center"
+                      style={{ color: THEME.brand, boxShadow: '0 2px 6px rgba(16,39,71,0.15)' }}
+                      aria-label={t('common.swap')}
+                    >
+                      <ArrowUpDown className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  <div className="relative">
+                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                    <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
+                      <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+                      {toOptions.map((city) => (
+                        <option key={city} value={city}>{city}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="relative">
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
                 </div>
 
                 <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
@@ -316,8 +355,34 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </div>
             </div>
 
-            {/* Mini App stays a single, focused screen — booking is the whole page.
-                Routes / How it works / Why us / footer are desktop-web only (below). */}
+            {recentRoutes.length > 0 && (
+              <section className="app-gutter-x pt-6">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.recentTitle')}</h2>
+                <div className="grid grid-cols-2 gap-3">
+                  {recentRoutes.map((route) => (
+                    <Fragment key={`recent-${route.from}-${route.to}`}>
+                      <RecentRouteCard route={route} onClick={() => selectRoute(route)} />
+                    </Fragment>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {popularRoutes.length > 0 && (
+              <section className="app-gutter-x pt-6">
+                <h2 className="text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.title')}</h2>
+                <div className="space-y-3">
+                  {popularRoutes.slice(0, 3).map((route) => (
+                    <Fragment key={`popular-${route.from}-${route.to}`}>
+                      <RouteCard route={route} onClick={() => selectRoute(route)} />
+                    </Fragment>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {/* Mini App stays a single, focused screen — booking + quick route access is the whole page.
+                How it works / Why us / footer are desktop-web only (below). */}
             <div className="pb-28" />
           </div>
 
@@ -443,7 +508,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
       {activeTab === 'support' && <SupportPanel />}
       {activeTab === 'about' && <AboutPanel />}
 
-      <BottomNav active={activeTab} onTabChange={handleTabChange} onBook={handleBook} />
+      <BottomNav active={activeTab} onTabChange={handleTabChange} />
     </div>
   );
 }
@@ -510,13 +575,13 @@ function JourneyVisual({ from, to }: { from: string; to: string }) {
 }
 
 /** A real origin → destination pair, presented as a bookable journey, not a generic feature card. */
-function RouteCard({ route, onClick, compact }: { route: RoutePair; onClick: () => void; compact?: boolean }) {
+function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }) {
   const { t } = useTranslation();
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`text-left rounded-2xl bg-white border border-[var(--border)] p-5 transition-all duration-150 hover:border-[var(--color-brand-border)] hover:shadow-md active:scale-[0.99] ${compact ? 'shrink-0 w-[230px]' : 'w-full'}`}
+      className="text-left w-full rounded-2xl bg-white border border-[var(--border)] p-5 transition-all duration-150 hover:border-[var(--color-brand-border)] hover:shadow-md active:scale-[0.99]"
       style={{ boxShadow: 'var(--shadow-sm)' }}
     >
       <div className="flex items-center gap-2 mb-3">
@@ -537,6 +602,26 @@ function RouteCard({ route, onClick, compact }: { route: RoutePair; onClick: () 
           <ArrowRight className="w-3.5 h-3.5" />
         </span>
       </div>
+    </button>
+  );
+}
+
+/** Compact quick-tap card for a route the user actually searched before. */
+function RecentRouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="text-left rounded-xl bg-white border border-[var(--border)] p-3 transition-colors hover:border-[var(--color-brand-border)] active:scale-[0.99]"
+    >
+      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
+        <Clock className="w-3 h-3" />
+        {t('routes.recentTitle')}
+      </div>
+      <p className="text-sm font-bold text-[var(--text-primary)] truncate">{route.from}</p>
+      <ArrowRight className="w-3 h-3 my-0.5" style={{ color: THEME.brandDeep }} />
+      <p className="text-sm font-bold text-[var(--text-primary)] truncate">{route.to}</p>
     </button>
   );
 }
