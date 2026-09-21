@@ -11,6 +11,8 @@ interface Props {
   activeTab?: HomeTab;
   onTabChange?: (tab: HomeTab) => void;
   onBook?: () => void;
+  /** Scrolls to the popular-routes section on the home tab. */
+  onRoutesClick?: () => void;
   /** Booking-flow context — when set, shows a back button + step title instead of tabs. */
   flowTitle?: string;
   onBack?: () => void;
@@ -35,6 +37,7 @@ export default function DesktopNav({
   activeTab,
   onTabChange,
   onBook,
+  onRoutesClick,
   flowTitle,
   onBack,
   onBrandClick,
@@ -43,11 +46,13 @@ export default function DesktopNav({
   const isLoggedIn = Boolean(userName || userPhone);
   const initials = getInitials(userName);
 
-  const tabs: { id: HomeTab; labelKey: string }[] = [
-    { id: 'home', labelKey: 'tabs.home' },
-    { id: 'tickets', labelKey: 'tabs.tickets' },
-    { id: 'support', labelKey: 'tabs.support' },
-    { id: 'about', labelKey: 'tabs.about' },
+  /** Desktop has room for fuller wording than the compact mobile tab bar. */
+  const navItems: { id: string; labelKey: string; tab?: HomeTab; onClick?: () => void }[] = [
+    { id: 'home', labelKey: 'desktopNav.home', tab: 'home' },
+    { id: 'routes', labelKey: 'desktopNav.routes', onClick: onRoutesClick },
+    { id: 'tickets', labelKey: 'desktopNav.myBooking', tab: 'tickets' },
+    { id: 'about', labelKey: 'tabs.about', tab: 'about' },
+    { id: 'support', labelKey: 'desktopNav.help', tab: 'support' },
   ];
 
   return (
@@ -88,13 +93,13 @@ export default function DesktopNav({
           </div>
         ) : (
           <nav className="flex-1 flex items-center justify-center gap-1">
-            {tabs.map(({ id, labelKey }) => {
-              const isActive = activeTab === id;
+            {navItems.map(({ id, labelKey, tab, onClick }) => {
+              const isActive = tab ? activeTab === tab : false;
               return (
                 <button
                   key={id}
                   type="button"
-                  onClick={() => onTabChange?.(id)}
+                  onClick={tab ? () => onTabChange?.(tab) : onClick}
                   className="relative px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
                   style={{
                     color: isActive ? THEME.brandDeep : THEME.textSecondary,
