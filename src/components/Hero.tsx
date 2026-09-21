@@ -316,52 +316,9 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </div>
             </div>
 
-            {popularRoutes.length > 0 && (
-              <section className="pt-8" ref={routesRef}>
-                <h2 className="app-gutter-x text-base font-bold text-[var(--text-primary)] mb-3">{t('routes.title')}</h2>
-                <div className="flex gap-3 overflow-x-auto app-gutter-x pb-1">
-                  {popularRoutes.map((route) => (
-                    <Fragment key={`${route.from}-${route.to}`}>
-                      <RouteCard route={route} onClick={() => selectRoute(route)} compact />
-                    </Fragment>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            <section className="app-gutter-x pt-10">
-              <h2 className="text-base font-bold text-[var(--text-primary)] mb-1">{t('howItWorks.title')}</h2>
-              <p className="text-sm text-[var(--text-muted)] mb-5">{t('howItWorks.subtitle')}</p>
-              <div>
-                {steps.map((step, i) => (
-                  <Fragment key={step.n}>
-                    <StepItem step={step} isLast={i === steps.length - 1} />
-                  </Fragment>
-                ))}
-              </div>
-            </section>
-
-            <section className="app-gutter-x pt-10">
-              <h2 className="text-base font-bold text-[var(--text-primary)] mb-1">{t('about.whyTitle')}</h2>
-              <p className="text-sm text-[var(--text-muted)] mb-4">{t('about.whySubtitle')}</p>
-              <div className="divide-y divide-[var(--border)] rounded-2xl border border-[var(--border)] bg-white overflow-hidden">
-                {whyFeatures.map((f) => (
-                  <Fragment key={f.titleKey}>
-                    <WhyRow feature={f} />
-                  </Fragment>
-                ))}
-              </div>
-            </section>
-
-            <div className="app-gutter-x pt-10 pb-28 text-center">
-              <p className="text-xs text-[var(--text-muted)] flex items-center justify-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                {t('footer.paymentBadge')}
-              </p>
-              <p className="text-[11px] text-[var(--text-muted)] mt-2">
-                © {year} {BRAND.name}. {t('footer.rights')}
-              </p>
-            </div>
+            {/* Mini App stays a single, focused screen — booking is the whole page.
+                Routes / How it works / Why us / footer are desktop-web only (below). */}
+            <div className="pb-28" />
           </div>
 
           {/* ============ DESKTOP / WEB ============ */}
