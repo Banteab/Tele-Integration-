@@ -9,6 +9,7 @@ import { useTranslation } from 'react-i18next';
 import AppShell from './components/AppShell';
 import Hero from './components/Hero';
 import MobileHeader from './components/MobileHeader';
+import DesktopNav from './components/DesktopNav';
 import { SearchParams, Bus, PassengerInfo, User } from './types';
 import BookingSteps from './components/booking/BookingSteps';
 import SearchResults from './components/booking/SearchResults';
@@ -206,7 +207,14 @@ export default function App() {
           onSearch={handleSearch}
         />
       ) : (
-        <div className="min-h-screen flex flex-col pb-6">
+        <div className="min-h-screen lg:min-h-0 flex flex-col pb-6" style={{ background: 'var(--surface-app)' }}>
+          <DesktopNav
+            userName={displayName}
+            userPhone={displayPhone}
+            flowTitle={t(STEP_TITLE_KEYS[step])}
+            onBack={goBack}
+            onBrandClick={resetBooking}
+          />
           <MobileHeader
             showBack
             onBack={goBack}
@@ -214,7 +222,9 @@ export default function App() {
             userName={displayName}
             userPhone={displayPhone}
           />
-          <main className="relative z-10 -mt-4 app-gutter-x flex-1">{renderBookingContent()}</main>
+          <main className="relative z-10 -mt-4 lg:mt-0 app-gutter-x lg:px-6 flex-1 page-container lg:pt-8 w-full">
+            {renderBookingContent()}
+          </main>
         </div>
       )}
     </AppShell>

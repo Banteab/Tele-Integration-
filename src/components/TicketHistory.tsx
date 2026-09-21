@@ -1,11 +1,11 @@
-import { Download, Eye, Printer } from 'lucide-react';
+import { Download, Eye, Printer, TicketX } from 'lucide-react';
 import { useState, useEffect, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { getTicketHistory } from '../services/api';
 import { API_CONFIG } from '../config/api';
-import { ScreenCard } from './ui/ScreenUI';
-import { THEME } from '../config/theme';
+import { EmptyState, PageContainer, ScreenCard, Skeleton, StatusBadge } from './ui/ScreenUI';
+import { THEME, type StatusKind } from '../config/theme';
 
 interface Ticket {
   id: string;
@@ -68,16 +68,16 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
     fetchTickets();
   }, [t]);
 
-  const getStatusColor = (status: string) => {
+  const getStatusKind = (status: string): StatusKind => {
     switch (status) {
       case 'completed':
-        return 'bg-green-100 text-green-800';
+        return 'success';
       case 'pending':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'pending';
       case 'cancelled':
-        return 'bg-red-100 text-red-800';
+        return 'cancelled';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'cancelled';
     }
   };
 
@@ -93,12 +93,14 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
     return t(key, { defaultValue: status });
   };
 
-  const handleDownload = () => {
+  const handleDownload = (_ticket: Ticket) => {
     toast.success(t('ticketHistory.downloadStarted'));
   };
 
   return (
-    <div className={`space-y-4 ${embedded ? 'app-gutter-x pb-28 -mt-2' : 'space-y-6'}`}>
+    <PageContainer
+      className={`space-y-4 lg:space-y-6 ${embedded ? 'app-gutter-x pb-28 lg:pb-16 lg:pt-8 -mt-2 lg:mt-0' : 'space-y-6'}`}
+    >
       {!embedded && onBack && (
         <div className="flex items-center gap-4 mb-2">
           <button
@@ -120,32 +122,33 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
       )}
 
       {loading && (
-        <div className="flex justify-center items-center py-12">
-          <div
-            className="animate-spin rounded-full h-10 w-10 border-b-2"
-            style={{ borderColor: THEME.brand }}
-          />
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
+          {[1, 2, 3].map((i) => (
+            <Fragment key={i}>
+              <ScreenCard className="space-y-3">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </ScreenCard>
+            </Fragment>
+          ))}
         </div>
       )}
 
-      {error && (
+      {!loading && error && (
         <ScreenCard>
           <p className="text-sm text-red-700">{error}</p>
         </ScreenCard>
       )}
 
       {!loading && tickets.length > 0 && (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
           {tickets.map((ticket) => (
             <Fragment key={ticket.id}>
             <ScreenCard className="space-y-3">
               <div className="flex items-center justify-between gap-2">
                 <h3 className="font-bold text-gray-900 text-[15px]">{ticket.operator}</h3>
-                <span
-                  className={`px-2 py-0.5 rounded-full text-[10px] font-semibold ${getStatusColor(ticket.status)}`}
-                >
-                  {getStatusLabel(ticket.status)}
-                </span>
+                <StatusBadge status={getStatusKind(ticket.status)} label={getStatusLabel(ticket.status)} />
               </div>
               <p className="text-sm text-gray-600">{ticket.route}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
@@ -174,7 +177,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => setSelectedTicket(ticket)}
-                  className="flex-1 py-2 text-xs font-semibold rounded-lg"
+                  className="flex-1 py-2 text-xs font-semibold rounded-lg transition-colors hover:opacity-80"
                   style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand }}
                 >
                   <Eye className="w-3.5 h-3.5 inline mr-1" />
@@ -183,7 +186,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => handlePrint(ticket)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50"
+                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
                   title={t('common.print')}
                 >
                   <Printer className="w-4 h-4" />
@@ -191,7 +194,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => handleDownload(ticket)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50"
+                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
                   title={t('common.download')}
                 >
                   <Download className="w-4 h-4" />
@@ -204,9 +207,12 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
       )}
 
       {!loading && !error && tickets.length === 0 && (
-        <ScreenCard className="text-center py-10">
-          <p className="text-gray-500">{t('ticketHistory.noTickets')}</p>
-          <p className="text-xs text-gray-400 mt-2">{t('ticketHistory.bookFromHome')}</p>
+        <ScreenCard>
+          <EmptyState
+            icon={<TicketX className="w-7 h-7" style={{ color: THEME.brand }} />}
+            title={t('ticketHistory.noTickets')}
+            description={t('ticketHistory.bookFromHome')}
+          />
         </ScreenCard>
       )}
 
@@ -216,7 +222,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           onClick={() => setSelectedTicket(null)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm w-full max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
@@ -240,12 +246,8 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                   <p className="font-semibold tnum">{selectedTicket.refNumber}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs">{t('common.status')}</p>
-                  <span
-                    className={`inline-block px-2 py-0.5 rounded-full text-xs font-semibold ${getStatusColor(selectedTicket.status)}`}
-                  >
-                    {getStatusLabel(selectedTicket.status)}
-                  </span>
+                  <p className="text-gray-400 text-xs mb-1">{t('common.status')}</p>
+                  <StatusBadge status={getStatusKind(selectedTicket.status)} label={getStatusLabel(selectedTicket.status)} />
                 </div>
                 <div>
                   <p className="text-gray-400 text-xs">Date</p>
@@ -281,6 +283,6 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           </div>
         </div>
       )}
-    </div>
+    </PageContainer>
   );
 }

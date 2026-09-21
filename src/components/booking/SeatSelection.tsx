@@ -227,54 +227,89 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   const total = bus.price * selectedSeats.length;
 
+  const legend = (
+    <div className="flex justify-center gap-4 mt-5 pt-4 border-t border-gray-100 text-[10px] text-gray-500">
+      <span className="flex items-center gap-1">
+        <span className="w-3 h-3 rounded border-2 border-gray-300" /> {t('booking.legend.available')}
+      </span>
+      <span className="flex items-center gap-1">
+        <span className="w-3 h-3 rounded bg-[#f2a81c]" /> {t('booking.legend.selected')}
+      </span>
+      <span className="flex items-center gap-1">
+        <span className="w-3 h-3 rounded bg-gray-200" /> {t('seats.sold')}
+      </span>
+    </div>
+  );
+
+  const seatMap = (
+    <div className="space-y-2 max-w-xs lg:max-w-sm mx-auto">
+      {rows.map((row) => {
+        const rowSeats = seatsByRow.get(String(row)) || [];
+        const sortedSeats = rowSeats.sort((a, b) => a.x - b.x);
+        return (
+          <div key={row} className="flex items-center justify-center gap-2">
+            <span className="w-5 text-[10px] font-bold text-gray-300">{row}</span>
+            <div className="flex gap-1.5 lg:gap-2 flex-wrap justify-center">
+              {sortedSeats.map((seat) => (
+                <button
+                  key={seat.id}
+                  type="button"
+                  onClick={() => toggleSeat(seat.name)}
+                  disabled={!isSelectableSeat(seat.type)}
+                  className={getSeatStyle(seat)}
+                >
+                  {seat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+
   return (
-    <div className="pb-28">
+    <div className="pb-28 lg:pb-10">
       <TripBanner
         from={bus.from || ''}
         to={bus.to || ''}
         meta={`${bus.operator} · ${t('seats.pricePerSeatMeta', { price: bus.price })}`}
       />
 
-      <ScreenCard className="mb-3">
-        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
-          {t('booking.front')}
-        </p>
-        <div className="space-y-2 max-w-xs mx-auto">
-          {rows.map((row) => {
-            const rowSeats = seatsByRow.get(String(row)) || [];
-            const sortedSeats = rowSeats.sort((a, b) => a.x - b.x);
-            return (
-              <div key={row} className="flex items-center justify-center gap-2">
-                <span className="w-5 text-[10px] font-bold text-gray-300">{row}</span>
-                <div className="flex gap-1.5 flex-wrap justify-center">
-                  {sortedSeats.map((seat) => (
-                    <button
-                      key={seat.id}
-                      type="button"
-                      onClick={() => toggleSeat(seat.name)}
-                      disabled={!isSelectableSeat(seat.type)}
-                      className={getSeatStyle(seat)}
-                    >
-                      {seat.name}
-                    </button>
-                  ))}
+      <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
+        <ScreenCard className="mb-3 lg:mb-0 lg:p-8">
+          <p className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+            {t('booking.front')}
+          </p>
+          {seatMap}
+          {legend}
+        </ScreenCard>
+
+        {/* Desktop: sticky order summary sidebar instead of a bottom bar */}
+        <div className="hidden lg:block lg:sticky lg:top-24">
+          <ScreenCard className="space-y-4">
+            <h3 className="font-bold text-gray-900 text-sm">{t('booking.steps.seats')}</h3>
+            {selectedSeats.length > 0 ? (
+              <>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-gray-500">
+                    {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
+                  </span>
                 </div>
-              </div>
-            );
-          })}
+                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  <span className="font-bold text-gray-900">{t('common.total')}</span>
+                  <span className="font-extrabold tnum text-lg" style={{ color: THEME.brand }}>
+                    ETB {total}
+                  </span>
+                </div>
+                <PrimaryButton onClick={onContinue}>{t('booking.continueToDetails')}</PrimaryButton>
+              </>
+            ) : (
+              <p className="text-sm text-gray-400">{t('seats.selectPrompt')}</p>
+            )}
+          </ScreenCard>
         </div>
-        <div className="flex justify-center gap-4 mt-5 pt-4 border-t border-gray-100 text-[10px] text-gray-500">
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded border-2 border-gray-300" /> {t('booking.legend.available')}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-[#f2a81c]" /> {t('booking.legend.selected')}
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-3 h-3 rounded bg-gray-200" /> {t('seats.sold')}
-          </span>
-        </div>
-      </ScreenCard>
+      </div>
 
       {selectedSeats.length > 0 && (
         <StickyFooter>

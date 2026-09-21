@@ -86,7 +86,7 @@ export default function MobileHeader({
 
   return (
     <header
-      className="relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 pb-8 min-[375px]:pb-10"
+      className="lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 pb-8 min-[375px]:pb-10"
       style={{
         background: `linear-gradient(160deg, ${THEME.brand} 0%, ${THEME.brandLight} 55%, ${THEME.brandDeep} 100%)`,
       }}

@@ -27,7 +27,22 @@
     --text-body: #374151;
     --text-muted: #6b7280;
 
-    /* Responsive shell: full width on phones, framed column on tablet+ */
+    /* Status system — reused across payment, tickets, booking states */
+    --status-pending-bg: #fef6e7;
+    --status-pending-fg: #a86f0a;
+    --status-processing-bg: #ecf7fd;
+    --status-processing-fg: #0c6ca6;
+    --status-success-bg: #e9f9ef;
+    --status-success-fg: #15803d;
+    --status-failed-bg: #fef2f2;
+    --status-failed-fg: #b91c1c;
+    --status-cancelled-bg: #f3f4f6;
+    --status-cancelled-fg: #4b5563;
+    --status-expired-bg: #fef2f2;
+    --status-expired-fg: #991b1b;
+
+    /* Responsive shell: full width on phones, framed column on tablet,
+       full professional layout (no phone-frame) on desktop */
     --shell-max-width: 100%;
     --gutter: 12px;
     --radius-lg: 12px;
@@ -36,6 +51,12 @@
     --shadow-md: 0 4px 12px rgba(16, 39, 71, 0.10), 0 2px 4px rgba(16, 39, 71, 0.06);
     --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.30);
     --shadow-shell: none;
+
+    /* Desktop/web content widths — used once we leave the mini-app frame */
+    --content-max-width: 1120px;
+    --content-max-width-narrow: 720px;
+    --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-base: 220ms cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   @media (min-width: 375px) {
@@ -53,7 +74,10 @@
 
   @media (min-width: 1024px) {
     :root {
-      --shell-max-width: 520px;
+      /* Desktop leaves the mini-app phone-frame behind entirely */
+      --shell-max-width: 100%;
+      --shadow-shell: none;
+      --gutter: 24px;
     }
   }
 }
@@ -81,6 +105,33 @@
     width: 100%;
     max-width: var(--shell-max-width);
   }
+
+  @media (min-width: 1024px) {
+    .app-fixed-shell {
+      max-width: 480px;
+    }
+
+    /* At desktop the shell is no longer a "card" floating on a page —
+       each screen paints its own canvas, so let it go transparent. */
+    .app-shell-inner {
+      background: transparent;
+    }
+  }
+
+  /* Desktop/web page container — centers content with generous max-width */
+  .page-container {
+    width: 100%;
+    max-width: var(--content-max-width);
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .page-container-narrow {
+    width: 100%;
+    max-width: var(--content-max-width-narrow);
+    margin-left: auto;
+    margin-right: auto;
+  }
 }
 
 body {
@@ -101,4 +152,22 @@ body {
 
 .pb-safe {
   padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Consistent keyboard focus ring across mouse + touch */
+:focus-visible {
+  outline: 2px solid var(--blue-500);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
 }

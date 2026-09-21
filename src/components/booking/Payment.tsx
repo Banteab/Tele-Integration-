@@ -19,8 +19,9 @@ import {
   TripBanner,
   PrimaryButton,
   StickyFooter,
+  StatusBadge,
 } from '../ui/ScreenUI';
-import { THEME } from '../../config/theme';
+import { THEME, type StatusKind } from '../../config/theme';
 import AuthModal from './AuthModal';
 
 interface Props {
@@ -65,6 +66,14 @@ export default function Payment({
   const pollCleanup = useRef<(() => void) | null>(null);
   const totalAmount = bus.price * selectedSeats.length;
   const inH5Host = isTelebirrH5Host();
+
+  const paymentStatus: StatusKind =
+    timeRemaining <= 0
+      ? 'expired'
+      : isWaitingForPayment || isProcessing
+        ? 'processing'
+        : 'pending';
+  const paymentStatusLabel = t(`payment.statusLabel.${paymentStatus}`);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -284,14 +293,17 @@ export default function Payment({
         </div>
       )}
 
-      <div className="pb-28">
+      <div className="pb-28 lg:pb-10">
         <TripBanner
           from={searchParams.from}
           to={searchParams.to}
           meta={`${bus.operator} · ${selectedSeats.join(', ')}`}
         />
 
-        <ScreenCard className="space-y-4 mb-3">
+        <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
+        <ScreenCard className="space-y-4 mb-3 lg:mb-0 lg:p-8">
+          <StatusBadge status={paymentStatus} label={paymentStatusLabel} />
+
           {autoLoginChecked && !isAuthenticated && (
             <div className="p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-950 space-y-3">
               <p>{t('payment.authPrompt')}</p>
@@ -358,6 +370,32 @@ export default function Payment({
             </span>
           </div>
         </ScreenCard>
+
+        {/* Desktop: sticky pay sidebar instead of a bottom bar */}
+        <div className="hidden lg:block lg:sticky lg:top-24">
+          <ScreenCard className="space-y-4">
+            <div className="flex items-center justify-between">
+              <span className="font-bold text-gray-900">{t('common.total')}</span>
+              <span className="text-xl font-extrabold tnum" style={{ color: THEME.brand }}>
+                ETB {totalAmount}
+              </span>
+            </div>
+            <PrimaryButton
+              onClick={handlePayment}
+              disabled={isProcessing || isWaitingForPayment || timeRemaining <= 0 || !inH5Host}
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                  {statusMessage || t('payment.processing')}
+                </>
+              ) : (
+                `${t('payment.pay')} ETB ${totalAmount}`
+              )}
+            </PrimaryButton>
+          </ScreenCard>
+        </div>
+        </div>
       </div>
 
       <StickyFooter>

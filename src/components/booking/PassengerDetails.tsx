@@ -84,16 +84,16 @@ export default function PassengerDetails({
     toast.error(errors.form || t('passenger.errors.fixForm'));
   };
 
+  const tripFrom = routeLabel?.split('→')[0]?.trim() || t('common.trip');
+  const tripTo = routeLabel?.split('→')[1]?.trim() || '';
+
   return (
     <div className="pb-6">
-      <TripBanner
-        from={routeLabel?.split('→')[0]?.trim() || t('common.trip')}
-        to={routeLabel?.split('→')[1]?.trim() || ''}
-        meta={t('passenger.seatsMeta', { seats: selectedSeats.join(', ') })}
-      />
+      <TripBanner from={tripFrom} to={tripTo} meta={t('passenger.seatsMeta', { seats: selectedSeats.join(', ') })} />
 
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <ScreenCard className="space-y-4">
+      <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
+      <form id="passenger-form" onSubmit={handleSubmit} className="space-y-4">
+        <ScreenCard className="space-y-4 lg:p-8">
           <p
             className="text-xs rounded-xl px-3 py-2"
             style={{ backgroundColor: 'var(--amber-50)', color: '#a86f0a' }}
@@ -101,6 +101,7 @@ export default function PassengerDetails({
             {t('passenger.hint')}
           </p>
 
+          <div className="lg:grid lg:grid-cols-2 lg:gap-4">
           <div>
             <label className={labelClass}>{t('passenger.phoneLabel')}</label>
             <div className="relative">
@@ -144,6 +145,7 @@ export default function PassengerDetails({
               </p>
             )}
           </div>
+          </div>
 
           <button
             type="button"
@@ -155,7 +157,7 @@ export default function PassengerDetails({
           </button>
 
           {showOptional && (
-            <div className="space-y-3 pt-1">
+            <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 pt-1">
               <div>
                 <label className={labelClass}>{t('passenger.email')}</label>
                 <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={fieldClass} />
@@ -184,10 +186,28 @@ export default function PassengerDetails({
           )}
         </ScreenCard>
 
-        <PrimaryButton type="submit">
-          {t('passenger.proceedToPayment')}
-        </PrimaryButton>
+        <div className="lg:hidden">
+          <PrimaryButton type="submit">{t('passenger.proceedToPayment')}</PrimaryButton>
+        </div>
       </form>
+
+      {/* Desktop: trip recap sidebar alongside the form */}
+      <div className="hidden lg:block lg:sticky lg:top-24">
+        <ScreenCard className="space-y-4">
+          <h3 className="font-bold text-gray-900 text-sm">{t('common.trip')}</h3>
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-gray-500">{tripFrom} → {tripTo}</span>
+          </div>
+          <div className="flex items-center justify-between text-sm pt-3 border-t border-gray-100">
+            <span className="text-gray-500">{t('payment.seatsLabel')}</span>
+            <span className="font-semibold text-gray-900">{selectedSeats.join(', ')}</span>
+          </div>
+          <PrimaryButton type="submit" form="passenger-form">
+            {t('passenger.proceedToPayment')}
+          </PrimaryButton>
+        </ScreenCard>
+      </div>
+      </div>
     </div>
   );
 }

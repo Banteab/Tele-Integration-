@@ -17,7 +17,7 @@ export default function LanguageSelector({ variant = 'default' }: Props) {
       className={`inline-flex items-center gap-1 shrink-0 ${
         isHeader
           ? 'rounded-full bg-white/15 border border-white/25 px-2 py-1'
-          : 'text-gray-600 hover:text-[#7a1f35] px-2'
+          : 'text-gray-600 hover:text-gray-900 px-2'
       }`}
     >
       <Globe

@@ -108,17 +108,19 @@ export default function SearchResults({
 
   if (loading) {
     return (
-      <div className="space-y-3 pb-6">
+      <div className="pb-6">
         <TripBanner from={searchParams.from} to={searchParams.to} meta={t('common.searching')} />
-        {[1, 2, 3].map((i) => (
-          <Fragment key={i}>
-            <ScreenCard className="animate-pulse space-y-3">
-              <div className="h-5 w-32 bg-gray-200 rounded" />
-              <div className="h-4 w-full bg-gray-100 rounded" />
-              <div className="h-10 w-full bg-gray-100 rounded-xl" />
-            </ScreenCard>
-          </Fragment>
-        ))}
+        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
+          {[1, 2, 3].map((i) => (
+            <Fragment key={i}>
+              <ScreenCard className="animate-pulse space-y-3">
+                <div className="h-5 w-32 bg-gray-200 rounded" />
+                <div className="h-4 w-full bg-gray-100 rounded" />
+                <div className="h-10 w-full bg-gray-100 rounded-xl" />
+              </ScreenCard>
+            </Fragment>
+          ))}
+        </div>
       </div>
     );
   }
@@ -147,13 +149,14 @@ export default function SearchResults({
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      className="space-y-3 pb-6"
+      className="pb-6"
     >
       <TripBanner from={searchParams.from} to={searchParams.to} meta={tripMeta} />
 
+      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
       {buses.map((bus) => (
         <Fragment key={bus.id}>
-          <ScreenCard className="space-y-4">
+          <ScreenCard className="space-y-4 flex flex-col">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -208,15 +211,18 @@ export default function SearchResults({
             </span>
           </div>
 
-          <PrimaryButton
-            onClick={() => onSelectBus(bus)}
-            disabled={bus.availableSeats === 0}
-          >
-            {bus.availableSeats === 0 ? t('booking.noSeats') : t('booking.viewSeats')}
-          </PrimaryButton>
+          <div className="mt-auto pt-1">
+            <PrimaryButton
+              onClick={() => onSelectBus(bus)}
+              disabled={bus.availableSeats === 0}
+            >
+              {bus.availableSeats === 0 ? t('booking.noSeats') : t('booking.viewSeats')}
+            </PrimaryButton>
+          </div>
           </ScreenCard>
         </Fragment>
       ))}
+      </div>
     </motion.div>
   );
 }

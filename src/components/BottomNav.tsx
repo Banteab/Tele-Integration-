@@ -30,7 +30,7 @@ export default function BottomNav({
   };
 
   return (
-    <nav className="app-fixed-shell bottom-0 z-50 bg-white border-t border-gray-100 pb-safe">
+    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white border-t border-gray-100 pb-safe">
       <div className="relative app-gutter-x pt-2 pb-3">
         <button
           type="button"

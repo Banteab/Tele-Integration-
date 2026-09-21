@@ -43,6 +43,10 @@ export default {
       about: 'About Menahariya',
     },
   },
+  desktopNav: {
+    back: 'Back',
+    bookTrip: 'Book a trip',
+  },
   header: {
     greeting: 'Where would you like to go today?',
     greetingNamed: 'Where would you like to go, {{name}}?',
@@ -91,6 +95,7 @@ export default {
     searchFailed: 'Failed to search buses',
   },
   seats: {
+    selectPrompt: 'Select your seats to see the total and continue.',
     backToBuses: 'Back to buses',
     loadingSeatsMeta: 'Loading seats...',
     pricePerSeatMeta: 'ETB {{price}}/seat',
@@ -157,6 +162,14 @@ export default {
       openingPayment: 'Opening Telebirr payment...',
       waitingConfirmation: 'Waiting for Telebirr confirmation...',
     },
+    statusLabel: {
+      pending: 'Awaiting payment',
+      processing: 'Processing',
+      success: 'Paid',
+      failed: 'Failed',
+      cancelled: 'Cancelled',
+      expired: 'Session expired',
+    },
   },
   auth: {
     fillRequired: 'Please fill in all required fields',
@@ -209,6 +222,7 @@ export default {
     reference: 'Reference',
     thankYou: 'Thank you for traveling with Menahariya',
     amountPaid: 'Amount paid',
+    copyReference: 'Copy reference number',
   },
   routes: {
     multipleDepartures: 'Multiple departures available daily.',
