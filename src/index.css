@@ -1,0 +1,104 @@
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap');
+@import "tailwindcss";
+
+@layer theme {
+  :root {
+    --font-ui: 'Manrope', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-amharic: 'Noto Sans Ethiopic', 'Manrope', sans-serif;
+
+    --blue-500: #189ad8;
+    --blue-600: #1379bd;
+    --blue-700: #0c6ca6;
+    --blue-50: #ecf7fd;
+    --amber-500: #f2a81c;
+    --amber-600: #d68f0c;
+    --amber-50: #fef6e7;
+    --amber-200: #fbd488;
+
+    --color-brand: var(--blue-500);
+    --color-brand-deep: var(--blue-700);
+    --color-primary: var(--amber-500);
+    --color-primary-hover: var(--amber-600);
+    --color-primary-soft: var(--amber-50);
+    --color-accent: var(--blue-600);
+    --surface-app: #f3f4f6;
+    --surface-card: #ffffff;
+    --text-strong: #111827;
+    --text-body: #374151;
+    --text-muted: #6b7280;
+
+    /* Responsive shell: full width on phones, framed column on tablet+ */
+    --shell-max-width: 100%;
+    --gutter: 12px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-2xl: 24px;
+    --shadow-md: 0 4px 12px rgba(16, 39, 71, 0.10), 0 2px 4px rgba(16, 39, 71, 0.06);
+    --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.30);
+    --shadow-shell: none;
+  }
+
+  @media (min-width: 375px) {
+    :root {
+      --gutter: 16px;
+    }
+  }
+
+  @media (min-width: 768px) {
+    :root {
+      --shell-max-width: 480px;
+      --shadow-shell: 0 40px 80px -20px rgba(16, 39, 71, 0.15);
+    }
+  }
+
+  @media (min-width: 1024px) {
+    :root {
+      --shell-max-width: 520px;
+    }
+  }
+}
+
+@layer utilities {
+  .app-gutter-x {
+    padding-left: var(--gutter);
+    padding-right: var(--gutter);
+  }
+
+  .app-shell-inner {
+    width: 100%;
+    max-width: var(--shell-max-width);
+    min-height: 100dvh;
+    min-height: 100vh;
+    background: var(--surface-card);
+    position: relative;
+    box-shadow: var(--shadow-shell);
+  }
+
+  .app-fixed-shell {
+    position: fixed;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100%;
+    max-width: var(--shell-max-width);
+  }
+}
+
+body {
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  margin: 0;
+  background: var(--surface-app);
+  color: var(--text-body);
+}
+
+.am {
+  font-family: var(--font-amharic);
+}
+
+.tnum {
+  font-variant-numeric: tabular-nums;
+}
+
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
