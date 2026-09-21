@@ -21,7 +21,7 @@ import BottomNav, { type HomeTab } from './BottomNav';
 import AboutPanel from './home/AboutPanel';
 import SupportPanel from './home/SupportPanel';
 import TicketHistory from './TicketHistory';
-import { PageContainer } from './ui/ScreenUI';
+import { PageContainer, PrimaryButton } from './ui/ScreenUI';
 import { BRAND, THEME } from '../config/theme';
 
 const TAB_TITLE_KEYS: Record<HomeTab, string | undefined> = {
@@ -117,10 +117,10 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   };
 
   const fieldClass =
-    'w-full rounded-xl border border-gray-200 bg-white py-3.5 pl-11 pr-4 text-[15px] text-gray-900 outline-none transition-colors focus:border-[var(--blue-500)] focus:ring-2 focus:ring-[rgba(24,154,216,0.2)]';
+    'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
   const desktopFieldClass =
-    'w-full rounded-lg border border-gray-200 bg-white py-3 pl-10 pr-3 text-sm text-gray-900 outline-none transition-colors focus:border-[var(--blue-500)] focus:ring-2 focus:ring-[rgba(24,154,216,0.2)]';
+    'w-full rounded-lg border border-[var(--border-strong)] bg-white py-3 pl-10 pr-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
   const trustFeatures = [
     { icon: Bus, textKey: 'about.featureSearch' },
@@ -150,7 +150,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
           <div className="lg:hidden relative z-10 -mt-5 app-gutter-x" ref={searchRef}>
             <div className="rounded-2xl bg-white p-4 space-y-3" style={{ boxShadow: 'var(--shadow-md)' }}>
               <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.primary }} />
+                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
                 <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
                   <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
                   {fromOptions.map((city) => (
@@ -160,7 +160,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                 <button
                   type="button"
                   onClick={swapCities}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-gray-200 bg-white flex items-center justify-center shadow-sm"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full border border-[var(--border-strong)] bg-white flex items-center justify-center shadow-sm"
                   style={{ color: THEME.brand }}
                   aria-label={t('common.swap')}
                 >
@@ -169,7 +169,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </div>
 
               <div className="relative">
-                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.primary }} />
+                <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
                 <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
                   <option value="">{loadingRoutes ? t('common.loading') : t('common.to')}</option>
                   {toOptions.map((city) => (
@@ -180,11 +180,11 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
               <div className="grid grid-cols-1 min-[360px]:grid-cols-2 gap-3">
                 <div className="relative">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
                   <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
                 </div>
                 <div className="relative">
-                  <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                  <Users className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
                   <select value={seats} onChange={(e) => setSeats(e.target.value)} className={fieldClass}>
                     {[1, 2, 3, 4, 5].map((n) => (
                       <option key={n} value={String(n)}>{t('common.seat', { count: n })}</option>
@@ -193,16 +193,10 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                 </div>
               </div>
 
-              <button
-                type="button"
-                onClick={handleSearch}
-                disabled={loadingRoutes}
-                className="w-full flex items-center justify-center gap-2 rounded-xl py-3.5 text-[16px] font-bold text-white transition-transform active:scale-[0.98] disabled:opacity-60"
-                style={{ backgroundColor: THEME.primary, boxShadow: THEME.shadowPrimary }}
-              >
+              <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
                 {loadingRoutes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                 {t('hero.searchBuses')}
-              </button>
+              </PrimaryButton>
             </div>
           </div>
 
@@ -215,15 +209,18 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="pt-14 pb-10 px-6">
               <PageContainer className="text-center max-w-3xl">
                 <span
-                  className="inline-block text-xs font-bold uppercase tracking-wide px-3 py-1.5 rounded-full mb-5"
-                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover }}
+                  className="text-eyebrow inline-block px-3 py-1.5 rounded-full mb-5"
+                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryPressed }}
                 >
                   {BRAND.tagline}
                 </span>
-                <h1 className="text-4xl font-extrabold text-gray-900 tracking-tight leading-tight">
+                <h1
+                  className="font-extrabold text-[var(--text-primary)] tracking-tight leading-tight"
+                  style={{ fontSize: 'var(--text-display)' }}
+                >
                   {userName ? t('header.greetingNamed', { name: userName.split(' ')[0] }) : t('header.greeting')}
                 </h1>
-                <p className="text-gray-500 text-base mt-4 max-w-xl mx-auto">{t('about.description')}</p>
+                <p className="text-[var(--text-secondary)] text-base mt-4 max-w-xl mx-auto">{t('about.description')}</p>
               </PageContainer>
             </section>
 
@@ -234,7 +231,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   style={{ boxShadow: 'var(--shadow-md)' }}
                 >
                   <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.primary }} />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.brandDeep }} />
                     <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={desktopFieldClass}>
                       <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
                       {fromOptions.map((city) => (
@@ -246,7 +243,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   <button
                     type="button"
                     onClick={swapCities}
-                    className="w-10 h-10 self-center rounded-full border border-gray-200 bg-white flex items-center justify-center shrink-0 hover:bg-gray-50 transition-colors"
+                    className="w-10 h-10 self-center rounded-full border border-[var(--border-strong)] bg-white flex items-center justify-center shrink-0 hover:bg-[var(--surface-muted)] transition-colors"
                     style={{ color: THEME.brand }}
                     aria-label={t('common.swap')}
                   >
@@ -254,7 +251,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   </button>
 
                   <div className="relative flex-1">
-                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.primary }} />
+                    <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.brandDeep }} />
                     <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={desktopFieldClass}>
                       <option value="">{loadingRoutes ? t('common.loading') : t('common.to')}</option>
                       {toOptions.map((city) => (
@@ -264,12 +261,12 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   </div>
 
                   <div className="relative flex-1">
-                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={desktopFieldClass} />
                   </div>
 
                   <div className="relative w-full xl:w-40 shrink-0">
-                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                    <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                     <select value={seats} onChange={(e) => setSeats(e.target.value)} className={desktopFieldClass}>
                       {[1, 2, 3, 4, 5].map((n) => (
                         <option key={n} value={String(n)}>{t('common.seat', { count: n })}</option>
@@ -277,16 +274,15 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     </select>
                   </div>
 
-                  <button
-                    type="button"
+                  <PrimaryButton
                     onClick={handleSearch}
                     disabled={loadingRoutes}
-                    className="w-full xl:w-auto flex items-center justify-center gap-2 rounded-lg px-6 py-3 text-sm font-bold text-white transition-transform active:scale-[0.98] disabled:opacity-60 shrink-0"
-                    style={{ backgroundColor: THEME.primary, boxShadow: THEME.shadowPrimary }}
+                    fullWidth={false}
+                    className="w-full xl:w-auto px-6 !py-3 text-sm shrink-0"
                   >
                     {loadingRoutes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
                     {t('hero.searchBuses')}
-                  </button>
+                  </PrimaryButton>
                 </div>
               </PageContainer>
             </section>
@@ -294,25 +290,29 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="px-6 pt-16 pb-20">
               <PageContainer className="grid grid-cols-3 gap-6">
                 {trustFeatures.map(({ icon: Icon, textKey }) => (
-                  <div key={textKey} className="rounded-2xl bg-white p-6 flex items-start gap-4" style={{ boxShadow: 'var(--shadow-md)' }}>
+                  <div
+                    key={textKey}
+                    className="rounded-2xl bg-white border border-[var(--border)] p-6 flex items-start gap-4"
+                    style={{ boxShadow: 'var(--shadow-sm)' }}
+                  >
                     <div
                       className="w-11 h-11 rounded-xl flex items-center justify-center shrink-0"
-                      style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand }}
+                      style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep }}
                     >
                       <Icon className="w-5 h-5" />
                     </div>
-                    <p className="text-sm text-gray-700 leading-relaxed pt-2">{t(textKey)}</p>
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed pt-2">{t(textKey)}</p>
                   </div>
                 ))}
               </PageContainer>
             </section>
 
-            <footer className="border-t border-gray-200 px-6 py-8">
-              <PageContainer className="flex items-center justify-between text-sm text-gray-400">
+            <footer className="border-t border-[var(--border-strong)] px-6 py-8">
+              <PageContainer className="flex items-center justify-between text-sm text-[var(--text-muted)]">
                 <span>
                   {BRAND.name} <span className="am">{BRAND.nameAm}</span> — {BRAND.tagline}
                 </span>
-                <a href={`tel:${BRAND.phone}`} className="font-medium hover:text-gray-600 transition-colors">
+                <a href={`tel:${BRAND.phone}`} className="font-medium hover:text-[var(--text-secondary)] transition-colors">
                   {t('support.hotline')}: {BRAND.phone}
                 </a>
               </PageContainer>

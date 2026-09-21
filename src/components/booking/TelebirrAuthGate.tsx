@@ -3,7 +3,7 @@ import { Loader2, Smartphone, RefreshCw } from 'lucide-react';
 import { performTelebirrAutoLogin, type TelebirrProfile } from '../../services/telebirrAuth';
 import { extractTelebirrAuthError, isTelebirrH5Host } from '../../services/telebirrPay';
 import type { User } from '../../types';
-import { ScreenCard } from '../ui/ScreenUI';
+import { ScreenCard, PrimaryButton, SecondaryButton } from '../ui/ScreenUI';
 import { THEME } from '../../config/theme';
 
 interface Props {
@@ -37,16 +37,16 @@ export default function TelebirrAuthGate({ onAuthenticated, onBack }: Props) {
     <ScreenCard className="text-center">
       <div
         className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-4"
-        style={{ backgroundColor: inSuperApp ? '#ecfdf3' : THEME.primarySoft }}
+        style={{ backgroundColor: inSuperApp ? 'var(--success-bg)' : THEME.brandSoft }}
       >
         <Smartphone
           className="w-7 h-7"
-          style={{ color: inSuperApp ? '#16a34a' : THEME.brand }}
+          style={{ color: inSuperApp ? 'var(--success-fg)' : THEME.brandDeep }}
         />
       </div>
 
-      <h2 className="text-lg font-bold text-gray-900 mb-1">Telebirr Sign-In</h2>
-      <p className="text-sm text-gray-500 mb-5">
+      <h2 className="text-lg font-bold text-[var(--text-primary)] mb-1">Telebirr Sign-In</h2>
+      <p className="text-sm text-[var(--text-muted)] mb-5">
         {inSuperApp
           ? 'Signing you in automatically — no password needed.'
           : 'Open from Telebirr Super App for auto sign-in.'}
@@ -55,7 +55,7 @@ export default function TelebirrAuthGate({ onAuthenticated, onBack }: Props) {
       {isLoading ? (
         <div className="flex flex-col items-center gap-2 py-4">
           <Loader2 className="w-8 h-8 animate-spin" style={{ color: THEME.brand }} />
-          <p className="text-xs text-gray-400">Connecting to Telebirr...</p>
+          <p className="text-xs text-[var(--text-muted)]">Connecting to Telebirr...</p>
         </div>
       ) : (
         <>
@@ -65,23 +65,14 @@ export default function TelebirrAuthGate({ onAuthenticated, onBack }: Props) {
             </p>
           )}
           <div className="flex gap-3">
-            <button
-              type="button"
-              onClick={onBack}
-              className="flex-1 py-3 rounded-xl border border-gray-200 font-semibold text-gray-700"
-            >
+            <SecondaryButton fullWidth={false} className="flex-1" onClick={onBack}>
               Back
-            </button>
+            </SecondaryButton>
             {inSuperApp && (
-              <button
-                type="button"
-                onClick={signIn}
-                className="flex-1 py-3 rounded-xl font-bold text-white flex items-center justify-center gap-2"
-                style={{ backgroundColor: THEME.primary }}
-              >
+              <PrimaryButton fullWidth={false} className="flex-1" onClick={signIn}>
                 <RefreshCw className="w-4 h-4" />
                 Retry
-              </button>
+              </PrimaryButton>
             )}
           </div>
         </>

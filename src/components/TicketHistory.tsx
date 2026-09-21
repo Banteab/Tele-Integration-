@@ -1,4 +1,4 @@
-import { Download, Eye, Printer, TicketX } from 'lucide-react';
+import { ArrowLeft, Download, Eye, Printer, TicketX, X } from 'lucide-react';
 import { useState, useEffect, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -106,15 +106,16 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           <button
             type="button"
             onClick={onBack}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[var(--surface-muted)] rounded-full transition-colors"
+            aria-label={t('desktopNav.back')}
           >
-            ←
+            <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-gray-900">
+            <h2 className="text-xl font-bold text-[var(--text-primary)]">
               {t('ticketHistory.title')}
             </h2>
-            <p className="text-gray-500 text-sm">
+            <p className="text-[var(--text-muted)] text-sm">
               {t('ticketHistory.subtitle')}
             </p>
           </div>
@@ -147,33 +148,33 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
             <Fragment key={ticket.id}>
             <ScreenCard className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-gray-900 text-[15px]">{ticket.operator}</h3>
+                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
                 <StatusBadge status={getStatusKind(ticket.status)} label={getStatusLabel(ticket.status)} />
               </div>
-              <p className="text-sm text-gray-600">{ticket.route}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{ticket.route}</p>
               <div className="grid grid-cols-2 gap-2 text-xs">
                 <div>
-                  <p className="text-gray-400">{t('common.ref')}</p>
-                  <p className="font-semibold text-gray-900 tnum">{ticket.refNumber}</p>
+                  <p className="text-[var(--text-muted)]">{t('common.ref')}</p>
+                  <p className="font-semibold text-[var(--text-primary)] tnum">{ticket.refNumber}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">{t('common.date')}</p>
-                  <p className="font-semibold text-gray-900">
+                  <p className="text-[var(--text-muted)]">{t('common.date')}</p>
+                  <p className="font-semibold text-[var(--text-primary)]">
                     {new Date(ticket.departureDate).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">{t('payment.seatsLabel')}</p>
-                  <p className="font-semibold text-gray-900">{ticket.seats.join(', ')}</p>
+                  <p className="text-[var(--text-muted)]">{t('payment.seatsLabel')}</p>
+                  <p className="font-semibold text-[var(--text-primary)]">{ticket.seats.join(', ')}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400">{t('common.amount')}</p>
+                  <p className="text-[var(--text-muted)]">{t('common.amount')}</p>
                   <p className="font-semibold tnum" style={{ color: THEME.brand }}>
                     ETB {ticket.totalAmount}
                   </p>
                 </div>
               </div>
-              <div className="flex gap-2 pt-1 border-t border-gray-100">
+              <div className="flex gap-2 pt-1 border-t border-[var(--border)]">
                 <button
                   type="button"
                   onClick={() => setSelectedTicket(ticket)}
@@ -186,7 +187,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => handlePrint(ticket)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--surface-muted)] transition-colors"
                   title={t('common.print')}
                 >
                   <Printer className="w-4 h-4" />
@@ -194,7 +195,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <button
                   type="button"
                   onClick={() => handleDownload(ticket)}
-                  className="p-2 rounded-lg text-gray-500 hover:bg-gray-50 transition-colors"
+                  className="p-2 rounded-lg text-[var(--text-muted)] hover:bg-[var(--surface-muted)] transition-colors"
                   title={t('common.download')}
                 >
                   <Download className="w-4 h-4" />
@@ -227,53 +228,54 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold text-gray-900">{selectedTicket.operator}</h3>
-                <p className="text-sm text-gray-500">{selectedTicket.route}</p>
+                <h3 className="text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
+                <p className="text-sm text-[var(--text-muted)]">{selectedTicket.route}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setSelectedTicket(null)}
-                className="text-gray-400 hover:text-gray-600 text-xl"
+                className="p-1.5 -m-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-secondary)] hover:bg-[var(--surface-muted)] transition-colors"
+                aria-label={t('common.close')}
               >
-                ×
+                <X className="w-5 h-5" />
               </button>
             </div>
 
             <div className="space-y-4 text-sm">
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <p className="text-gray-400 text-xs">{t('common.reference')}</p>
+                  <p className="text-[var(--text-muted)] text-xs">{t('common.reference')}</p>
                   <p className="font-semibold tnum">{selectedTicket.refNumber}</p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs mb-1">{t('common.status')}</p>
+                  <p className="text-[var(--text-muted)] text-xs mb-1">{t('common.status')}</p>
                   <StatusBadge status={getStatusKind(selectedTicket.status)} label={getStatusLabel(selectedTicket.status)} />
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs">Date</p>
+                  <p className="text-[var(--text-muted)] text-xs">Date</p>
                   <p className="font-semibold">
                     {new Date(selectedTicket.departureDate).toLocaleDateString()}
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400 text-xs">{t('common.time')}</p>
+                  <p className="text-[var(--text-muted)] text-xs">{t('common.time')}</p>
                   <p className="font-semibold">{selectedTicket.departureTime}</p>
                 </div>
               </div>
 
-              <div className="border-t border-gray-100 pt-3 space-y-2">
+              <div className="border-t border-[var(--border)] pt-3 space-y-2">
                 {selectedTicket.passengers.map((passenger, idx) => (
                   <div
                     key={idx}
-                    className="flex justify-between items-center p-2 bg-gray-50 rounded-lg text-xs"
+                    className="flex justify-between items-center p-2 bg-[var(--surface-muted)] rounded-lg text-xs"
                   >
                     <span>{passenger}</span>
-                    <span className="text-gray-500">{t('common.seatNumber', { seat: selectedTicket.seats[idx] })}</span>
+                    <span className="text-[var(--text-muted)]">{t('common.seatNumber', { seat: selectedTicket.seats[idx] })}</span>
                   </div>
                 ))}
               </div>
 
-              <div className="flex justify-between items-center border-t border-gray-100 pt-3">
+              <div className="flex justify-between items-center border-t border-[var(--border)] pt-3">
                 <span className="font-bold">{t('common.total')}</span>
                 <span className="text-xl font-bold tnum" style={{ color: THEME.brand }}>
                   ETB {selectedTicket.totalAmount}

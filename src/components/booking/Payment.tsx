@@ -18,6 +18,7 @@ import {
   ScreenCard,
   TripBanner,
   PrimaryButton,
+  SecondaryButton,
   StickyFooter,
   StatusBadge,
 } from '../ui/ScreenUI';
@@ -285,10 +286,10 @@ export default function Payment({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <ScreenCard className="max-w-sm w-full text-center space-y-4">
             <Loader2 className="w-10 h-10 animate-spin mx-auto" style={{ color: THEME.brand }} />
-            <h3 className="font-bold text-gray-900">
+            <h3 className="font-bold text-[var(--text-primary)]">
               {t('payment.waitingForPayment') || 'Processing payment...'}
             </h3>
-            <p className="text-sm text-gray-500">{statusMessage}</p>
+            <p className="text-sm text-[var(--text-muted)]">{statusMessage}</p>
           </ScreenCard>
         </div>
       )}
@@ -305,36 +306,31 @@ export default function Payment({
           <StatusBadge status={paymentStatus} label={paymentStatusLabel} />
 
           {autoLoginChecked && !isAuthenticated && (
-            <div className="p-3 rounded-xl border border-amber-200 bg-amber-50 text-sm text-amber-950 space-y-3">
+            <div
+              className="p-3 rounded-xl border text-sm space-y-3"
+              style={{ backgroundColor: 'var(--warning-bg)', borderColor: 'var(--warning-border)', color: 'var(--warning-fg)' }}
+            >
               <p>{t('payment.authPrompt')}</p>
               <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={() => setAuthModalMode('login')}
-                  className="flex-1 py-2.5 rounded-xl font-semibold text-white flex items-center justify-center gap-2"
-                  style={{ backgroundColor: THEME.primary }}
-                >
+                <PrimaryButton fullWidth={false} className="flex-1 !py-2.5" onClick={() => setAuthModalMode('login')}>
                   <LogIn className="w-4 h-4" />
                   {t('auth.login')}
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setAuthModalMode('register')}
-                  className="flex-1 py-2.5 rounded-xl font-semibold border border-gray-200 bg-white text-gray-800 flex items-center justify-center gap-2"
-                >
+                </PrimaryButton>
+                <SecondaryButton fullWidth={false} className="flex-1 !py-2.5" onClick={() => setAuthModalMode('register')}>
                   <UserPlus className="w-4 h-4" />
                   {t('auth.register')}
-                </button>
+                </SecondaryButton>
               </div>
             </div>
           )}
 
           <div
-            className={`flex items-start gap-3 p-3 rounded-xl text-sm ${
+            className="flex items-start gap-3 p-3 rounded-xl text-sm border"
+            style={
               inH5Host
-                ? 'bg-green-50 border border-green-200 text-green-900'
-                : 'bg-amber-50 border border-amber-200 text-amber-900'
-            }`}
+                ? { backgroundColor: 'var(--success-bg)', borderColor: 'var(--success-border)', color: 'var(--success-fg)' }
+                : { backgroundColor: 'var(--warning-bg)', borderColor: 'var(--warning-border)', color: 'var(--warning-fg)' }
+            }
           >
             <Smartphone className="w-5 h-5 shrink-0" />
             <p>
@@ -344,14 +340,14 @@ export default function Payment({
 
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">{t('payment.passengerLabel')}</span>
+              <span className="text-[var(--text-muted)]">{t('payment.passengerLabel')}</span>
               <span className="font-medium">{passengerInfo.fullName}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-gray-500">{t('payment.seatsLabel')}</span>
+              <span className="text-[var(--text-muted)]">{t('payment.seatsLabel')}</span>
               <span className="font-medium">{selectedSeats.join(', ')}</span>
             </div>
-            <div className="flex justify-between items-center pt-2 border-t border-gray-100">
+            <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]">
               <span className="font-bold">{t('common.total')}</span>
               <span className="text-xl font-extrabold tnum" style={{ color: THEME.brand }}>
                 ETB {totalAmount}
@@ -359,7 +355,7 @@ export default function Payment({
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+          <div className="flex items-center justify-between text-xs text-[var(--text-muted)] pt-1">
             <span className="flex items-center gap-1">
               <ShieldCheck className="w-3.5 h-3.5" />
               {t('payment.securePayment')}
@@ -374,11 +370,9 @@ export default function Payment({
         {/* Desktop: sticky pay sidebar instead of a bottom bar */}
         <div className="hidden lg:block lg:sticky lg:top-24">
           <ScreenCard className="space-y-4">
-            <div className="flex items-center justify-between">
-              <span className="font-bold text-gray-900">{t('common.total')}</span>
-              <span className="text-xl font-extrabold tnum" style={{ color: THEME.brand }}>
-                ETB {totalAmount}
-              </span>
+            <div>
+              <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.total')}</p>
+              <p className="text-2xl font-extrabold tnum text-[var(--text-primary)]">ETB {totalAmount}</p>
             </div>
             <PrimaryButton
               onClick={handlePayment}

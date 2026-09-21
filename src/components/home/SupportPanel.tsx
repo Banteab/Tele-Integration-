@@ -21,12 +21,12 @@ export default function SupportPanel() {
       <ScreenCard className="text-center space-y-3 lg:p-10">
         <div
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full mx-auto flex items-center justify-center"
-          style={{ backgroundColor: THEME.primarySoft }}
+          style={{ backgroundColor: THEME.brandSoft }}
         >
-          <Headset className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.primary }} />
+          <Headset className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brandDeep }} />
         </div>
-        <h2 className="text-lg lg:text-2xl font-bold text-gray-900">{t('support.title')}</h2>
-        <p className="text-sm lg:text-base text-gray-600 lg:max-w-md lg:mx-auto">{t('support.description')}</p>
+        <h2 className="text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{t('support.title')}</h2>
+        <p className="text-sm lg:text-base text-[var(--text-secondary)] lg:max-w-md lg:mx-auto">{t('support.description')}</p>
       </ScreenCard>
 
       <ScreenCard className="lg:p-8">
@@ -35,10 +35,10 @@ export default function SupportPanel() {
             <div key={labelKey} className="flex items-start gap-3 lg:flex-col lg:items-center lg:text-center">
               <Icon className="w-4 h-4 lg:w-6 lg:h-6 mt-0.5 lg:mt-0 shrink-0" style={{ color: THEME.brand }} />
               <div>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+                <p className="text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
                   {t(labelKey)}
                 </p>
-                <p className="text-sm font-semibold text-gray-900">
+                <p className="text-sm font-semibold text-[var(--text-primary)]">
                   {valueKey ? t(valueKey) : value}
                 </p>
               </div>

@@ -109,16 +109,16 @@ export default function AuthModal({
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-          <h2 className="text-xl font-bold text-gray-900">
+        <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
+          <h2 className="text-xl font-bold text-[var(--text-primary)]">
             {mode === 'login' ? t('auth.login') : t('auth.register')}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+            className="p-2 hover:bg-[var(--surface-muted)] rounded-full transition-colors"
             aria-label={t('desktopNav.back')}
           >
-            <X className="w-5 h-5 text-gray-600" />
+            <X className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
         </div>
 
@@ -139,9 +139,9 @@ export default function AuthModal({
               onChange={(e) => setPhoneNumber(e.target.value)}
               placeholder={t('auth.phonePlaceholder')}
               disabled={isLoading}
-              className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
+              className={`${fieldClass} disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)]`}
             />
-            <p className="text-xs text-gray-500 mt-1">{t('auth.phoneFormatHint')}</p>
+            <p className="text-xs text-[var(--text-muted)] mt-1">{t('auth.phoneFormatHint')}</p>
           </div>
 
           {/* Password */}
@@ -153,7 +153,7 @@ export default function AuthModal({
               onChange={(e) => setPassword(e.target.value)}
               placeholder={t('auth.passwordPlaceholder')}
               disabled={isLoading}
-              className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
+              className={`${fieldClass} disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)]`}
             />
           </div>
 
@@ -167,7 +167,7 @@ export default function AuthModal({
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 placeholder={t('auth.confirmPasswordPlaceholder')}
                 disabled={isLoading}
-                className={`${fieldClass} disabled:bg-gray-50 disabled:text-gray-500`}
+                className={`${fieldClass} disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)]`}
               />
             </div>
           )}
@@ -179,8 +179,8 @@ export default function AuthModal({
           </PrimaryButton>
 
           {/* Switch Mode */}
-          <div className="text-center pt-4 border-t border-gray-100">
-            <p className="text-sm text-gray-600">
+          <div className="text-center pt-4 border-t border-[var(--border)]">
+            <p className="text-sm text-[var(--text-secondary)]">
               {mode === 'login' ? t('auth.noAccount') : t('auth.haveAccount')}
               {' '}
               <button

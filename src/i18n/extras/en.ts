@@ -30,6 +30,7 @@ export default {
     seat_other: '{{count}} seats',
     seatShort: '{{count}} seat(s): {{seats}}',
     seatNumber: 'Seat {{seat}}',
+    close: 'Close',
   },
   tabs: {
     home: 'Home',

@@ -1,7 +1,7 @@
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type CSSProperties } from 'react';
 import { toast } from 'sonner';
 import { getVehicleLayout } from '../../services/api';
 import {
@@ -161,23 +161,35 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
     }
   };
 
+  /**
+   * Seat color language: available seats read as interactive (light blue),
+   * the selected seat is the one unmistakable yellow accent on the board,
+   * and sold seats stay flat neutral gray — never random colors.
+   */
   const getSeatStyle = (seat: SeatData) => {
     if (!seat.name) return 'hidden';
 
-    const baseClass = 'w-11 h-11 rounded-lg border-2 font-semibold text-sm transition-all duration-200 flex items-center justify-center';
+    const baseClass = 'w-11 h-11 rounded-lg border-2 font-semibold text-sm transition-all duration-150 flex items-center justify-center';
 
     if (seat.type === 'sold') {
-      return `${baseClass} bg-gray-100 border-gray-200 text-gray-400 cursor-not-allowed`;
+      return `${baseClass} bg-[var(--surface-muted)] border-[var(--border-strong)] text-[var(--text-muted)] cursor-not-allowed`;
     }
 
     if (isSelectableSeat(seat.type)) {
       if (selectedSeats.includes(seat.name)) {
-        return `${baseClass} bg-[#f2a81c] border-[#f2a81c] text-white shadow-lg scale-105 cursor-pointer`;
+        return `${baseClass} border-[var(--color-primary)] text-[var(--text-primary)] shadow-md scale-105 cursor-pointer`;
       }
-      return `${baseClass} bg-white border-gray-300 text-gray-700 hover:border-[#c9922a] hover:shadow-md cursor-pointer`;
+      return `${baseClass} bg-[var(--color-brand-soft)] border-[var(--color-brand-border)] text-[var(--color-brand-deep)] hover:border-[var(--color-brand)] hover:bg-white hover:shadow-sm cursor-pointer`;
     }
 
     return 'hidden';
+  };
+
+  const getSeatInlineStyle = (seat: SeatData): CSSProperties | undefined => {
+    if (isSelectableSeat(seat.type) && selectedSeats.includes(seat.name)) {
+      return { backgroundColor: 'var(--color-primary)', boxShadow: THEME.shadowPrimary };
+    }
+    return undefined;
   };
 
   if (loading) {
@@ -186,7 +198,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
         <TripBanner from={bus.from || ''} to={bus.to || ''} meta={`${bus.operator} · ${t('seats.loadingSeatsMeta')}`} />
         <ScreenCard className="flex items-center justify-center py-12 gap-3">
           <Loader2 className="w-7 h-7 animate-spin" style={{ color: THEME.brand }} />
-          <span className="text-sm text-gray-500">{t('booking.loadingSeats')}</span>
+          <span className="text-sm text-[var(--text-muted)]">{t('booking.loadingSeats')}</span>
         </ScreenCard>
       </div>
     );
@@ -228,15 +240,24 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
   const total = bus.price * selectedSeats.length;
 
   const legend = (
-    <div className="flex justify-center gap-4 mt-5 pt-4 border-t border-gray-100 text-[10px] text-gray-500">
-      <span className="flex items-center gap-1">
-        <span className="w-3 h-3 rounded border-2 border-gray-300" /> {t('booking.legend.available')}
+    <div className="flex justify-center gap-4 mt-5 pt-4 border-t border-[var(--border)] text-[10px] font-medium text-[var(--text-secondary)]">
+      <span className="flex items-center gap-1.5">
+        <span
+          className="w-3.5 h-3.5 rounded border-2"
+          style={{ backgroundColor: 'var(--color-brand-soft)', borderColor: 'var(--color-brand-border)' }}
+        />
+        {t('booking.legend.available')}
       </span>
-      <span className="flex items-center gap-1">
-        <span className="w-3 h-3 rounded bg-[#f2a81c]" /> {t('booking.legend.selected')}
+      <span className="flex items-center gap-1.5">
+        <span className="w-3.5 h-3.5 rounded border-2" style={{ backgroundColor: 'var(--color-primary)', borderColor: 'var(--color-primary)' }} />
+        {t('booking.legend.selected')}
       </span>
-      <span className="flex items-center gap-1">
-        <span className="w-3 h-3 rounded bg-gray-200" /> {t('seats.sold')}
+      <span className="flex items-center gap-1.5">
+        <span
+          className="w-3.5 h-3.5 rounded border-2"
+          style={{ backgroundColor: 'var(--surface-muted)', borderColor: 'var(--border-strong)' }}
+        />
+        {t('seats.sold')}
       </span>
     </div>
   );
@@ -248,7 +269,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
         const sortedSeats = rowSeats.sort((a, b) => a.x - b.x);
         return (
           <div key={row} className="flex items-center justify-center gap-2">
-            <span className="w-5 text-[10px] font-bold text-gray-300">{row}</span>
+            <span className="w-5 text-[10px] font-bold text-[var(--text-muted)]">{row}</span>
             <div className="flex gap-1.5 lg:gap-2 flex-wrap justify-center">
               {sortedSeats.map((seat) => (
                 <button
@@ -257,6 +278,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
                   onClick={() => toggleSeat(seat.name)}
                   disabled={!isSelectableSeat(seat.type)}
                   className={getSeatStyle(seat)}
+                  style={getSeatInlineStyle(seat)}
                 >
                   {seat.name}
                 </button>
@@ -278,7 +300,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
       <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
         <ScreenCard className="mb-3 lg:mb-0 lg:p-8">
-          <p className="text-center text-[10px] font-bold uppercase tracking-widest text-gray-400 mb-4">
+          <p className="text-center text-[10px] font-bold uppercase tracking-widest text-[var(--text-muted)] mb-4">
             {t('booking.front')}
           </p>
           {seatMap}
@@ -288,16 +310,16 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
         {/* Desktop: sticky order summary sidebar instead of a bottom bar */}
         <div className="hidden lg:block lg:sticky lg:top-24">
           <ScreenCard className="space-y-4">
-            <h3 className="font-bold text-gray-900 text-sm">{t('booking.steps.seats')}</h3>
+            <h3 className="font-bold text-[var(--text-primary)] text-sm">{t('booking.steps.seats')}</h3>
             {selectedSeats.length > 0 ? (
               <>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-gray-500">
+                  <span className="text-[var(--text-muted)]">
                     {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
                   </span>
                 </div>
-                <div className="flex items-center justify-between pt-3 border-t border-gray-100">
-                  <span className="font-bold text-gray-900">{t('common.total')}</span>
+                <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
+                  <span className="font-bold text-[var(--text-primary)]">{t('common.total')}</span>
                   <span className="font-extrabold tnum text-lg" style={{ color: THEME.brand }}>
                     ETB {total}
                   </span>
@@ -305,7 +327,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
                 <PrimaryButton onClick={onContinue}>{t('booking.continueToDetails')}</PrimaryButton>
               </>
             ) : (
-              <p className="text-sm text-gray-400">{t('seats.selectPrompt')}</p>
+              <p className="text-sm text-[var(--text-muted)]">{t('seats.selectPrompt')}</p>
             )}
           </ScreenCard>
         </div>
@@ -314,7 +336,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
       {selectedSeats.length > 0 && (
         <StickyFooter>
           <div className="flex items-center justify-between mb-2 text-sm">
-            <span className="text-gray-500">
+            <span className="text-[var(--text-muted)]">
               {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
             </span>
             <span className="font-extrabold tnum" style={{ color: THEME.brand }}>

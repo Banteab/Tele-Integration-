@@ -22,16 +22,16 @@ export default function AboutPanel() {
           <Bus className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brand }} />
         </div>
         <div>
-          <h2 className="text-lg lg:text-2xl font-bold text-gray-900">{BRAND.name}</h2>
-          <p className="am text-sm font-semibold text-gray-500">{BRAND.nameAm}</p>
+          <h2 className="text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{BRAND.name}</h2>
+          <p className="am text-sm font-semibold text-[var(--text-muted)]">{BRAND.nameAm}</p>
         </div>
-        <p className="text-sm lg:text-base text-gray-600 leading-relaxed lg:max-w-lg lg:mx-auto">
+        <p className="text-sm lg:text-base text-[var(--text-secondary)] leading-relaxed lg:max-w-lg lg:mx-auto">
           {t('about.description')}
         </p>
       </ScreenCard>
 
       <ScreenCard className="space-y-3 lg:p-8">
-        <h3 className="text-sm lg:text-base font-bold text-gray-900 lg:mb-2">{t('about.whatYouCanDo')}</h3>
+        <h3 className="text-sm lg:text-base font-bold text-[var(--text-primary)] lg:mb-2">{t('about.whatYouCanDo')}</h3>
         <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-3 lg:space-y-0">
           {features.map(({ icon: Icon, textKey }) => (
             <div key={textKey} className="flex items-center gap-3 lg:flex-col lg:text-center lg:items-center lg:gap-3 lg:p-2">
@@ -41,13 +41,13 @@ export default function AboutPanel() {
               >
                 <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>
-              <p className="text-sm text-gray-700">{t(textKey)}</p>
+              <p className="text-sm text-[var(--text-secondary)]">{t(textKey)}</p>
             </div>
           ))}
         </div>
       </ScreenCard>
 
-      <p className="text-center text-[11px] text-gray-400 pt-2">{BRAND.tagline}</p>
+      <p className="text-center text-[11px] text-[var(--text-muted)] pt-2">{BRAND.tagline}</p>
     </PageContainer>
   );
 }

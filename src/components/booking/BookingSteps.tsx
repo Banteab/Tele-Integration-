@@ -31,18 +31,24 @@ export default function BookingSteps({ currentStep }: { currentStep: number }) {
               <div
                 className={`w-7 h-7 lg:w-9 lg:h-9 rounded-full flex items-center justify-center text-[11px] lg:text-sm font-bold transition-colors duration-300 ${
                   done
-                    ? 'bg-[#189ad8] text-white'
+                    ? 'text-white'
                     : active
-                      ? 'bg-[#f2a81c] text-white ring-4 ring-[#fef6e7]'
-                      : 'bg-gray-100 text-gray-400'
+                      ? 'text-[var(--text-primary)]'
+                      : 'bg-[var(--surface-muted)] text-[var(--text-muted)]'
                 }`}
+                style={
+                  done
+                    ? { backgroundColor: 'var(--color-brand)' }
+                    : active
+                      ? { backgroundColor: 'var(--color-primary)', boxShadow: `0 0 0 4px var(--color-primary-soft)` }
+                      : undefined
+                }
               >
                 {done ? <Check className="w-3.5 h-3.5 lg:w-4 lg:h-4" /> : step.id}
               </div>
               <span
-                className={`text-[9px] lg:text-xs font-semibold uppercase tracking-wide truncate w-full text-center ${
-                  active || done ? 'text-[#189ad8]' : 'text-gray-400'
-                }`}
+                className="text-[9px] lg:text-xs font-semibold uppercase tracking-wide truncate w-full text-center"
+                style={{ color: active || done ? 'var(--color-brand-deep)' : 'var(--text-muted)' }}
               >
                 {labels[step.key]}
               </span>
@@ -50,10 +56,10 @@ export default function BookingSteps({ currentStep }: { currentStep: number }) {
           );
         })}
       </div>
-      <div className="mt-3 h-1 rounded-full bg-gray-100 overflow-hidden lg:max-w-2xl lg:mx-auto">
+      <div className="mt-3 h-1 rounded-full bg-[var(--surface-muted)] overflow-hidden lg:max-w-2xl lg:mx-auto">
         <div
-          className="h-full rounded-full bg-[#189ad8] transition-all duration-300"
-          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%` }}
+          className="h-full rounded-full transition-all duration-300"
+          style={{ width: `${((currentStep - 1) / (STEPS.length - 1)) * 100}%`, backgroundColor: 'var(--color-brand)' }}
         />
       </div>
     </nav>

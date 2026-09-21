@@ -6,11 +6,12 @@ interface Props {
   className?: string;
 }
 
+/** Clean white surface with a hairline border and a soft (not heavy) shadow. */
 export function ScreenCard({ children, className = '' }: Props) {
   return (
     <div
-      className={`rounded-2xl bg-white p-4 ${className}`}
-      style={{ boxShadow: 'var(--shadow-md)' }}
+      className={`rounded-2xl bg-white border border-[var(--border)] p-4 ${className}`}
+      style={{ boxShadow: 'var(--shadow-sm)' }}
     >
       {children}
     </div>
@@ -23,21 +24,22 @@ interface TripBannerProps {
   meta?: string;
 }
 
+/** Light-blue "you're booking this trip" context banner — supporting color, not a CTA. */
 export function TripBanner({ from, to, meta }: TripBannerProps) {
   return (
     <div
-      className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3"
-      style={{ backgroundColor: THEME.primarySoft }}
+      className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 border border-[var(--color-brand-border)]"
+      style={{ backgroundColor: THEME.brandSoft }}
     >
       <div className="min-w-0">
-        <p className="text-sm font-bold text-gray-900 truncate">
+        <p className="text-sm font-bold text-[var(--text-primary)] truncate">
           {from} → {to}
         </p>
-        {meta && <p className="text-xs text-gray-500 mt-0.5">{meta}</p>}
+        {meta && <p className="text-xs text-[var(--text-muted)] mt-0.5">{meta}</p>}
       </div>
       <span
-        className="shrink-0 text-[10px] font-semibold uppercase tracking-wide px-2 py-1 rounded-full"
-        style={{ backgroundColor: `${THEME.brand}18`, color: THEME.brand }}
+        className="shrink-0 text-eyebrow px-2 py-1 rounded-full bg-white"
+        style={{ color: THEME.brandDeep }}
       >
         Trip
       </span>
@@ -56,6 +58,7 @@ interface PrimaryButtonProps {
   form?: string;
 }
 
+/** The single highest-emphasis action on a screen — yellow, used deliberately. */
 export function PrimaryButton({
   children,
   onClick,
@@ -71,7 +74,7 @@ export function PrimaryButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[16px] font-bold text-white transition-transform active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] active:scale-[0.98] active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${className}`}
       style={{
         backgroundColor: THEME.primary,
         boxShadow: THEME.shadowPrimary,
@@ -94,7 +97,7 @@ interface StickyFooterProps {
 export function StickyFooter({ children }: StickyFooterProps) {
   return (
     <div
-      className="app-fixed-shell bottom-0 z-40 app-gutter-x py-3 pb-safe border-t border-gray-100 lg:hidden"
+      className="app-fixed-shell bottom-0 z-40 app-gutter-x py-3 pb-safe border-t border-[var(--border)] lg:hidden"
       style={{ backgroundColor: 'var(--surface-card)', boxShadow: '0 -4px 16px rgba(16,39,71,0.08)' }}
     >
       {children}
@@ -103,9 +106,9 @@ export function StickyFooter({ children }: StickyFooterProps) {
 }
 
 export const fieldClass =
-  'w-full rounded-xl border border-gray-200 bg-white py-3.5 px-4 text-[15px] text-gray-900 outline-none transition-colors focus:border-[var(--blue-500)] focus:ring-2 focus:ring-[rgba(24,154,216,0.2)]';
+  'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
-export const labelClass = 'block text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1.5';
+export const labelClass = 'block text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5';
 
 /** Page-width container for the desktop/web experience (mobile ignores it). */
 export function PageContainer({ children, className = '', narrow = false }: Props & { narrow?: boolean }) {
@@ -125,6 +128,7 @@ interface SecondaryButtonProps {
   className?: string;
 }
 
+/** Second-priority action — white surface, light-blue border/text, clearly subordinate to yellow. */
 export function SecondaryButton({
   children,
   onClick,
@@ -138,7 +142,29 @@ export function SecondaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[16px] font-bold border-2 border-gray-200 bg-white text-gray-800 transition-colors active:scale-[0.98] hover:border-gray-300 disabled:opacity-60 disabled:cursor-not-allowed ${className}`}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold bg-white transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      style={{ border: `1.5px solid ${THEME.brandBorder}`, color: THEME.brandDeep }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/** Minimal-weight action — text only, for the least important choice on a screen. */
+export function TertiaryButton({
+  children,
+  onClick,
+  type = 'button',
+  disabled,
+  className = '',
+}: Omit<SecondaryButtonProps, 'fullWidth'>) {
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`inline-flex items-center justify-center gap-1.5 text-[14px] font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed hover:opacity-80 ${className}`}
+      style={{ color: THEME.brandDeep }}
     >
       {children}
     </button>
@@ -189,13 +215,13 @@ export function EmptyState({ icon, title, description, action, className = '' }:
       {icon && (
         <div
           className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-          style={{ backgroundColor: THEME.primarySoft }}
+          style={{ backgroundColor: THEME.brandSoft }}
         >
           {icon}
         </div>
       )}
-      <p className="font-semibold text-gray-900">{title}</p>
-      {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
+      <p className="font-semibold text-[var(--text-primary)]">{title}</p>
+      {description && <p className="text-sm text-[var(--text-muted)] mt-1">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>
   );
@@ -203,5 +229,5 @@ export function EmptyState({ icon, title, description, action, className = '' }:
 
 /** Skeleton block for loading states — pairs with ScreenCard. */
 export function Skeleton({ className = '' }: { className?: string }) {
-  return <div className={`animate-pulse rounded-lg bg-gray-100 ${className}`} />;
+  return <div className={`animate-pulse rounded-lg bg-[var(--surface-muted)] ${className}`} />;
 }

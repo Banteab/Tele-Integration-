@@ -95,8 +95,8 @@ export default function PassengerDetails({
       <form id="passenger-form" onSubmit={handleSubmit} className="space-y-4">
         <ScreenCard className="space-y-4 lg:p-8">
           <p
-            className="text-xs rounded-xl px-3 py-2"
-            style={{ backgroundColor: 'var(--amber-50)', color: '#a86f0a' }}
+            className="text-xs rounded-xl px-3 py-2 border border-[var(--color-brand-border)]"
+            style={{ backgroundColor: 'var(--color-brand-soft)', color: 'var(--color-brand-deep)' }}
           >
             {t('passenger.hint')}
           </p>
@@ -105,7 +105,7 @@ export default function PassengerDetails({
           <div>
             <label className={labelClass}>{t('passenger.phoneLabel')}</label>
             <div className="relative">
-              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
                 type="tel"
                 value={phone}
@@ -127,7 +127,7 @@ export default function PassengerDetails({
           <div>
             <label className={labelClass}>{t('passenger.fullNameLabel')}</label>
             <div className="relative">
-              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+              <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
               <input
                 type="text"
                 value={fullName}
@@ -150,7 +150,7 @@ export default function PassengerDetails({
           <button
             type="button"
             onClick={() => setShowOptional((v) => !v)}
-            className="flex items-center gap-1 text-sm font-semibold text-[#189ad8]"
+            className="flex items-center gap-1 text-sm font-semibold text-[var(--color-brand-deep)]"
           >
             {showOptional ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
             {showOptional ? t('passenger.hideOptional') : t('passenger.optionalDetails')}
@@ -194,13 +194,13 @@ export default function PassengerDetails({
       {/* Desktop: trip recap sidebar alongside the form */}
       <div className="hidden lg:block lg:sticky lg:top-24">
         <ScreenCard className="space-y-4">
-          <h3 className="font-bold text-gray-900 text-sm">{t('common.trip')}</h3>
+          <h3 className="font-bold text-[var(--text-primary)] text-sm">{t('common.trip')}</h3>
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">{tripFrom} → {tripTo}</span>
+            <span className="text-[var(--text-muted)]">{tripFrom} → {tripTo}</span>
           </div>
-          <div className="flex items-center justify-between text-sm pt-3 border-t border-gray-100">
-            <span className="text-gray-500">{t('payment.seatsLabel')}</span>
-            <span className="font-semibold text-gray-900">{selectedSeats.join(', ')}</span>
+          <div className="flex items-center justify-between text-sm pt-3 border-t border-[var(--border)]">
+            <span className="text-[var(--text-muted)]">{t('payment.seatsLabel')}</span>
+            <span className="font-semibold text-[var(--text-primary)]">{selectedSeats.join(', ')}</span>
           </div>
           <PrimaryButton type="submit" form="passenger-form">
             {t('passenger.proceedToPayment')}

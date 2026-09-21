@@ -30,7 +30,7 @@ export default function BottomNav({
   };
 
   return (
-    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white border-t border-gray-100 pb-safe">
+    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white border-t border-[var(--border)] pb-safe">
       <div className="relative app-gutter-x pt-2 pb-3">
         <button
           type="button"
@@ -57,11 +57,11 @@ export default function BottomNav({
               >
                 <Icon
                   className="w-5 h-5"
-                  style={{ color: isActive ? THEME.primary : '#9CA3AF' }}
+                  style={{ color: isActive ? THEME.primaryPressed : THEME.textMuted }}
                 />
                 <span
-                  className="text-[10px] font-medium"
-                  style={{ color: isActive ? THEME.primary : '#9CA3AF' }}
+                  className="text-[10px] font-semibold"
+                  style={{ color: isActive ? THEME.primaryPressed : THEME.textMuted }}
                 >
                   {t(labelKey)}
                 </span>

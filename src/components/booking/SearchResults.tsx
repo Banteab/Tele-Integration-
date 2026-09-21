@@ -9,6 +9,7 @@ import {
   ScreenCard,
   TripBanner,
   PrimaryButton,
+  Skeleton,
 } from '../ui/ScreenUI';
 import { THEME } from '../../config/theme';
 
@@ -113,10 +114,10 @@ export default function SearchResults({
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
           {[1, 2, 3].map((i) => (
             <Fragment key={i}>
-              <ScreenCard className="animate-pulse space-y-3">
-                <div className="h-5 w-32 bg-gray-200 rounded" />
-                <div className="h-4 w-full bg-gray-100 rounded" />
-                <div className="h-10 w-full bg-gray-100 rounded-xl" />
+              <ScreenCard className="space-y-3">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-4 w-full" />
+                <Skeleton className="h-10 w-full rounded-xl" />
               </ScreenCard>
             </Fragment>
           ))}
@@ -161,7 +162,7 @@ export default function SearchResults({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <BusIcon className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                <h3 className="font-bold text-gray-900 text-[15px]">{bus.operator}</h3>
+                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
                 <span
                   className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
                   style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover }}
@@ -170,7 +171,7 @@ export default function SearchResults({
                 </span>
               </div>
               {bus.sideNumber && (
-                <p className="text-xs text-gray-400 mt-1">{t('search.sideNumber', { number: bus.sideNumber })}</p>
+                <p className="text-xs text-[var(--text-muted)] mt-1">{t('search.sideNumber', { number: bus.sideNumber })}</p>
               )}
             </div>
             <p className="text-xl font-extrabold tnum shrink-0" style={{ color: THEME.brand }}>
@@ -179,32 +180,32 @@ export default function SearchResults({
             </p>
           </div>
 
-          <div className="flex items-center justify-between gap-2 py-3 border-y border-gray-100">
+          <div className="flex items-center justify-between gap-2 py-3 border-y border-[var(--border)]">
             <div className="text-center flex-1">
-              <p className="text-lg font-bold text-gray-900 tnum">
+              <p className="text-lg font-bold text-[var(--text-primary)] tnum">
                 {formatBusTime(bus.departureTime)}
               </p>
-              <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1 mt-0.5">
+              <p className="text-[11px] text-[var(--text-muted)] flex items-center justify-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {bus.from}
               </p>
             </div>
             <div className="flex flex-col items-center px-2">
-              <Clock className="w-3.5 h-3.5 text-gray-300" />
-              <div className="w-10 h-px bg-gray-200 my-1" />
+              <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
+              <div className="w-10 h-px bg-[var(--border-strong)] my-1" />
             </div>
             <div className="text-center flex-1">
-              <p className="text-lg font-bold text-gray-900 tnum">
+              <p className="text-lg font-bold text-[var(--text-primary)] tnum">
                 {formatBusTime(bus.arrivalTime)}
               </p>
-              <p className="text-[11px] text-gray-500 flex items-center justify-center gap-1 mt-0.5">
+              <p className="text-[11px] text-[var(--text-muted)] flex items-center justify-center gap-1 mt-0.5">
                 <MapPin className="w-3 h-3" />
                 {bus.to}
               </p>
             </div>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center justify-between text-xs text-[var(--text-muted)]">
             <span className="flex items-center gap-1">
               <Users className="w-3.5 h-3.5" />
               {t('search.seatsLeft', { count: bus.availableSeats })}

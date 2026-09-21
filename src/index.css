@@ -6,50 +6,104 @@
     --font-ui: 'Manrope', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
     --font-amharic: 'Noto Sans Ethiopic', 'Manrope', sans-serif;
 
-    --blue-500: #189ad8;
-    --blue-600: #1379bd;
-    --blue-700: #0c6ca6;
-    --blue-50: #ecf7fd;
-    --amber-500: #f2a81c;
-    --amber-600: #d68f0c;
-    --amber-50: #fef6e7;
-    --amber-200: #fbd488;
+    /* ============================================================
+       BRAND COLOR SYSTEM — Yellow (action) + Light Blue (trust) + White (clarity)
+       White/neutral surfaces dominate; blue supports; yellow is reserved
+       for primary actions and key emphasis. Every component should pull
+       from these tokens rather than hardcoding hex values.
+       ============================================================ */
 
+    /* Yellow — primary action / energy. Used sparingly: CTAs, selected
+       states, key emphasis. Never a background wash. */
+    --yellow-700: #b3730a;
+    --yellow-600: #d9900f;
+    --yellow-500: #f2a81c;
+    --yellow-100: #fbe0a6;
+    --yellow-50: #fef6e7;
+
+    /* Light blue — trust / information / navigation. The supporting
+       brand family: several controlled shades, never one flat blue. */
+    --blue-700: #0c6ca6;
+    --blue-600: #1379bd;
+    --blue-500: #189ad8;
+    --blue-400: #4fb2e0;
+    --blue-100: #cbe9f7;
+    --blue-50: #ecf7fd;
+
+    /* Neutrals — white is the dominant surface */
+    --white: #ffffff;
+    --off-white: #f7f9fb;
+    --surface-muted: #eef1f5;
+    --border: #e5e9ef;
+    --border-strong: #d7dde5;
+
+    --text-primary: #111827;
+    --text-secondary: #4b5566;
+    --text-muted: #8992a3;
+
+    /* Semantic — distinct from brand yellow/blue so status never gets
+       mistaken for a call-to-action */
+    --success-fg: #157a45;
+    --success-bg: #e9f9ef;
+    --success-border: #bfe9cf;
+    --warning-fg: #a86f0a;
+    --warning-bg: #fef6e7;
+    --warning-border: var(--yellow-100);
+    --error-fg: #b91c1c;
+    --error-bg: #fef2f2;
+    --error-border: #f6c6c6;
+    --neutral-fg: #4b5563;
+    --neutral-bg: #f1f3f6;
+    --neutral-border: #dde2e8;
+
+    /* Semantic role aliases — what components should actually reference */
     --color-brand: var(--blue-500);
     --color-brand-deep: var(--blue-700);
-    --color-primary: var(--amber-500);
-    --color-primary-hover: var(--amber-600);
-    --color-primary-soft: var(--amber-50);
-    --color-accent: var(--blue-600);
-    --surface-app: #f3f4f6;
-    --surface-card: #ffffff;
-    --text-strong: #111827;
-    --text-body: #374151;
-    --text-muted: #6b7280;
+    --color-brand-hover: var(--blue-600);
+    --color-brand-soft: var(--blue-50);
+    --color-brand-surface: var(--blue-100);
+    --color-brand-border: var(--blue-100);
+    --color-primary: var(--yellow-500);
+    --color-primary-hover: var(--yellow-600);
+    --color-primary-pressed: var(--yellow-700);
+    --color-primary-soft: var(--yellow-50);
+    --color-primary-border: var(--yellow-100);
+    --surface-app: var(--off-white);
+    --surface-card: var(--white);
 
     /* Status system — reused across payment, tickets, booking states */
-    --status-pending-bg: #fef6e7;
-    --status-pending-fg: #a86f0a;
-    --status-processing-bg: #ecf7fd;
-    --status-processing-fg: #0c6ca6;
-    --status-success-bg: #e9f9ef;
-    --status-success-fg: #15803d;
-    --status-failed-bg: #fef2f2;
-    --status-failed-fg: #b91c1c;
-    --status-cancelled-bg: #f3f4f6;
-    --status-cancelled-fg: #4b5563;
-    --status-expired-bg: #fef2f2;
-    --status-expired-fg: #991b1b;
+    --status-pending-bg: var(--warning-bg);
+    --status-pending-fg: var(--warning-fg);
+    --status-processing-bg: var(--blue-50);
+    --status-processing-fg: var(--blue-700);
+    --status-success-bg: var(--success-bg);
+    --status-success-fg: var(--success-fg);
+    --status-failed-bg: var(--error-bg);
+    --status-failed-fg: var(--error-fg);
+    --status-cancelled-bg: var(--neutral-bg);
+    --status-cancelled-fg: var(--neutral-fg);
+    --status-expired-bg: var(--error-bg);
+    --status-expired-fg: var(--error-fg);
+
+    /* Type scale — a controlled hierarchy instead of ad-hoc sizes */
+    --text-display: 2.25rem;   /* desktop hero */
+    --text-h1: 1.5rem;         /* page title */
+    --text-h2: 1.125rem;       /* section title */
+    --text-body: 0.9375rem;    /* body */
+    --text-small: 0.8125rem;   /* secondary text */
+    --text-label: 0.6875rem;   /* labels / eyebrow */
 
     /* Responsive shell: full width on phones, framed column on tablet,
        full professional layout (no phone-frame) on desktop */
     --shell-max-width: 100%;
     --gutter: 12px;
+    --radius-sm: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
     --radius-2xl: 24px;
-    --shadow-md: 0 4px 12px rgba(16, 39, 71, 0.10), 0 2px 4px rgba(16, 39, 71, 0.06);
-    --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.30);
+    --shadow-sm: 0 1px 2px rgba(16, 39, 71, 0.06);
+    --shadow-md: 0 4px 12px rgba(16, 39, 71, 0.08), 0 2px 4px rgba(16, 39, 71, 0.05);
+    --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.28);
     --shadow-shell: none;
 
     /* Desktop/web content widths — used once we leave the mini-app frame */
@@ -139,7 +193,7 @@ body {
   -webkit-font-smoothing: antialiased;
   margin: 0;
   background: var(--surface-app);
-  color: var(--text-body);
+  color: var(--text-secondary);
 }
 
 .am {
@@ -152,6 +206,19 @@ body {
 
 .pb-safe {
   padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Compact uppercase eyebrow/label text used for section kickers */
+.text-eyebrow {
+  font-size: var(--text-label);
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+::selection {
+  background: var(--blue-100);
+  color: var(--text-primary);
 }
 
 /* Consistent keyboard focus ring across mouse + touch */
