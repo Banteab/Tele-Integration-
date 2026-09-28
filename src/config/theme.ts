@@ -28,6 +28,7 @@ export const THEME = {
   brandHover: '#1379bd',
   brandDeep: '#0c6ca6',
   brandLight: '#4fb2e0',
+  brandMid: '#148cc9',
   brandSoft: '#ecf7fd',
   brandSurface: '#cbe9f7',
   brandBorder: '#cbe9f7',
@@ -49,6 +50,15 @@ export const THEME = {
   shadowPrimary: '0 6px 16px rgba(242, 168, 28, 0.28)',
   shadowMd: '0 4px 12px rgba(16, 39, 71, 0.08), 0 2px 4px rgba(16, 39, 71, 0.05)',
   shadowSm: '0 1px 2px rgba(16, 39, 71, 0.06)',
+
+  // Desktop/web-only neutral aliases (reference design) — see index.css
+  // --web-* tokens; kept separate from the shared text/border tokens above
+  // so this never shifts mobile screens.
+  webMuted: '#6b7280',
+  webSoft: '#9ca3af',
+  webLine: '#e8eef2',
+  webGoldHover: '#e09a12',
+  webGoldGlow: 'rgba(242, 168, 28, 0.28)',
 };
 
 /**

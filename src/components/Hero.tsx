@@ -7,7 +7,6 @@ import {
   ArrowRight,
   Clock,
   Loader2,
-  Users,
   Bus,
   Armchair,
   Smartphone,
@@ -27,7 +26,7 @@ import BottomNav, { type HomeTab } from './BottomNav';
 import AboutPanel from './home/AboutPanel';
 import SupportPanel from './home/SupportPanel';
 import TicketHistory from './TicketHistory';
-import { PageContainer, PrimaryButton, EmptyState } from './ui/ScreenUI';
+import { PrimaryButton, EmptyState } from './ui/ScreenUI';
 import { BRAND, THEME } from '../config/theme';
 
 const TAB_TITLE_KEYS: Record<HomeTab, string | undefined> = {
@@ -85,7 +84,6 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   const [from, setFrom] = useState('Addis Ababa');
   const [to, setTo] = useState('');
   const [date, setDate] = useState(todayIsoDate());
-  const [seats, setSeats] = useState('1');
   const { t } = useTranslation();
   const [fromOptions, setFromOptions] = useState<string[]>([]);
   const [toOptions, setToOptions] = useState<string[]>([]);
@@ -94,6 +92,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
+  const howItWorksRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setRecentRoutes(loadRecentRoutes().slice(0, 2));
@@ -193,6 +192,17 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
     }
   };
 
+  /** Footer "How it works" link — jump to that section, switching tabs first if needed. */
+  const goToHowItWorks = () => {
+    const scroll = () => howItWorksRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (activeTab !== 'home') {
+      handleTabChange('home');
+      requestAnimationFrame(() => requestAnimationFrame(scroll));
+    } else {
+      scroll();
+    }
+  };
+
   /** Picking a popular route prefills the real search fields — it never skips the date/search step. */
   const selectRoute = (route: RoutePair) => {
     setFrom(route.from);
@@ -202,9 +212,6 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
   const fieldClass =
     'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
-
-  const desktopFieldClass =
-    'w-full rounded-lg border border-[var(--border-strong)] bg-white py-3 pl-10 pr-3 text-sm text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
   const whyFeatures = [
     { icon: Search, titleKey: 'about.featureSearchTitle', textKey: 'about.featureSearch' },
@@ -221,14 +228,21 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
     { n: 4, icon: Ticket, titleKey: 'howItWorks.step4Title', descKey: 'howItWorks.step4Desc' },
   ] as const;
 
-  const sampleRoute = popularRoutes[0] ?? { from: 'Addis Ababa', to: 'Hawassa' };
   const year = new Date().getFullYear();
 
+  /** Field style matching the reference design: label above, no visible border until hover/focus. */
+  const webField = 'flex-1 min-w-0 flex flex-col justify-center px-[18px] py-3.5 rounded-xl transition-colors hover:bg-[var(--surface-muted)] focus-within:bg-[var(--surface-muted)]';
+  const webLabel = 'text-[11px] font-medium tracking-wide mb-0.5';
+  const webInput = 'border-0 bg-transparent text-[15px] font-semibold text-[var(--text-primary)] outline-none w-full p-0 appearance-none';
+
   const bookingBar = (
-    <div className="rounded-2xl bg-white p-3 flex flex-col xl:flex-row items-stretch gap-2" style={{ boxShadow: 'var(--shadow-md)' }}>
-      <div className="relative flex-1">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.brandDeep }} />
-        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={desktopFieldClass}>
+    <div
+      className="rounded-[18px] bg-white p-2.5 flex flex-col xl:flex-row items-stretch"
+      style={{ boxShadow: '0 4px 6px rgba(17,24,39,0.02), 0 12px 32px rgba(17,24,39,0.06)' }}
+    >
+      <div className={webField}>
+        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
+        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput}>
           <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
           {fromOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
@@ -239,44 +253,39 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
       <button
         type="button"
         onClick={swapCities}
-        className="w-10 h-10 self-center rounded-full border border-[var(--border-strong)] bg-white flex items-center justify-center shrink-0 hover:bg-[var(--surface-muted)] transition-colors"
-        style={{ color: THEME.brand }}
+        className="hidden xl:flex w-[38px] h-[38px] self-center rounded-full border flex-shrink-0 mx-1 items-center justify-center transition-all duration-200 hover:rotate-180"
+        style={{ borderColor: THEME.webLine, color: THEME.webMuted }}
+        onMouseEnter={(e) => { e.currentTarget.style.borderColor = THEME.brand; e.currentTarget.style.color = THEME.brand; e.currentTarget.style.backgroundColor = THEME.brandSoft; }}
+        onMouseLeave={(e) => { e.currentTarget.style.borderColor = THEME.webLine; e.currentTarget.style.color = THEME.webMuted; e.currentTarget.style.backgroundColor = 'transparent'; }}
         aria-label={t('common.swap')}
       >
-        <ArrowUpDown className="w-4 h-4" />
+        <ArrowUpDown className="w-3.5 h-3.5" />
       </button>
 
-      <div className="relative flex-1">
-        <MapPin className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4" style={{ color: THEME.brandDeep }} />
-        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={desktopFieldClass}>
-          <option value="">{loadingRoutes ? t('common.loading') : t('common.to')}</option>
+      <div className={webField}>
+        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
+        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput}>
+          <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
           {toOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
           ))}
         </select>
       </div>
 
-      <div className="relative flex-1">
-        <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={desktopFieldClass} />
-      </div>
+      <div className="hidden xl:block w-px my-3.5 shrink-0" style={{ backgroundColor: THEME.webLine }} />
 
-      <div className="relative w-full xl:w-40 shrink-0">
-        <Users className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-        <select value={seats} onChange={(e) => setSeats(e.target.value)} className={desktopFieldClass}>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={String(n)}>{t('common.seat', { count: n })}</option>
-          ))}
-        </select>
+      <div className={webField}>
+        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
+        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={webInput} />
       </div>
 
       <PrimaryButton
         onClick={handleSearch}
         disabled={loadingRoutes}
         fullWidth={false}
-        className="w-full xl:w-auto px-6 !py-3 text-sm shrink-0"
+        className="w-full xl:w-auto px-7 !py-0 xl:h-[52px] text-[15px] shrink-0 ml-0 xl:ml-1.5 mt-2 xl:mt-0 !rounded-xl"
       >
-        {loadingRoutes ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
+        {loadingRoutes ? <Loader2 className="w-[17px] h-[17px] animate-spin" /> : <Search className="w-[17px] h-[17px]" />}
         {t('hero.searchBuses')}
       </PrimaryButton>
     </div>
@@ -408,127 +417,157 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
           </div>
 
           {/* ============ DESKTOP / WEB ============ */}
-          <div className="hidden lg:block">
-            <section className="relative overflow-hidden pt-14 pb-10 px-6">
-              <div
-                className="absolute -top-32 right-0 w-[560px] h-[560px] rounded-full pointer-events-none"
-                style={{ background: `radial-gradient(circle, ${THEME.brandSurface} 0%, transparent 70%)`, opacity: 0.5, filter: 'blur(20px)' }}
-              />
-              <PageContainer className="relative">
-                <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
-                  <div>
-                    <span
-                      className="text-eyebrow inline-block px-3 py-1.5 rounded-full mb-5"
-                      style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep }}
-                    >
-                      {t('hero.eyebrow')}
-                    </span>
-                    <h1
-                      className="font-extrabold text-[var(--text-primary)] tracking-tight leading-[1.1]"
-                      style={{ fontSize: 'var(--text-display)' }}
-                    >
-                      {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
-                    </h1>
-                    <p className="text-[var(--text-secondary)] text-base mt-4 max-w-lg">{t('hero.subcopy')}</p>
+          <div className="hidden lg:block font-web">
+            {/* Hero band — centered eyebrow + headline, search is the focal point below */}
+            <section
+              className="pt-14 px-6"
+              style={{ background: `radial-gradient(ellipse 80% 60% at 50% -10%, ${THEME.brandSoft} 0%, transparent 60%)` }}
+            >
+              <div className="page-container-web text-center pb-7">
+                <span
+                  className="inline-block px-[13px] py-[5px] bg-white border rounded-full text-[11px] font-semibold uppercase tracking-wider mb-[18px]"
+                  style={{ borderColor: THEME.webLine, color: THEME.brand }}
+                >
+                  {t('hero.eyebrow')}
+                </span>
+                <h1
+                  className="font-bold text-[var(--text-primary)]"
+                  style={{ fontSize: 'clamp(30px, 4.2vw, 44px)', letterSpacing: '-0.035em', lineHeight: 1.15 }}
+                >
+                  {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
+                </h1>
+              </div>
+            </section>
 
-                    <div className="flex flex-wrap items-center gap-x-6 gap-y-2 mt-6">
-                      <TrustChip icon={ShieldCheck} text={t('payment.securePayment')} />
-                      <TrustChip icon={Ticket} text={t('hero.journeyCta')} />
-                    </div>
-                  </div>
+            {/* Search — the focal point */}
+            <section className="relative z-[5] px-6 pb-14" ref={searchRef}>
+              <div className="page-container-web">{bookingBar}</div>
+            </section>
 
-                  <JourneyVisual from={sampleRoute.from} to={sampleRoute.to} />
+            {/* How it works */}
+            <section className="px-6 py-14" ref={howItWorksRef}>
+              <div className="page-container-web">
+                <div className="text-center mb-10">
+                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
+                  <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('howItWorks.subtitle')}</p>
                 </div>
-              </PageContainer>
+                <div className="relative grid grid-cols-4 gap-4">
+                  <div
+                    className="hidden xl:block absolute top-[22px] left-[12%] right-[12%] h-px pointer-events-none"
+                    style={{ backgroundImage: `linear-gradient(90deg, transparent, ${THEME.webLine} 15%, ${THEME.webLine} 85%, transparent)` }}
+                  />
+                  {steps.map((step) => (
+                    <Fragment key={step.n}>
+                      <DesktopStep step={step} />
+                    </Fragment>
+                  ))}
+                </div>
+              </div>
             </section>
 
-            <section className="px-6" ref={searchRef}>
-              <PageContainer>{bookingBar}</PageContainer>
-            </section>
-
-            {popularRoutes.length > 0 && (
-              <section className="px-6 pt-20 pb-4" ref={routesRef}>
-                <PageContainer>
-                  <div className="mb-8">
-                    <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('routes.title')}</h2>
-                    <p className="text-[var(--text-secondary)] mt-1">{t('routes.subtitle')}</p>
+            {/* Why book with Menahariya */}
+            <section className="bg-white border-y" style={{ borderColor: THEME.webLine }}>
+              <div className="page-container-web px-6 py-14">
+                <div className="grid grid-cols-[0.85fr_1.15fr] gap-14 items-center">
+                  <div>
+                    <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
+                    <p className="mb-7 max-w-[280px] leading-relaxed" style={{ color: THEME.webMuted }}>{t('about.whySubtitle')}</p>
+                    <button
+                      type="button"
+                      onClick={handleBook}
+                      className="inline-flex items-center gap-1.5 rounded-full px-[18px] py-[9px] text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
+                      style={{ backgroundColor: THEME.primary, boxShadow: `0 2px 10px ${THEME.webGoldGlow}` }}
+                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = THEME.webGoldHover; }}
+                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = THEME.primary; }}
+                    >
+                      {t('desktopNav.bookTrip')}
+                    </button>
                   </div>
-                  <div className="grid grid-cols-2 xl:grid-cols-3 gap-4">
+                  <div className="flex flex-col">
+                    {whyFeatures.map((f) => (
+                      <Fragment key={f.titleKey}>
+                        <WhyRow feature={f} />
+                      </Fragment>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Popular routes — real origin/destination pairs from the API only */}
+            <section className="px-6 py-14" ref={routesRef}>
+              <div className="page-container-web">
+                <div className="text-center mb-10">
+                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
+                  <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('routes.subtitle')}</p>
+                </div>
+                {popularRoutes.length > 0 ? (
+                  <div className="grid grid-cols-3 gap-3">
                     {popularRoutes.map((route) => (
                       <Fragment key={`${route.from}-${route.to}`}>
                         <RouteCard route={route} onClick={() => selectRoute(route)} />
                       </Fragment>
                     ))}
                   </div>
-                </PageContainer>
-              </section>
-            )}
-
-            <section className="px-6 py-20" style={{ backgroundColor: THEME.brandSoft }}>
-              <PageContainer>
-                <div className="text-center mb-12">
-                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
-                  <p className="text-[var(--text-secondary)] mt-1">{t('howItWorks.subtitle')}</p>
-                </div>
-                <div className="relative grid grid-cols-4 gap-6">
-                  <div
-                    className="hidden xl:block absolute top-7 left-[12.5%] right-[12.5%] h-0.5"
-                    style={{ backgroundImage: `repeating-linear-gradient(90deg, ${THEME.brandBorder} 0, ${THEME.brandBorder} 8px, transparent 8px, transparent 16px)` }}
+                ) : (
+                  <EmptyState
+                    icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
+                    title={t('hero.exploreTitle')}
+                    description={t('hero.exploreDesc')}
+                    className="rounded-2xl bg-white border"
                   />
-                  {steps.map((step, i) => (
-                    <Fragment key={step.n}>
-                      <DesktopStep step={step} isLast={i === steps.length - 1} />
-                    </Fragment>
-                  ))}
-                </div>
-              </PageContainer>
+                )}
+              </div>
             </section>
 
-            <section className="px-6 py-20">
-              <PageContainer className="grid grid-cols-[0.8fr_1.2fr] gap-12 items-start">
-                <div>
-                  <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('about.whyTitle')}</h2>
-                  <p className="text-[var(--text-secondary)] mt-2">{t('about.whySubtitle')}</p>
-                </div>
-                <div className="rounded-2xl border border-[var(--border)] bg-white divide-y divide-[var(--border)] overflow-hidden">
-                  {whyFeatures.map((f) => (
-                    <Fragment key={f.titleKey}>
-                      <WhyRow feature={f} />
-                    </Fragment>
-                  ))}
-                </div>
-              </PageContainer>
-            </section>
-
-            <footer className="relative px-6 py-10">
-              <div className="absolute top-0 left-0 right-0 h-px" style={{ backgroundImage: `linear-gradient(90deg, transparent, ${THEME.brandBorder} 20%, ${THEME.brandBorder} 80%, transparent)` }} />
-              <PageContainer>
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
-                  <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-full flex items-center justify-center" style={{ backgroundColor: THEME.brandSoft }}>
-                      <Bus className="w-4 h-4" style={{ color: THEME.brandDeep }} />
+            <footer className="bg-white border-t px-6 pt-10 pb-6" style={{ borderColor: THEME.webLine }}>
+              <div className="page-container-web">
+                <div className="flex justify-between gap-10 pb-7 border-b mb-[18px]" style={{ borderColor: THEME.webLine }}>
+                  <div className="max-w-[240px]">
+                    <div className="flex items-center gap-2.5">
+                      <div
+                        className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
+                        style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: '0 2px 8px rgba(12,108,166,0.22)' }}
+                      >
+                        <Bus className="w-4 h-4 text-white" />
+                      </div>
+                      <div>
+                        <p className="font-semibold text-[15px] leading-tight text-[var(--text-primary)]">{BRAND.name}</p>
+                        <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-bold text-[var(--text-primary)]">{BRAND.name}</p>
-                      <p className="text-xs text-[var(--text-muted)] am">{BRAND.nameAm}</p>
-                    </div>
+                    <p className="text-[13px] mt-3 leading-relaxed" style={{ color: THEME.webMuted }}>{t('footer.blurb')}</p>
                   </div>
 
-                  <div className="flex items-center gap-5 text-sm text-[var(--text-secondary)]">
-                    <a href={`tel:${BRAND.phone}`} className="font-medium hover:text-[var(--text-primary)] transition-colors">
+                  <div className="flex gap-11 shrink-0">
+                    <FooterCol
+                      titleKey="footer.product"
+                      links={[
+                        { labelKey: 'desktopNav.routes', onClick: goToRoutes },
+                        { labelKey: 'desktopNav.myBooking', onClick: () => handleTabChange('tickets') },
+                        { labelKey: 'howItWorks.title', onClick: goToHowItWorks },
+                      ]}
+                    />
+                    <FooterCol
+                      titleKey="footer.company"
+                      links={[
+                        { labelKey: 'tabs.about', onClick: () => handleTabChange('about') },
+                        { labelKey: 'desktopNav.help', onClick: () => handleTabChange('support') },
+                      ]}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs" style={{ color: THEME.webSoft }}>
+                  <span>© {year} {BRAND.name}. {t('footer.rights')}</span>
+                  <div className="flex items-center gap-4">
+                    <a href={`tel:${BRAND.phone}`} className="font-semibold transition-colors" style={{ color: THEME.brandDeep }}>
                       {t('support.hotline')}: {BRAND.phone}
                     </a>
-                    <span className="w-px h-4 bg-[var(--border-strong)]" />
-                    <span className="inline-flex items-center gap-1.5 text-[var(--text-muted)]">
-                      <ShieldCheck className="w-3.5 h-3.5" />
-                      {t('footer.paymentBadge')}
-                    </span>
+                    <span>{t('footer.paymentBadge')}</span>
                   </div>
                 </div>
-                <div className="mt-8 pt-6 border-t border-[var(--border)] text-xs text-[var(--text-muted)] text-center">
-                  © {year} {BRAND.name}. {t('footer.rights')}
-                </div>
-              </PageContainer>
+              </div>
             </footer>
           </div>
         </>
@@ -555,68 +594,26 @@ function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: strin
   );
 }
 
-/** Small inline trust signal under the hero headline — not a full card. */
-function TrustChip({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
-  return (
-    <div className="inline-flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
-      <Icon className="w-3.5 h-3.5" style={{ color: THEME.brandDeep }} />
-      {text}
-    </div>
-  );
-}
-
-/**
- * The hero's "transport visual" — a CSS/SVG journey panel (route pins, dashed
- * path, bus + ticket motifs) rather than a stock photo, so it renders
- * reliably without depending on external imagery.
- */
-function JourneyVisual({ from, to }: { from: string; to: string }) {
+/** Footer link column — every link is a real in-app destination, never a dead "#" anchor. */
+function FooterCol({ titleKey, links }: { titleKey: string; links: { labelKey: string; onClick: () => void }[] }) {
   const { t } = useTranslation();
   return (
-    <div
-      className="relative rounded-3xl overflow-hidden p-1.5"
-      style={{ backgroundImage: `linear-gradient(135deg, ${THEME.brandDeep} 0%, ${THEME.brand} 100%)`, boxShadow: '0 24px 48px -16px rgba(12,108,166,0.4)' }}
-    >
-      <div className="absolute inset-0 bg-dot-grid opacity-[0.09] text-white pointer-events-none" />
-      <div className="absolute -right-14 -top-14 w-64 h-64 rounded-full opacity-20 pointer-events-none" style={{ backgroundColor: THEME.white }} />
-      <div className="absolute -left-16 -bottom-20 w-56 h-56 rounded-full opacity-10 pointer-events-none" style={{ backgroundColor: THEME.white }} />
-
-      <div className="relative rounded-[22px] bg-white p-7" style={{ boxShadow: 'var(--shadow-sm)' }}>
-        <span className="text-eyebrow inline-block mb-6" style={{ color: THEME.brandDeep }}>
-          {t('hero.journeyLabel')}
-        </span>
-
-        <div className="flex items-stretch gap-4">
-          <div className="flex flex-col items-center pt-1.5">
-            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: THEME.brand }} />
-            <span className="flex-1 w-0 border-l-2 border-dashed my-1" style={{ borderColor: THEME.brandBorder }} />
-            <div className="relative w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0" style={{ boxShadow: 'var(--shadow-sm)' }}>
-              <span className="absolute inset-0 rounded-full animate-ping opacity-40" style={{ backgroundColor: THEME.brandSurface }} />
-              <Bus className="relative w-4 h-4" style={{ color: THEME.brandDeep }} />
-            </div>
-            <span className="flex-1 w-0 border-l-2 border-dashed my-1" style={{ borderColor: THEME.brandBorder }} />
-            <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: THEME.primary }} />
-          </div>
-          <div className="flex-1 flex flex-col justify-between py-0.5">
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">{t('common.from')}</p>
-              <p className="text-xl font-bold text-[var(--text-primary)]">{from}</p>
-            </div>
-            <div>
-              <p className="text-xs text-[var(--text-muted)]">{t('common.to')}</p>
-              <p className="text-xl font-bold text-[var(--text-primary)]">{to}</p>
-            </div>
-          </div>
-        </div>
-
-        <div
-          className="mt-8 pt-5 border-t border-dashed flex items-center gap-2 text-sm font-semibold"
-          style={{ borderColor: THEME.brandBorder, color: THEME.brandDeep }}
-        >
-          <Ticket className="w-4 h-4" />
-          {t('hero.journeyCta')}
-        </div>
-      </div>
+    <div>
+      <h5 className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: THEME.webSoft }}>
+        {t(titleKey)}
+      </h5>
+      {links.map((link) => (
+        <Fragment key={link.labelKey}>
+          <button
+            type="button"
+            onClick={link.onClick}
+            className="block text-left text-[13px] mb-2 transition-colors hover:text-[var(--text-primary)]"
+            style={{ color: THEME.webMuted }}
+          >
+            {t(link.labelKey)}
+          </button>
+        </Fragment>
+      ))}
     </div>
   );
 }
@@ -628,25 +625,21 @@ function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className="text-left w-full rounded-2xl bg-white border border-[var(--border)] p-5 transition-all duration-150 hover:border-[var(--color-brand-border)] hover:shadow-md active:scale-[0.99]"
-      style={{ boxShadow: 'var(--shadow-sm)' }}
+      className="text-left w-full rounded-xl bg-white border border-[var(--border)] p-5 transition-all duration-150 hover:shadow-md active:scale-[0.99]"
+      onMouseEnter={(e) => { e.currentTarget.style.borderColor = THEME.brandMid; }}
+      onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
     >
-      <div className="flex items-center gap-2 mb-3">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: THEME.brand }} />
-        <p className="font-bold text-[var(--text-primary)] text-[15px] truncate">{route.from}</p>
+      <div className="flex items-start justify-between gap-3 mb-2.5">
+        <p className="font-semibold text-[var(--text-primary)] text-[14px] leading-snug flex items-center flex-wrap gap-1.5">
+          <span className="truncate">{route.from}</span>
+          <ArrowRight className="w-3 h-3 shrink-0" style={{ color: THEME.webSoft }} />
+          <span className="truncate">{route.to}</span>
+        </p>
       </div>
-      <div className="flex items-center gap-2 pl-[3px] mb-3">
-        <span className="w-0 border-l-2 border-dashed h-4" style={{ borderColor: THEME.brandBorder }} />
-      </div>
-      <div className="flex items-center gap-2 mb-4">
-        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: THEME.primary }} />
-        <p className="font-bold text-[var(--text-primary)] text-[15px] truncate">{route.to}</p>
-      </div>
-      <div className="flex items-center justify-between pt-3 border-t border-[var(--border)] text-xs">
-        <span className="text-[var(--text-muted)]">{t('routes.multipleDepartures')}</span>
+      <div className="flex items-center justify-between text-xs">
+        <span style={{ color: THEME.webMuted }}>{t('routes.multipleDepartures')}</span>
         <span className="inline-flex items-center gap-1 font-semibold shrink-0" style={{ color: THEME.brandDeep }}>
           {t('routes.viewBuses')}
-          <ArrowRight className="w-3.5 h-3.5" />
         </span>
       </div>
     </button>
@@ -704,31 +697,19 @@ function StepItem({
   );
 }
 
-/** Desktop "how it works" — numbered icon nodes connected by arrows, showing progression. */
-function DesktopStep({
-  step,
-  isLast,
-}: {
-  step: { n: number; icon: typeof Search; titleKey: string; descKey: string };
-  isLast: boolean;
-}) {
+/** Desktop "how it works" — a numbered node on the connecting line, matching the reference design. */
+function DesktopStep({ step }: { step: { n: number; titleKey: string; descKey: string } }) {
   const { t } = useTranslation();
-  const Icon = step.icon;
   return (
     <div className="relative z-10 flex flex-col items-center text-center">
-      <div className="relative mb-4">
-        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-[var(--border)]" style={{ boxShadow: 'var(--shadow-md)' }}>
-          <Icon className="w-6 h-6" style={{ color: THEME.brandDeep }} />
-        </div>
-        <span
-          className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-[var(--text-primary)]"
-          style={{ backgroundImage: `linear-gradient(135deg, ${THEME.primary}, ${THEME.primaryHover})`, boxShadow: THEME.shadowPrimary }}
-        >
-          {step.n}
-        </span>
+      <div
+        className="w-11 h-11 mb-4 rounded-full bg-white flex items-center justify-center text-[15px] font-bold"
+        style={{ border: `2px solid ${THEME.primary}`, color: THEME.primary, boxShadow: '0 0 0 6px var(--surface-app)' }}
+      >
+        {step.n}
       </div>
-      <p className="font-bold text-[var(--text-primary)]">{t(step.titleKey)}</p>
-      <p className="text-sm text-[var(--text-secondary)] mt-1 max-w-[200px]">{t(step.descKey)}</p>
+      <p className="font-semibold text-[var(--text-primary)]">{t(step.titleKey)}</p>
+      <p className="text-[13px] mt-1 leading-relaxed max-w-[160px]" style={{ color: THEME.webMuted }}>{t(step.descKey)}</p>
     </div>
   );
 }
@@ -738,20 +719,16 @@ function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string;
   const { t } = useTranslation();
   const Icon = feature.icon;
   return (
-    <div className="group relative flex items-start gap-4 p-5 transition-colors hover:bg-[var(--color-brand-soft)]">
-      <span
-        className="absolute left-0 top-0 bottom-0 w-0.5 scale-y-0 group-hover:scale-y-100 transition-transform origin-center"
-        style={{ backgroundColor: THEME.brand }}
-      />
-      <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
-        style={{ backgroundImage: `linear-gradient(135deg, ${THEME.brand}, ${THEME.brandDeep})`, boxShadow: '0 4px 10px rgba(12,108,166,0.25)' }}
-      >
-        <Icon className="w-5 h-5" />
+    <div
+      className="flex items-start gap-4 py-[18px] border-b transition-[padding] duration-150 hover:pl-1 last:border-b-0"
+      style={{ borderColor: THEME.webLine }}
+    >
+      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft }}>
+        <Icon className="w-[18px] h-[18px]" style={{ color: THEME.brand }} />
       </div>
       <div className="min-w-0">
-        <p className="font-bold text-[var(--text-primary)] text-sm">{t(feature.titleKey)}</p>
-        <p className="text-sm text-[var(--text-secondary)] mt-0.5">{t(feature.textKey)}</p>
+        <p className="font-semibold text-[14px] text-[var(--text-primary)]">{t(feature.titleKey)}</p>
+        <p className="text-[13px] mt-0.5" style={{ color: THEME.webMuted }}>{t(feature.textKey)}</p>
       </div>
     </div>
   );

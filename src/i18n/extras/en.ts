@@ -277,6 +277,9 @@ export default {
   footer: {
     paymentBadge: 'Payments secured by Telebirr',
     rights: 'All rights reserved.',
+    blurb: 'Intercity bus booking made simple. Search, choose, pay with Telebirr, and travel with a digital ticket.',
+    product: 'Product',
+    company: 'Company',
   },
   booking: {
     progress: 'Progress',
