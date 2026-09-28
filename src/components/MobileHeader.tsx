@@ -89,11 +89,15 @@ export default function MobileHeader({
 
   return (
     <header
-      className={`lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-4 min-[375px]:pb-5' : 'pb-8 min-[375px]:pb-10'}`}
+      className={`lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
       style={{
         background: `linear-gradient(175deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)`,
       }}
     >
+      <div className="absolute inset-0 bg-dot-grid opacity-[0.08] text-white pointer-events-none" />
+      <div className="absolute -right-10 -top-16 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
+      <div className="absolute left-1/3 -bottom-20 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
+
       <div className="relative flex items-center justify-between gap-2 min-[375px]:gap-3 mb-3 min-[375px]:mb-4">
         <div className="flex items-center gap-2 min-[375px]:gap-3 min-w-0 flex-1">
           {showBack ? (

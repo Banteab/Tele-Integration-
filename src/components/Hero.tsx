@@ -15,6 +15,7 @@ import {
   CreditCard,
   ShieldCheck,
   ClipboardCheck,
+  Compass,
 } from 'lucide-react';
 import { SearchParams } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -26,7 +27,7 @@ import BottomNav, { type HomeTab } from './BottomNav';
 import AboutPanel from './home/AboutPanel';
 import SupportPanel from './home/SupportPanel';
 import TicketHistory from './TicketHistory';
-import { PageContainer, PrimaryButton } from './ui/ScreenUI';
+import { PageContainer, PrimaryButton, EmptyState } from './ui/ScreenUI';
 import { BRAND, THEME } from '../config/theme';
 
 const TAB_TITLE_KEYS: Record<HomeTab, string | undefined> = {
@@ -303,8 +304,10 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
         <>
           {/* ============ MOBILE / TABLET — one focused screen ============ */}
           <div className="lg:hidden">
-            <div className="relative z-10 app-gutter-x pt-5" ref={searchRef}>
-              <div className="rounded-2xl bg-white p-4 space-y-4" style={{ boxShadow: 'var(--shadow-md)' }}>
+            <div className="relative z-10 app-gutter-x -mt-7" ref={searchRef}>
+              <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 16px 32px -12px rgba(12,108,166,0.35), var(--shadow-md)' }}>
+                <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, ${THEME.primary} 0%, ${THEME.brand} 100%)` }} />
+                <div className="p-4 space-y-4">
                 <h1 className="text-xl font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
                   {t('hero.searchHeadline')}
                 </h1>
@@ -352,7 +355,14 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   {loadingRoutes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                   {t('hero.searchBuses')}
                 </PrimaryButton>
+                </div>
               </div>
+            </div>
+
+            <div className="app-gutter-x pt-4 grid grid-cols-3 gap-2">
+              <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
+              <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
+              <TrustPill icon={Clock} text={t('hero.trustSupport')} />
             </div>
 
             {recentRoutes.length > 0 && (
@@ -381,6 +391,17 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </section>
             )}
 
+            {!loadingRoutes && recentRoutes.length === 0 && popularRoutes.length === 0 && (
+              <div className="app-gutter-x pt-6">
+                <EmptyState
+                  icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
+                  title={t('hero.exploreTitle')}
+                  description={t('hero.exploreDesc')}
+                  className="rounded-2xl bg-white border border-[var(--border)]"
+                />
+              </div>
+            )}
+
             {/* Mini App stays a single, focused screen — booking + quick route access is the whole page.
                 How it works / Why us / footer are desktop-web only (below). */}
             <div className="pb-28" />
@@ -388,8 +409,12 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
           {/* ============ DESKTOP / WEB ============ */}
           <div className="hidden lg:block">
-            <section className="pt-14 pb-10 px-6">
-              <PageContainer>
+            <section className="relative overflow-hidden pt-14 pb-10 px-6">
+              <div
+                className="absolute -top-32 right-0 w-[560px] h-[560px] rounded-full pointer-events-none"
+                style={{ background: `radial-gradient(circle, ${THEME.brandSurface} 0%, transparent 70%)`, opacity: 0.5, filter: 'blur(20px)' }}
+              />
+              <PageContainer className="relative">
                 <div className="grid grid-cols-1 xl:grid-cols-[1.05fr_0.95fr] gap-10 items-center">
                   <div>
                     <span
@@ -445,7 +470,11 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   <h2 className="text-2xl font-bold text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
                   <p className="text-[var(--text-secondary)] mt-1">{t('howItWorks.subtitle')}</p>
                 </div>
-                <div className="grid grid-cols-4 gap-6">
+                <div className="relative grid grid-cols-4 gap-6">
+                  <div
+                    className="hidden xl:block absolute top-7 left-[12.5%] right-[12.5%] h-0.5"
+                    style={{ backgroundImage: `repeating-linear-gradient(90deg, ${THEME.brandBorder} 0, ${THEME.brandBorder} 8px, transparent 8px, transparent 16px)` }}
+                  />
                   {steps.map((step, i) => (
                     <Fragment key={step.n}>
                       <DesktopStep step={step} isLast={i === steps.length - 1} />
@@ -471,7 +500,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </PageContainer>
             </section>
 
-            <footer className="border-t border-[var(--border-strong)] px-6 py-10">
+            <footer className="relative px-6 py-10">
+              <div className="absolute top-0 left-0 right-0 h-px" style={{ backgroundImage: `linear-gradient(90deg, transparent, ${THEME.brandBorder} 20%, ${THEME.brandBorder} 80%, transparent)` }} />
               <PageContainer>
                 <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
                   <div className="flex items-center gap-3">
@@ -513,6 +543,18 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   );
 }
 
+/** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
+function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
+  return (
+    <div className="rounded-xl bg-white border border-[var(--border)] px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep }}>
+        <Icon className="w-3.5 h-3.5" />
+      </div>
+      <span className="text-[10.5px] font-semibold text-[var(--text-secondary)] leading-tight">{text}</span>
+    </div>
+  );
+}
+
 /** Small inline trust signal under the hero headline — not a full card. */
 function TrustChip({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
   return (
@@ -531,11 +573,15 @@ function TrustChip({ icon: Icon, text }: { icon: typeof ShieldCheck; text: strin
 function JourneyVisual({ from, to }: { from: string; to: string }) {
   const { t } = useTranslation();
   return (
-    <div className="relative rounded-3xl overflow-hidden p-8" style={{ backgroundColor: THEME.brandSoft }}>
-      <div className="absolute -right-12 -top-12 w-56 h-56 rounded-full opacity-60 pointer-events-none" style={{ backgroundColor: THEME.brandSurface }} />
-      <div className="absolute -left-16 -bottom-16 w-64 h-64 rounded-full opacity-40 pointer-events-none" style={{ backgroundColor: THEME.brandSurface }} />
+    <div
+      className="relative rounded-3xl overflow-hidden p-1.5"
+      style={{ backgroundImage: `linear-gradient(135deg, ${THEME.brandDeep} 0%, ${THEME.brand} 100%)`, boxShadow: '0 24px 48px -16px rgba(12,108,166,0.4)' }}
+    >
+      <div className="absolute inset-0 bg-dot-grid opacity-[0.09] text-white pointer-events-none" />
+      <div className="absolute -right-14 -top-14 w-64 h-64 rounded-full opacity-20 pointer-events-none" style={{ backgroundColor: THEME.white }} />
+      <div className="absolute -left-16 -bottom-20 w-56 h-56 rounded-full opacity-10 pointer-events-none" style={{ backgroundColor: THEME.white }} />
 
-      <div className="relative">
+      <div className="relative rounded-[22px] bg-white p-7" style={{ boxShadow: 'var(--shadow-sm)' }}>
         <span className="text-eyebrow inline-block mb-6" style={{ color: THEME.brandDeep }}>
           {t('hero.journeyLabel')}
         </span>
@@ -544,8 +590,9 @@ function JourneyVisual({ from, to }: { from: string; to: string }) {
           <div className="flex flex-col items-center pt-1.5">
             <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: THEME.brand }} />
             <span className="flex-1 w-0 border-l-2 border-dashed my-1" style={{ borderColor: THEME.brandBorder }} />
-            <div className="w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
-              <Bus className="w-4 h-4" style={{ color: THEME.brandDeep }} />
+            <div className="relative w-9 h-9 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0" style={{ boxShadow: 'var(--shadow-sm)' }}>
+              <span className="absolute inset-0 rounded-full animate-ping opacity-40" style={{ backgroundColor: THEME.brandSurface }} />
+              <Bus className="relative w-4 h-4" style={{ color: THEME.brandDeep }} />
             </div>
             <span className="flex-1 w-0 border-l-2 border-dashed my-1" style={{ borderColor: THEME.brandBorder }} />
             <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: THEME.primary }} />
@@ -668,20 +715,14 @@ function DesktopStep({
   const { t } = useTranslation();
   const Icon = step.icon;
   return (
-    <div className="relative flex flex-col items-center text-center">
-      {!isLast && (
-        <ArrowRight
-          className="hidden xl:block absolute top-7 -right-3 w-6 h-6 translate-x-1/2"
-          style={{ color: THEME.brandBorder }}
-        />
-      )}
+    <div className="relative z-10 flex flex-col items-center text-center">
       <div className="relative mb-4">
-        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
+        <div className="w-14 h-14 rounded-2xl bg-white flex items-center justify-center border border-[var(--border)]" style={{ boxShadow: 'var(--shadow-md)' }}>
           <Icon className="w-6 h-6" style={{ color: THEME.brandDeep }} />
         </div>
         <span
           className="absolute -top-1.5 -right-1.5 w-6 h-6 rounded-full flex items-center justify-center text-[11px] font-bold text-[var(--text-primary)]"
-          style={{ backgroundColor: THEME.primary }}
+          style={{ backgroundImage: `linear-gradient(135deg, ${THEME.primary}, ${THEME.primaryHover})`, boxShadow: THEME.shadowPrimary }}
         >
           {step.n}
         </span>
@@ -697,10 +738,14 @@ function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string;
   const { t } = useTranslation();
   const Icon = feature.icon;
   return (
-    <div className="flex items-start gap-4 p-5">
+    <div className="group relative flex items-start gap-4 p-5 transition-colors hover:bg-[var(--color-brand-soft)]">
+      <span
+        className="absolute left-0 top-0 bottom-0 w-0.5 scale-y-0 group-hover:scale-y-100 transition-transform origin-center"
+        style={{ backgroundColor: THEME.brand }}
+      />
       <div
-        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep }}
+        className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0 text-white"
+        style={{ backgroundImage: `linear-gradient(135deg, ${THEME.brand}, ${THEME.brandDeep})`, boxShadow: '0 4px 10px rgba(12,108,166,0.25)' }}
       >
         <Icon className="w-5 h-5" />
       </div>

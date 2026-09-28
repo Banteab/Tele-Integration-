@@ -76,7 +76,7 @@ export function PrimaryButton({
       disabled={disabled}
       className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] active:scale-[0.98] active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${className}`}
       style={{
-        backgroundColor: THEME.primary,
+        backgroundImage: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.primaryHover} 100%)`,
         boxShadow: THEME.shadowPrimary,
       }}
     >

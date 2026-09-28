@@ -65,6 +65,11 @@ export default {
     selectDestination: 'Select destination',
     journeyLabel: 'Your next journey',
     journeyCta: 'Digital ticket, ready to board',
+    trustSecure: 'Secure payment',
+    trustTicket: 'Digital ticket',
+    trustSupport: '24/7 support',
+    exploreTitle: 'Explore routes across Ethiopia',
+    exploreDesc: 'Search a trip above to see it here.',
   },
   quickActions: {
     title: 'Quick actions',
