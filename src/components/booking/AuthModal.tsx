@@ -151,7 +151,7 @@ export default function AuthModal({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('auth.passwordPlaceholder')}
+              placeholder={mode === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordPlaceholderLogin')}
               disabled={isLoading}
               className={`${fieldClass} disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)]`}
             />

@@ -213,7 +213,7 @@ export default {
     authFailed: 'Authentication failed',
     phoneFormatHint: 'Format: 09xxxxxxxx or +2519xxxxxxxx',
     phonePlaceholder: '09xxxxxxxx or +2519xxxxxxxx',
-    passwordPlaceholder: 'At least 8 characters (upper, lower, number, or symbol)',
+    passwordPlaceholder: 'At least 8 characters',
     confirmPasswordPlaceholder: 'Confirm your password',
     loginInfo: 'Enter your phone number and password to login',
     registerInfo: 'Create a new account to book tickets',
