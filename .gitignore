@@ -12,6 +12,9 @@
 /build
 /dist
 
+# vite dev cache
+.vite
+
 # editor
 .idea/
 .vscode/

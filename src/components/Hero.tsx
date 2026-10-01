@@ -140,6 +140,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
         // Real route pairs only — never fabricated when the API has none.
         setPopularRoutes(pairs.slice(0, 6));
       } catch {
+        toast.error(t('hero.routesLoadFailed'));
         const fallback = ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa', 'Adama'];
         setFromOptions(fallback);
         setToOptions(fallback);
@@ -154,6 +155,14 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   const handleSearch = () => {
     if (!from || !to || !date) {
       toast.error(t('hero.fillRequired'));
+      return;
+    }
+    if (from === to) {
+      toast.error(t('hero.sameOriginDestination'));
+      return;
+    }
+    if (date < todayIsoDate()) {
+      toast.error(t('hero.pastDate'));
       return;
     }
     setRecentRoutes(saveRecentRoute({ from, to }).slice(0, 2));
@@ -242,7 +251,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
     >
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
-        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput}>
+        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.from")}>
           <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
           {fromOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
@@ -264,7 +273,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
-        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput}>
+        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.to")}>
           <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
           {toOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
@@ -276,7 +285,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={webInput} />
+        <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={webInput} aria-label={t("common.date")} />
       </div>
 
       <PrimaryButton
@@ -324,7 +333,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                 <div className="space-y-1">
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
+                    <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("common.from")}>
                       <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
                       {fromOptions.map((city) => (
                         <option key={city} value={city}>{city}</option>
@@ -346,7 +355,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
                   <div className="relative">
                     <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
+                    <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("hero.selectDestination")}>
                       <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
                       {toOptions.map((city) => (
                         <option key={city} value={city}>{city}</option>
@@ -357,7 +366,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
                 <div className="relative">
                   <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
+                  <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={fieldClass} aria-label={t("common.date")} />
                 </div>
 
                 <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>

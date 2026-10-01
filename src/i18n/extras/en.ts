@@ -70,6 +70,9 @@ export default {
     trustSupport: '24/7 support',
     exploreTitle: 'Explore routes across Ethiopia',
     exploreDesc: 'Search a trip above to see it here.',
+    sameOriginDestination: "Origin and destination can't be the same",
+    pastDate: 'Choose today or a future date',
+    routesLoadFailed: "Couldn't load routes. Showing common cities instead.",
   },
   quickActions: {
     title: 'Quick actions',
