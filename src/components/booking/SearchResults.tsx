@@ -166,10 +166,10 @@ export default function SearchResults({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <BusIcon className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
+                <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
                 <span
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover, border: '1.5px solid var(--ink)' }}
                 >
                   {bus.type}
                 </span>
@@ -178,7 +178,7 @@ export default function SearchResults({
                 <p className="text-xs text-[var(--text-muted)] mt-1">{t('search.sideNumber', { number: bus.sideNumber })}</p>
               )}
             </div>
-            <p className="text-xl font-extrabold tnum shrink-0" style={{ color: THEME.brand }}>
+            <p className="font-display text-xl font-bold tnum shrink-0" style={{ color: THEME.brand }}>
               {bus.price}
               <span className="text-xs font-semibold ml-0.5">ETB</span>
             </p>

@@ -1,12 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700;800&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer theme {
   :root {
-    --font-ui: 'Manrope', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-amharic: 'Noto Sans Ethiopic', 'Manrope', sans-serif;
-    /* Desktop/web uses Inter (per the reference design); mobile keeps Manrope. */
-    --font-web: 'Inter', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Bold Vibrant Transit direction: Space Grotesk for display/headlines
+       and every button, Hanken Grotesk for body — one consistent pairing
+       for mobile and desktop alike (no more split system). */
+    --font-ui: 'Hanken Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-amharic: 'Noto Sans Ethiopic', 'Hanken Grotesk', sans-serif;
+    --font-display: 'Space Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-web: 'Hanken Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* ============================================================
        BRAND COLOR SYSTEM — Yellow (action) + Light Blue (trust) + White (clarity)
@@ -111,7 +114,7 @@
        full professional layout (no phone-frame) on desktop */
     --shell-max-width: 100%;
     --gutter: 12px;
-    --radius-sm: 8px;
+    --radius-sm: 10px;
     --radius-lg: 12px;
     --radius-xl: 16px;
     --radius-2xl: 24px;
@@ -119,6 +122,15 @@
     --shadow-md: 0 4px 12px rgba(16, 39, 71, 0.08), 0 2px 4px rgba(16, 39, 71, 0.05);
     --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.28);
     --shadow-shell: none;
+
+    /* Bold Vibrant Transit structural language: thick ink borders and
+       hard offset shadows (not soft blur) on cards/buttons/chips. */
+    --ink: var(--text-primary);
+    --border-bold: 2px solid var(--ink);
+    --border-bold-width: 2px;
+    --shadow-hard-sm: 3px 3px 0 var(--ink);
+    --shadow-hard-md: 4px 4px 0 var(--ink);
+    --shadow-hard-lg: 6px 6px 0 var(--ink);
 
     /* Desktop/web content widths — used once we leave the mini-app frame */
     --content-max-width: 1120px;
@@ -211,6 +223,10 @@
 
   .font-web {
     font-family: var(--font-web);
+  }
+
+  .font-display {
+    font-family: var(--font-display);
   }
 
   /* Subtle texture for gradient/brand surfaces — depth without imagery */

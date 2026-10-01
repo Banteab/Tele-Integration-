@@ -21,11 +21,11 @@ export default function SupportPanel() {
       <ScreenCard className="text-center space-y-3 lg:p-10">
         <div
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full mx-auto flex items-center justify-center"
-          style={{ backgroundColor: THEME.brandSoft }}
+          style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
         >
           <Headset className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brandDeep }} />
         </div>
-        <h2 className="text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{t('support.title')}</h2>
+        <h2 className="font-display text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{t('support.title')}</h2>
         <p className="text-sm lg:text-base text-[var(--text-secondary)] lg:max-w-md lg:mx-auto">{t('support.description')}</p>
       </ScreenCard>
 

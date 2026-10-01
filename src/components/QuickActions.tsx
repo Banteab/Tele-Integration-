@@ -29,7 +29,7 @@ export default function QuickActions({ onBook, onManage }: Props) {
 
   return (
     <section className="app-gutter-x pb-28">
-      <h2 className="text-sm min-[375px]:text-base font-bold text-[var(--text-primary)] mb-3">
+      <h2 className="font-display text-sm min-[375px]:text-base font-bold text-[var(--text-primary)] mb-3">
         {t('quickActions.title')}
       </h2>
       <div className="grid grid-cols-2 gap-2 min-[375px]:gap-3">
@@ -38,13 +38,11 @@ export default function QuickActions({ onBook, onManage }: Props) {
             key={titleKey}
             type="button"
             onClick={onClick}
-            className={`rounded-2xl p-3 min-[375px]:p-4 text-left transition-all duration-150 active:scale-[0.98] ${
-              highlighted ? 'border-2' : 'bg-white border hover:border-[var(--border-strong)]'
-            }`}
+            className="rounded-2xl p-3 min-[375px]:p-4 text-left bg-white transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5"
             style={
               highlighted
-                ? { backgroundColor: THEME.primarySoft, borderColor: THEME.primaryBorder }
-                : { borderColor: 'var(--border)', boxShadow: THEME.shadowSm }
+                ? { backgroundColor: THEME.primarySoft, border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }
+                : { border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }
             }
           >
             <div
@@ -52,11 +50,12 @@ export default function QuickActions({ onBook, onManage }: Props) {
               style={{
                 backgroundColor: highlighted ? THEME.primaryBorder : THEME.brandSoft,
                 color: highlighted ? THEME.primaryPressed : THEME.brandDeep,
+                border: '1.5px solid var(--ink)',
               }}
             >
               <Icon className="w-5 h-5" />
             </div>
-            <p className="font-semibold text-sm text-[var(--text-primary)]">{t(titleKey)}</p>
+            <p className="font-display font-bold text-sm text-[var(--text-primary)]">{t(titleKey)}</p>
             <p className="text-xs text-[var(--text-muted)] mt-0.5">{t(subtitleKey)}</p>
           </button>
         ))}

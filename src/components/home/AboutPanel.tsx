@@ -17,12 +17,12 @@ export default function AboutPanel() {
       <ScreenCard className="text-center space-y-3 lg:p-10">
         <div
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full mx-auto flex items-center justify-center"
-          style={{ backgroundColor: THEME.primarySoft }}
+          style={{ backgroundColor: THEME.primarySoft, border: 'var(--border-bold)' }}
         >
           <Bus className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brand }} />
         </div>
         <div>
-          <h2 className="text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{BRAND.name}</h2>
+          <h2 className="font-display text-lg lg:text-2xl font-bold text-[var(--text-primary)]">{BRAND.name}</h2>
           <p className="am text-sm font-semibold text-[var(--text-muted)]">{BRAND.nameAm}</p>
         </div>
         <p className="text-sm lg:text-base text-[var(--text-secondary)] leading-relaxed lg:max-w-lg lg:mx-auto">
@@ -31,13 +31,13 @@ export default function AboutPanel() {
       </ScreenCard>
 
       <ScreenCard className="space-y-3 lg:p-8">
-        <h3 className="text-sm lg:text-base font-bold text-[var(--text-primary)] lg:mb-2">{t('about.whatYouCanDo')}</h3>
+        <h3 className="font-display text-sm lg:text-base font-bold text-[var(--text-primary)] lg:mb-2">{t('about.whatYouCanDo')}</h3>
         <div className="lg:grid lg:grid-cols-3 lg:gap-4 space-y-3 lg:space-y-0">
           {features.map(({ icon: Icon, textKey }) => (
             <div key={textKey} className="flex items-center gap-3 lg:flex-col lg:text-center lg:items-center lg:gap-3 lg:p-2">
               <div
                 className="w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand }}
+                style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand, border: '1.5px solid var(--ink)' }}
               >
                 <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>

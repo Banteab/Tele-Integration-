@@ -66,8 +66,8 @@ function ProfileChip({
         )}
       </div>
       <div
-        className="w-9 h-9 min-[375px]:w-10 min-[375px]:h-10 rounded-full bg-white flex items-center justify-center shadow-md shrink-0 font-bold text-xs min-[375px]:text-sm"
-        style={{ color: THEME.brand }}
+        className="w-9 h-9 min-[375px]:w-10 min-[375px]:h-10 rounded-full bg-white flex items-center justify-center shrink-0 font-display font-bold text-xs min-[375px]:text-sm"
+        style={{ color: THEME.brand, border: '1.5px solid var(--ink)' }}
         aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
       >
         {initials || <User className="w-5 h-5" />}
@@ -93,10 +93,9 @@ export default function MobileHeader({
   if (showBack) {
     return (
       <header
-        className="lg:hidden relative overflow-hidden app-gutter-x py-3"
-        style={{ background: `linear-gradient(175deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)` }}
+        className="lg:hidden relative app-gutter-x py-3"
+        style={{ backgroundColor: THEME.brand, borderBottom: 'var(--border-bold)' }}
       >
-        <div className="absolute inset-0 bg-dot-grid opacity-[0.08] text-white pointer-events-none" />
         <div className="relative flex items-center gap-3">
           <button
             type="button"
@@ -106,7 +105,7 @@ export default function MobileHeader({
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
-          <h1 className="flex-1 min-w-0 truncate text-[16px] min-[375px]:text-[17px] font-bold text-white">
+          <h1 className="flex-1 min-w-0 truncate font-display text-[16px] min-[375px]:text-[17px] font-bold text-white">
             {title}
           </h1>
         </div>
@@ -116,23 +115,23 @@ export default function MobileHeader({
 
   return (
     <header
-      className={`lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
+      className={`lg:hidden relative app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
       style={{
-        background: `linear-gradient(175deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)`,
+        backgroundColor: THEME.brand,
+        borderBottom: 'var(--border-bold)',
       }}
     >
-      <div className="absolute inset-0 bg-dot-grid opacity-[0.08] text-white pointer-events-none" />
-      <div className="absolute -right-10 -top-16 w-48 h-48 rounded-full bg-white/10 pointer-events-none" />
-      <div className="absolute left-1/3 -bottom-20 w-40 h-40 rounded-full bg-white/5 pointer-events-none" />
-
       <div className="relative flex items-center justify-between gap-2 min-[375px]:gap-3 mb-3 min-[375px]:mb-4">
         <div className="flex items-center gap-2 min-[375px]:gap-3 min-w-0 flex-1">
-          <div className="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
+          <div
+            className="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-xl bg-white flex items-center justify-center shrink-0"
+            style={{ border: 'var(--border-bold)' }}
+          >
             <Bus className="w-5 h-5 min-[375px]:w-6 min-[375px]:h-6" style={{ color: THEME.brand }} />
           </div>
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5 min-[375px]:gap-2 flex-wrap">
-              <span className="font-extrabold text-base min-[375px]:text-lg" style={{ color: THEME.primary }}>
+              <span className="font-display font-bold text-base min-[375px]:text-lg" style={{ color: THEME.primary }}>
                 {BRAND.name}
               </span>
               <span className="am text-white/95 text-xs min-[375px]:text-sm font-semibold max-[340px]:hidden">
@@ -150,7 +149,7 @@ export default function MobileHeader({
 
       {!minimal && (
         <>
-          <h1 className="relative text-lg min-[375px]:text-xl min-[400px]:text-[22px] font-bold text-white leading-snug tracking-tight">
+          <h1 className="relative font-display text-lg min-[375px]:text-xl min-[400px]:text-[22px] font-bold text-white leading-snug tracking-tight">
             {title ||
               (userName
                 ? t('header.greetingNamed', { name: userName.split(' ')[0] })

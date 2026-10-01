@@ -29,7 +29,7 @@ export default function BookingSteps({ currentStep }: { currentStep: number }) {
           return (
             <div key={step.id} className="flex-1 flex flex-col items-center gap-1 lg:gap-2 min-w-0">
               <div
-                className={`w-7 h-7 lg:w-9 lg:h-9 rounded-full flex items-center justify-center text-[11px] lg:text-sm font-bold transition-colors duration-300 ${
+                className={`font-display w-7 h-7 lg:w-9 lg:h-9 rounded-full flex items-center justify-center text-[11px] lg:text-sm font-bold transition-colors duration-300 ${
                   done
                     ? 'text-white'
                     : active
@@ -38,16 +38,16 @@ export default function BookingSteps({ currentStep }: { currentStep: number }) {
                 }`}
                 style={
                   done
-                    ? { backgroundColor: 'var(--color-brand)' }
+                    ? { backgroundColor: 'var(--color-brand)', border: '1.5px solid var(--ink)' }
                     : active
-                      ? { backgroundColor: 'var(--color-primary)', boxShadow: `0 0 0 4px var(--color-primary-soft)` }
+                      ? { backgroundColor: 'var(--color-primary)', border: '1.5px solid var(--ink)', boxShadow: `0 0 0 4px var(--color-primary-soft)` }
                       : undefined
                 }
               >
                 {done ? <Check className="w-3.5 h-3.5 lg:w-4 lg:h-4" /> : step.id}
               </div>
               <span
-                className="text-[9px] lg:text-xs font-semibold uppercase tracking-wide truncate w-full text-center"
+                className="font-display text-[9px] lg:text-xs font-bold uppercase tracking-wide truncate w-full text-center"
                 style={{ color: active || done ? 'var(--color-brand-deep)' : 'var(--text-muted)' }}
               >
                 {labels[step.key]}

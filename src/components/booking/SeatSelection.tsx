@@ -153,7 +153,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
     if (isSelectableSeat(seat.type)) {
       if (selectedSeats.includes(seat.name)) {
-        return `${baseClass} border-[var(--color-primary)] text-[var(--text-primary)] shadow-md scale-105 cursor-pointer`;
+        return `${baseClass} text-[var(--text-primary)] scale-105 cursor-pointer`;
       }
       return `${baseClass} bg-[var(--color-brand-soft)] border-[var(--color-brand-border)] text-[var(--color-brand-deep)] hover:border-[var(--color-brand)] hover:bg-white hover:shadow-sm cursor-pointer`;
     }
@@ -163,7 +163,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   const getSeatInlineStyle = (seat: SeatData): CSSProperties | undefined => {
     if (isSelectableSeat(seat.type) && selectedSeats.includes(seat.name)) {
-      return { backgroundColor: 'var(--color-primary)', boxShadow: THEME.shadowPrimary };
+      return { backgroundColor: 'var(--color-primary)', border: '2px solid var(--ink)', boxShadow: 'var(--shadow-hard-sm)' };
     }
     return undefined;
   };
@@ -286,7 +286,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
         {/* Desktop: sticky order summary sidebar instead of a bottom bar */}
         <div className="hidden lg:block lg:sticky lg:top-24">
           <ScreenCard className="space-y-4">
-            <h3 className="font-bold text-[var(--text-primary)] text-sm">{t('booking.steps.seats')}</h3>
+            <h3 className="font-display font-bold text-[var(--text-primary)] text-sm">{t('booking.steps.seats')}</h3>
             {selectedSeats.length > 0 ? (
               <>
                 <div className="flex items-center justify-between text-sm">
@@ -296,7 +296,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
                 </div>
                 <div className="flex items-center justify-between pt-3 border-t border-[var(--border)]">
                   <span className="font-bold text-[var(--text-primary)]">{t('common.total')}</span>
-                  <span className="font-extrabold tnum text-lg" style={{ color: THEME.brand }}>
+                  <span className="font-display font-bold tnum text-lg" style={{ color: THEME.brand }}>
                     ETB {total}
                   </span>
                 </div>
@@ -315,7 +315,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
             <span className="text-[var(--text-muted)]">
               {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
             </span>
-            <span className="font-extrabold tnum" style={{ color: THEME.brand }}>
+            <span className="font-display font-bold tnum" style={{ color: THEME.brand }}>
               ETB {total}
             </span>
           </div>

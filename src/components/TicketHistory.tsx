@@ -132,7 +132,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
             <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">
               {t('ticketHistory.title')}
             </h2>
             <p className="text-[var(--text-muted)] text-sm">
@@ -148,7 +148,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           have one built in), so this screen would otherwise show no title at all. */}
       {embedded && (
         <div className="hidden lg:block mb-2">
-          <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">
             {t('ticketHistory.title')}
           </h2>
           <p className="text-[var(--text-muted)] text-sm mt-1">
@@ -183,7 +183,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
             <Fragment key={ticket.id}>
             <ScreenCard className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
+                <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
                 <StatusBadge status={getStatusKind(ticket.status)} label={getStatusLabel(ticket.status)} />
               </div>
               <p className="text-sm text-[var(--text-secondary)]">{ticket.route}</p>
@@ -258,12 +258,13 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           onClick={() => setSelectedTicket(null)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto"
+            style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
+                <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{selectedTicket.route}</p>
               </div>
               <button
@@ -312,7 +313,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
 
               <div className="flex justify-between items-center border-t border-[var(--border)] pt-3">
                 <span className="font-bold">{t('common.total')}</span>
-                <span className="text-xl font-bold tnum" style={{ color: THEME.brand }}>
+                <span className="font-display text-xl font-bold tnum" style={{ color: THEME.brand }}>
                   ETB {selectedTicket.totalAmount}
                 </span>
               </div>

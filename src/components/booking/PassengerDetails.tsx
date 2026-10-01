@@ -217,7 +217,7 @@ export default function PassengerDetails({
       {/* Desktop: trip recap sidebar alongside the form */}
       <div className="hidden lg:block lg:sticky lg:top-24">
         <ScreenCard className="space-y-4">
-          <h3 className="font-bold text-[var(--text-primary)] text-sm">{t('common.trip')}</h3>
+          <h3 className="font-display font-bold text-[var(--text-primary)] text-sm">{t('common.trip')}</h3>
           <div className="flex items-center justify-between text-sm">
             <span className="text-[var(--text-muted)]">{tripFrom} → {tripTo}</span>
           </div>
