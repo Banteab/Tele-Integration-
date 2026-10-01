@@ -21,7 +21,7 @@ export default function BottomNav({ active = 'home', onTabChange }: Props) {
   ];
 
   return (
-    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white border-t border-[var(--border)] pb-safe">
+    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white pb-safe" style={{ borderTop: 'var(--border-bold)' }}>
       <div className="grid grid-cols-4 gap-0.5 min-[375px]:gap-1 app-gutter-x py-2.5">
         {items.map(({ id, labelKey, icon: Icon }) => {
           const isActive = active === id;
@@ -37,7 +37,7 @@ export default function BottomNav({ active = 'home', onTabChange }: Props) {
                 style={{ color: isActive ? THEME.primaryPressed : THEME.textMuted }}
               />
               <span
-                className="text-[10px] font-semibold"
+                className="font-display text-[10px] font-bold"
                 style={{ color: isActive ? THEME.primaryPressed : THEME.textMuted }}
               >
                 {t(labelKey)}

@@ -70,6 +70,9 @@ export default {
     trustSupport: '24/7 support',
     exploreTitle: 'Explore routes across Ethiopia',
     exploreDesc: 'Search a trip above to see it here.',
+    sameOriginDestination: "Origin and destination can't be the same",
+    pastDate: 'Choose today or a future date',
+    routesLoadFailed: "Couldn't load routes. Showing common cities instead.",
   },
   quickActions: {
     title: 'Quick actions',
@@ -210,7 +213,7 @@ export default {
     authFailed: 'Authentication failed',
     phoneFormatHint: 'Format: 09xxxxxxxx or +2519xxxxxxxx',
     phonePlaceholder: '09xxxxxxxx or +2519xxxxxxxx',
-    passwordPlaceholder: 'At least 8 characters (upper, lower, number, or symbol)',
+    passwordPlaceholder: 'At least 8 characters',
     confirmPasswordPlaceholder: 'Confirm your password',
     loginInfo: 'Enter your phone number and password to login',
     registerInfo: 'Create a new account to book tickets',

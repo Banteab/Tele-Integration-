@@ -286,7 +286,7 @@ export default function Payment({
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
           <ScreenCard className="max-w-sm w-full text-center space-y-4">
             <Loader2 className="w-10 h-10 animate-spin mx-auto" style={{ color: THEME.brand }} />
-            <h3 className="font-bold text-[var(--text-primary)]">
+            <h3 className="font-display font-bold text-[var(--text-primary)]">
               {t('payment.waitingForPayment') || 'Processing payment...'}
             </h3>
             <p className="text-sm text-[var(--text-muted)]">{statusMessage}</p>
@@ -349,7 +349,7 @@ export default function Payment({
             </div>
             <div className="flex justify-between items-center pt-2 border-t border-[var(--border)]">
               <span className="font-bold">{t('common.total')}</span>
-              <span className="text-xl font-extrabold tnum" style={{ color: THEME.brand }}>
+              <span className="font-display text-xl font-bold tnum" style={{ color: THEME.brand }}>
                 ETB {totalAmount}
               </span>
             </div>
@@ -372,7 +372,7 @@ export default function Payment({
           <ScreenCard className="space-y-4">
             <div>
               <p className="text-xs font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.total')}</p>
-              <p className="text-2xl font-extrabold tnum text-[var(--text-primary)]">ETB {totalAmount}</p>
+              <p className="font-display text-2xl font-bold tnum text-[var(--text-primary)]">ETB {totalAmount}</p>
             </div>
             <PrimaryButton
               onClick={handlePayment}

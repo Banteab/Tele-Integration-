@@ -38,15 +38,15 @@ export default function TicketSuccess({
     <PageContainer narrow className="pb-6 lg:pt-10 text-center">
       <div
         className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-        style={{ backgroundColor: THEME.primarySoft }}
+        style={{ backgroundColor: THEME.primarySoft, border: 'var(--border-bold)' }}
       >
         <CheckCircle className="w-9 h-9 lg:w-11 lg:h-11" style={{ color: THEME.primaryPressed }} />
       </div>
 
-      <h2 className="text-lg lg:text-2xl font-bold text-[var(--text-primary)] mb-1">{t('ticketSuccess.title')}</h2>
+      <h2 className="font-display text-lg lg:text-2xl font-bold text-[var(--text-primary)] mb-1">{t('ticketSuccess.title')}</h2>
       <p className="text-sm lg:text-base text-[var(--text-muted)] mb-6">{t('ticketSuccess.thankYou')}</p>
 
-      <p className="text-4xl lg:text-5xl font-extrabold tnum mb-1" style={{ color: THEME.brand }}>
+      <p className="font-display text-4xl lg:text-5xl font-bold tnum mb-1" style={{ color: THEME.brand }}>
         ETB {total}
       </p>
       <p className="text-xs text-[var(--text-muted)] uppercase tracking-wide mb-6">

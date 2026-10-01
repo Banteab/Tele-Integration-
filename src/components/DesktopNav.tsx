@@ -65,12 +65,12 @@ export default function DesktopNav({
         >
           <div
             className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
-            style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: '0 2px 8px rgba(12,108,166,0.22)' }}
+            style={{ backgroundColor: THEME.brand, border: '2px solid var(--ink)' }}
           >
             <Bus className="w-4 h-4 text-white" />
           </div>
           <div className="text-left">
-            <p className="font-semibold text-[15px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
+            <p className="font-display font-bold text-[15px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
               {BRAND.name}
             </p>
             <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
@@ -89,7 +89,7 @@ export default function DesktopNav({
                 <ArrowLeft className="w-4 h-4" />
               </button>
             )}
-            <h1 className="font-bold text-[var(--text-primary)] text-[15px] truncate">{flowTitle}</h1>
+            <h1 className="font-display font-bold text-[var(--text-primary)] text-[15px] truncate">{flowTitle}</h1>
           </div>
         ) : (
           <nav className="flex-1 flex items-center justify-center gap-1">
@@ -100,11 +100,12 @@ export default function DesktopNav({
                   key={id}
                   type="button"
                   onClick={tab ? () => onTabChange?.(tab) : onClick}
-                  className="relative px-[13px] py-[7px] text-sm rounded-lg transition-colors"
+                  className="relative font-display px-[13px] py-[7px] text-sm rounded-lg transition-colors"
                   style={{
                     color: isActive ? THEME.brandDeep : THEME.webMuted,
                     backgroundColor: isActive ? THEME.brandSoft : 'transparent',
-                    fontWeight: isActive ? 600 : 500,
+                    border: isActive ? '1.5px solid var(--ink)' : '1.5px solid transparent',
+                    fontWeight: isActive ? 700 : 500,
                   }}
                 >
                   {t(labelKey)}
@@ -121,10 +122,8 @@ export default function DesktopNav({
             <button
               type="button"
               onClick={onBook}
-              className="hidden xl:flex items-center gap-1.5 rounded-full px-[18px] py-[9px] text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-px active:scale-[0.98]"
-              style={{ backgroundColor: THEME.primary, boxShadow: `0 2px 10px ${THEME.webGoldGlow}` }}
-              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = THEME.webGoldHover; }}
-              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = THEME.primary; }}
+              className="hidden xl:flex items-center gap-1.5 rounded-full font-display px-[18px] py-[9px] text-sm font-bold text-[var(--text-primary)] transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5"
+              style={{ backgroundColor: THEME.primary, border: '2px solid var(--ink)', boxShadow: 'var(--shadow-hard-sm)' }}
             >
               <TicketPlus className="w-3.5 h-3.5" />
               {t('desktopNav.bookTrip')}
@@ -133,11 +132,11 @@ export default function DesktopNav({
 
           <div className="flex items-center gap-2 pl-3 border-l border-[var(--border)]">
             <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs shrink-0"
+              className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
               style={
                 isLoggedIn
-                  ? { backgroundColor: THEME.brand, color: THEME.white }
-                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted }
+                  ? { backgroundColor: THEME.brand, color: THEME.white, border: '1.5px solid var(--ink)' }
+                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted, border: '1.5px solid var(--border-strong)' }
               }
               aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
             >

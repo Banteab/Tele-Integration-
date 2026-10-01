@@ -51,7 +51,7 @@ export default function AuthModal({
       return;
     }
 
-    if (password.length < 8) {
+    if (mode === 'register' && password.length < 8) {
       setError(t('auth.passwordMin8'));
       return;
     }
@@ -105,12 +105,13 @@ export default function AuthModal({
         animate={{ scale: 1, opacity: 1 }}
         exit={reduceMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
         transition={scaleTransition}
-        className="bg-white rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
+        style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-[var(--border)]">
-          <h2 className="text-xl font-bold text-[var(--text-primary)]">
+          <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">
             {mode === 'login' ? t('auth.login') : t('auth.register')}
           </h2>
           <button
@@ -151,7 +152,7 @@ export default function AuthModal({
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder={t('auth.passwordPlaceholder')}
+              placeholder={mode === 'register' ? t('auth.passwordPlaceholder') : t('auth.passwordPlaceholderLogin')}
               disabled={isLoading}
               className={`${fieldClass} disabled:bg-[var(--surface-muted)] disabled:text-[var(--text-muted)]`}
             />
@@ -187,7 +188,6 @@ export default function AuthModal({
                 type="button"
                 onClick={() => {
                   setError(null);
-                  setPhoneNumber('');
                   setPassword('');
                   setConfirmPassword('');
                   onSwitchMode(mode === 'login' ? 'register' : 'login');

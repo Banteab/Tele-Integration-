@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, CSSProperties } from 'react';
 import { THEME, STATUS, type StatusKind } from '../../config/theme';
 
 interface Props {
@@ -6,12 +6,12 @@ interface Props {
   className?: string;
 }
 
-/** Clean white surface with a hairline border and a soft (not heavy) shadow. */
+/** Bold surface — thick ink border + hard offset shadow, not a soft blur. */
 export function ScreenCard({ children, className = '' }: Props) {
   return (
     <div
-      className={`rounded-2xl bg-white border border-[var(--border)] p-4 ${className}`}
-      style={{ boxShadow: 'var(--shadow-sm)' }}
+      className={`rounded-2xl bg-white p-4 ${className}`}
+      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
     >
       {children}
     </div>
@@ -28,18 +28,18 @@ interface TripBannerProps {
 export function TripBanner({ from, to, meta }: TripBannerProps) {
   return (
     <div
-      className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3 border border-[var(--color-brand-border)]"
-      style={{ backgroundColor: THEME.brandSoft }}
+      className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3"
+      style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
     >
       <div className="min-w-0">
-        <p className="text-sm font-bold text-[var(--text-primary)] truncate">
+        <p className="text-sm font-display font-bold text-[var(--text-primary)] truncate">
           {from} → {to}
         </p>
         {meta && <p className="text-xs text-[var(--text-muted)] mt-0.5">{meta}</p>}
       </div>
       <span
         className="shrink-0 text-eyebrow px-2 py-1 rounded-full bg-white"
-        style={{ color: THEME.brandDeep }}
+        style={{ color: THEME.brandDeep, border: '1.5px solid var(--ink)' }}
       >
         Trip
       </span>
@@ -58,7 +58,8 @@ interface PrimaryButtonProps {
   form?: string;
 }
 
-/** The single highest-emphasis action on a screen — yellow, used deliberately. */
+/** The single highest-emphasis action on a screen — solid yellow, thick ink
+ *  border, hard offset shadow. Press pushes the button into its own shadow. */
 export function PrimaryButton({
   children,
   onClick,
@@ -74,10 +75,11 @@ export function PrimaryButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] active:scale-[0.98] active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${className}`}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-base font-bold tracking-tight text-[var(--text-primary)] transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
       style={{
-        backgroundImage: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.primaryHover} 100%)`,
-        boxShadow: THEME.shadowPrimary,
+        backgroundColor: THEME.primary,
+        border: 'var(--border-bold)',
+        boxShadow: 'var(--shadow-hard-md)',
       }}
     >
       {children}
@@ -97,8 +99,8 @@ interface StickyFooterProps {
 export function StickyFooter({ children }: StickyFooterProps) {
   return (
     <div
-      className="app-fixed-shell bottom-0 z-40 app-gutter-x py-3 pb-safe border-t border-[var(--border)] lg:hidden"
-      style={{ backgroundColor: 'var(--surface-card)', boxShadow: '0 -4px 16px rgba(16,39,71,0.08)' }}
+      className="app-fixed-shell bottom-0 z-40 app-gutter-x py-3 pb-safe lg:hidden"
+      style={{ backgroundColor: 'var(--surface-card)', borderTop: 'var(--border-bold)', boxShadow: '0 -4px 16px rgba(16,39,71,0.08)' }}
     >
       {children}
     </div>
@@ -106,9 +108,9 @@ export function StickyFooter({ children }: StickyFooterProps) {
 }
 
 export const fieldClass =
-  'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
+  'w-full rounded-xl border-2 border-[var(--border-strong)] bg-white py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--ink)] focus:ring-0';
 
-export const labelClass = 'block text-[13px] font-semibold text-[var(--text-secondary)] mb-1.5';
+export const labelClass = 'block text-[13px] font-bold text-[var(--text-secondary)] mb-1.5';
 
 /** Page-width container for the desktop/web experience (mobile ignores it). */
 export function PageContainer({ children, className = '', narrow = false }: Props & { narrow?: boolean }) {
@@ -128,7 +130,8 @@ interface SecondaryButtonProps {
   className?: string;
 }
 
-/** Second-priority action — white surface, light-blue border/text, clearly subordinate to yellow. */
+/** Second-priority action — white surface, blue text, same bold ink border +
+ *  hard shadow family as PrimaryButton, clearly subordinate to yellow. */
 export function SecondaryButton({
   children,
   onClick,
@@ -142,8 +145,8 @@ export function SecondaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold bg-white transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
-      style={{ border: `1.5px solid ${THEME.brandBorder}`, color: THEME.brandDeep }}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-base font-bold tracking-tight bg-white transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
+      style={{ border: 'var(--border-bold)', color: THEME.brandDeep, boxShadow: 'var(--shadow-hard-sm)' }}
     >
       {children}
     </button>
@@ -191,8 +194,8 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
   const tone = STATUS[status];
   return (
     <span
-      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${className}`}
-      style={{ backgroundColor: tone.bg, color: tone.fg }}
+      className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${className}`}
+      style={{ backgroundColor: tone.bg, color: tone.fg, border: `1.5px solid ${tone.fg}` }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone.fg }} />
       {label ?? STATUS_LABEL_FALLBACK[status]}
@@ -206,21 +209,22 @@ interface EmptyStateProps {
   description?: string;
   action?: ReactNode;
   className?: string;
+  style?: CSSProperties;
 }
 
 /** Shared empty/error placeholder so no screen ever shows a blank void. */
-export function EmptyState({ icon, title, description, action, className = '' }: EmptyStateProps) {
+export function EmptyState({ icon, title, description, action, className = '', style }: EmptyStateProps) {
   return (
-    <div className={`text-center py-10 px-4 ${className}`}>
+    <div className={`text-center py-10 px-4 ${className}`} style={style}>
       {icon && (
         <div
           className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-          style={{ backgroundColor: THEME.brandSoft }}
+          style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
         >
           {icon}
         </div>
       )}
-      <p className="font-semibold text-[var(--text-primary)]">{title}</p>
+      <p className="font-display font-bold text-[var(--text-primary)]">{title}</p>
       {description && <p className="text-sm text-[var(--text-muted)] mt-1">{description}</p>}
       {action && <div className="mt-4">{action}</div>}
     </div>

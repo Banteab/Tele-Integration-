@@ -56,15 +56,19 @@ export default function PassengerDetails({
 
     if (!phone.trim() || !fullName.trim()) {
       newErrors.form = t('passenger.errors.formRequired');
-    } else if (!/^09\d{8}$/.test(cleanPhone)) {
+    }
+    if (phone.trim() && !/^09\d{8}$/.test(cleanPhone)) {
       newErrors.phone = t('passenger.errors.phoneInvalid');
-    } else if (fullName.trim().length < 2) {
+    }
+    if (fullName.trim() && fullName.trim().length < 2) {
       newErrors.fullName = t('passenger.errors.fullNameInvalid');
-    } else if (email.trim() && !email.includes('@')) {
+    }
+    if (email.trim() && !email.includes('@')) {
       newErrors.email = t('passenger.errors.emailInvalidOptional');
     }
 
     setErrors(newErrors);
+    if (newErrors.email) setShowOptional(true);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -81,7 +85,7 @@ export default function PassengerDetails({
       });
       return;
     }
-    toast.error(errors.form || t('passenger.errors.fixForm'));
+    toast.error(errors.form || errors.phone || errors.fullName || errors.email || t('passenger.errors.fixForm'));
   };
 
   const tripFrom = routeLabel?.split('→')[0]?.trim() || t('common.trip');
@@ -160,11 +164,30 @@ export default function PassengerDetails({
             <div className="space-y-3 lg:space-y-0 lg:grid lg:grid-cols-2 lg:gap-4 pt-1">
               <div>
                 <label className={labelClass}>{t('passenger.email')}</label>
-                <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} className={fieldClass} />
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => {
+                    setEmail(e.target.value);
+                    setErrors((prev) => ({ ...prev, email: '' }));
+                  }}
+                  className={`${fieldClass} ${errors.email ? 'border-red-300 bg-red-50' : ''}`}
+                />
+                {errors.email && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {errors.email}
+                  </p>
+                )}
               </div>
               <div>
                 <label className={labelClass}>{t('passenger.dateOfBirth')}</label>
-                <input type="date" value={dob} onChange={(e) => setDob(e.target.value)} className={fieldClass} />
+                <input
+                  type="date"
+                  value={dob}
+                  max={new Date().toISOString().slice(0, 10)}
+                  onChange={(e) => setDob(e.target.value)}
+                  className={fieldClass}
+                />
               </div>
               <div>
                 <label className={labelClass}>{t('passenger.gender')}</label>
@@ -194,7 +217,7 @@ export default function PassengerDetails({
       {/* Desktop: trip recap sidebar alongside the form */}
       <div className="hidden lg:block lg:sticky lg:top-24">
         <ScreenCard className="space-y-4">
-          <h3 className="font-bold text-[var(--text-primary)] text-sm">{t('common.trip')}</h3>
+          <h3 className="font-display font-bold text-[var(--text-primary)] text-sm">{t('common.trip')}</h3>
           <div className="flex items-center justify-between text-sm">
             <span className="text-[var(--text-muted)]">{tripFrom} → {tripTo}</span>
           </div>

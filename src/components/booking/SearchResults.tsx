@@ -3,7 +3,7 @@ import { Clock, MapPin, Users, AlertCircle, Bus as BusIcon } from 'lucide-react'
 import { SearchParams, Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, Fragment } from 'react';
-import { searchTrips, getAllRoutes } from '../../services/api';
+import { searchTrips } from '../../services/api';
 import { toast } from 'sonner';
 import {
   ScreenCard,
@@ -39,10 +39,8 @@ export default function SearchResults({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getAllRoutes().catch(() => undefined);
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
     const fetchBuses = async () => {
       try {
         setLoading(true);
@@ -54,6 +52,7 @@ export default function SearchResults({
           searchParams.to,
           formattedDate,
         );
+        if (cancelled) return;
 
         const transformedBuses: Bus[] = (response || []).map((trip: Bus) => ({
           id: trip.id,
@@ -77,6 +76,7 @@ export default function SearchResults({
           setError(t('booking.noResults'));
         }
       } catch (err: unknown) {
+        if (cancelled) return;
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data
             ?.message ||
@@ -85,13 +85,17 @@ export default function SearchResults({
         setError(message);
         toast.error(message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     if (searchParams.from && searchParams.to && searchParams.date) {
       fetchBuses();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, t]);
 
   const formatDate = (dateString: string) => {
@@ -162,10 +166,10 @@ export default function SearchResults({
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
                 <BusIcon className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
+                <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
                 <span
-                  className="text-[10px] font-semibold px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover }}
+                  className="text-[10px] font-bold px-2 py-0.5 rounded-full"
+                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover, border: '1.5px solid var(--ink)' }}
                 >
                   {bus.type}
                 </span>
@@ -174,7 +178,7 @@ export default function SearchResults({
                 <p className="text-xs text-[var(--text-muted)] mt-1">{t('search.sideNumber', { number: bus.sideNumber })}</p>
               )}
             </div>
-            <p className="text-xl font-extrabold tnum shrink-0" style={{ color: THEME.brand }}>
+            <p className="font-display text-xl font-bold tnum shrink-0" style={{ color: THEME.brand }}>
               {bus.price}
               <span className="text-xs font-semibold ml-0.5">ETB</span>
             </p>

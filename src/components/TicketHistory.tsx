@@ -93,7 +93,27 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
     return t(key, { defaultValue: status });
   };
 
-  const handleDownload = (_ticket: Ticket) => {
+  /** Builds a plain-text ticket summary from data already on screen — no fabricated fields, no server round-trip. */
+  const handleDownload = (ticket: Ticket) => {
+    const lines = [
+      `${t('ticketHistory.title')} — ${ticket.operator}`,
+      `${t('common.ref')}: ${ticket.refNumber}`,
+      `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
+      ticket.route,
+      `${t('common.date')}: ${new Date(ticket.departureDate).toLocaleDateString()}`,
+      `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
+      `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
+      `${t('common.amount')}: ETB ${ticket.totalAmount}`,
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ticket-${ticket.refNumber}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
     toast.success(t('ticketHistory.downloadStarted'));
   };
 
@@ -112,13 +132,28 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
             <ArrowLeft className="w-5 h-5 text-[var(--text-secondary)]" />
           </button>
           <div>
-            <h2 className="text-xl font-bold text-[var(--text-primary)]">
+            <h2 className="font-display text-xl font-bold text-[var(--text-primary)]">
               {t('ticketHistory.title')}
             </h2>
             <p className="text-[var(--text-muted)] text-sm">
               {t('ticketHistory.subtitle')}
             </p>
           </div>
+        </div>
+      )}
+
+      {/* Desktop-only heading when reached via the tab bar — mobile already gets
+          this title from the shared MobileHeader, but DesktopNav's tab links
+          don't carry a page heading of their own (unlike Support/About, which
+          have one built in), so this screen would otherwise show no title at all. */}
+      {embedded && (
+        <div className="hidden lg:block mb-2">
+          <h2 className="font-display text-2xl font-bold text-[var(--text-primary)]">
+            {t('ticketHistory.title')}
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            {t('ticketHistory.subtitle')}
+          </p>
         </div>
       )}
 
@@ -148,7 +183,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
             <Fragment key={ticket.id}>
             <ScreenCard className="space-y-3">
               <div className="flex items-center justify-between gap-2">
-                <h3 className="font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
+                <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
                 <StatusBadge status={getStatusKind(ticket.status)} label={getStatusLabel(ticket.status)} />
               </div>
               <p className="text-sm text-[var(--text-secondary)]">{ticket.route}</p>
@@ -223,12 +258,13 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
           onClick={() => setSelectedTicket(null)}
         >
           <div
-            className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+            className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto"
+            style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">
               <div>
-                <h3 className="text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
+                <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
                 <p className="text-sm text-[var(--text-muted)]">{selectedTicket.route}</p>
               </div>
               <button
@@ -252,7 +288,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                   <StatusBadge status={getStatusKind(selectedTicket.status)} label={getStatusLabel(selectedTicket.status)} />
                 </div>
                 <div>
-                  <p className="text-[var(--text-muted)] text-xs">Date</p>
+                  <p className="text-[var(--text-muted)] text-xs">{t('common.date')}</p>
                   <p className="font-semibold">
                     {new Date(selectedTicket.departureDate).toLocaleDateString()}
                   </p>
@@ -277,7 +313,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
 
               <div className="flex justify-between items-center border-t border-[var(--border)] pt-3">
                 <span className="font-bold">{t('common.total')}</span>
-                <span className="text-xl font-bold tnum" style={{ color: THEME.brand }}>
+                <span className="font-display text-xl font-bold tnum" style={{ color: THEME.brand }}>
                   ETB {selectedTicket.totalAmount}
                 </span>
               </div>

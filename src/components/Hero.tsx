@@ -140,6 +140,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
         // Real route pairs only — never fabricated when the API has none.
         setPopularRoutes(pairs.slice(0, 6));
       } catch {
+        toast.error(t('hero.routesLoadFailed'));
         const fallback = ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa', 'Adama'];
         setFromOptions(fallback);
         setToOptions(fallback);
@@ -154,6 +155,14 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   const handleSearch = () => {
     if (!from || !to || !date) {
       toast.error(t('hero.fillRequired'));
+      return;
+    }
+    if (from === to) {
+      toast.error(t('hero.sameOriginDestination'));
+      return;
+    }
+    if (date < todayIsoDate()) {
+      toast.error(t('hero.pastDate'));
       return;
     }
     setRecentRoutes(saveRecentRoute({ from, to }).slice(0, 2));
@@ -238,11 +247,11 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   const bookingBar = (
     <div
       className="rounded-[18px] bg-white p-2.5 flex flex-col xl:flex-row items-stretch"
-      style={{ boxShadow: '0 4px 6px rgba(17,24,39,0.02), 0 12px 32px rgba(17,24,39,0.06)' }}
+      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
     >
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
-        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput}>
+        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.from")}>
           <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
           {fromOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
@@ -253,10 +262,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
       <button
         type="button"
         onClick={swapCities}
-        className="hidden xl:flex w-[38px] h-[38px] self-center rounded-full border flex-shrink-0 mx-1 items-center justify-center transition-all duration-200 hover:rotate-180"
-        style={{ borderColor: THEME.webLine, color: THEME.webMuted }}
-        onMouseEnter={(e) => { e.currentTarget.style.borderColor = THEME.brand; e.currentTarget.style.color = THEME.brand; e.currentTarget.style.backgroundColor = THEME.brandSoft; }}
-        onMouseLeave={(e) => { e.currentTarget.style.borderColor = THEME.webLine; e.currentTarget.style.color = THEME.webMuted; e.currentTarget.style.backgroundColor = 'transparent'; }}
+        className="hidden xl:flex w-[38px] h-[38px] self-center rounded-full flex-shrink-0 mx-1 items-center justify-center transition-transform duration-200 hover:rotate-180"
+        style={{ border: 'var(--border-bold)', color: THEME.textPrimary, backgroundColor: THEME.primarySoft }}
         aria-label={t('common.swap')}
       >
         <ArrowUpDown className="w-3.5 h-3.5" />
@@ -264,7 +271,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
-        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput}>
+        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.to")}>
           <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
           {toOptions.map((city) => (
             <option key={city} value={city}>{city}</option>
@@ -276,7 +283,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
-        <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={webInput} />
+        <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={webInput} aria-label={t("common.date")} />
       </div>
 
       <PrimaryButton
@@ -314,50 +321,59 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
           {/* ============ MOBILE / TABLET — one focused screen ============ */}
           <div className="lg:hidden">
             <div className="relative z-10 app-gutter-x -mt-7" ref={searchRef}>
-              <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 16px 32px -12px rgba(12,108,166,0.35), var(--shadow-md)' }}>
-                <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, ${THEME.primary} 0%, ${THEME.brand} 100%)` }} />
+              <div className="rounded-2xl bg-white overflow-hidden" style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}>
+                <div className="h-1.5" style={{ backgroundColor: THEME.primary }} />
                 <div className="p-4 space-y-4">
-                <h1 className="text-xl font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
+                <h1 className="font-display text-[22px] font-bold text-[var(--text-primary)] tracking-tight leading-snug">
                   {t('hero.searchHeadline')}
                 </h1>
 
                 <div className="space-y-1">
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
-                      <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-                      {fromOptions.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("common.from")}>
+                        <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+                        {fromOptions.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="relative z-10 flex justify-center -my-4">
                     <button
                       type="button"
                       onClick={swapCities}
-                      className="w-9 h-9 rounded-full border-4 border-white bg-white shadow-md flex items-center justify-center"
-                      style={{ color: THEME.brand, boxShadow: '0 2px 6px rgba(16,39,71,0.15)' }}
+                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center"
+                      style={{ backgroundColor: THEME.primary, color: THEME.textPrimary, boxShadow: '0 0 0 2px var(--ink), 0 2px 6px rgba(16,39,71,0.2)' }}
                       aria-label={t('common.swap')}
                     >
                       <ArrowUpDown className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass}>
-                      <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-                      {toOptions.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.to')}</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("hero.selectDestination")}>
+                        <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+                        {toOptions.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div className="relative">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                  <input type="date" value={date} onChange={(e) => setDate(e.target.value)} className={fieldClass} />
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.date')}</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                    <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={fieldClass} aria-label={t("common.date")} />
+                  </div>
                 </div>
 
                 <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
@@ -376,7 +392,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
             {recentRoutes.length > 0 && (
               <section className="app-gutter-x pt-6">
-                <h2 className="text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.recentTitle')}</h2>
+                <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.recentTitle')}</h2>
                 <div className="grid grid-cols-2 gap-3">
                   {recentRoutes.map((route) => (
                     <Fragment key={`recent-${route.from}-${route.to}`}>
@@ -389,7 +405,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
             {popularRoutes.length > 0 && (
               <section className="app-gutter-x pt-6">
-                <h2 className="text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.title')}</h2>
+                <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.title')}</h2>
                 <div className="space-y-3">
                   {popularRoutes.slice(0, 3).map((route) => (
                     <Fragment key={`popular-${route.from}-${route.to}`}>
@@ -406,7 +422,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
                   title={t('hero.exploreTitle')}
                   description={t('hero.exploreDesc')}
-                  className="rounded-2xl bg-white border border-[var(--border)]"
+                  className="rounded-2xl bg-white"
+                  style={{ border: 'var(--border-bold)' }}
                 />
               </div>
             )}
@@ -425,14 +442,14 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             >
               <div className="page-container-web text-center pb-7">
                 <span
-                  className="inline-block px-[13px] py-[5px] bg-white border rounded-full text-[11px] font-semibold uppercase tracking-wider mb-[18px]"
-                  style={{ borderColor: THEME.webLine, color: THEME.brand }}
+                  className="inline-block px-[13px] py-[5px] bg-white rounded-full text-[11px] font-bold uppercase tracking-wider mb-[18px]"
+                  style={{ border: '1.5px solid var(--ink)', color: THEME.brand }}
                 >
                   {t('hero.eyebrow')}
                 </span>
                 <h1
-                  className="font-bold text-[var(--text-primary)]"
-                  style={{ fontSize: 'clamp(30px, 4.2vw, 44px)', letterSpacing: '-0.035em', lineHeight: 1.15 }}
+                  className="font-display font-bold text-[var(--text-primary)]"
+                  style={{ fontSize: 'clamp(34px, 4.6vw, 52px)', letterSpacing: '-0.02em', lineHeight: 1.1 }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
@@ -448,7 +465,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="px-6 py-14" ref={howItWorksRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
+                  <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
                   <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('howItWorks.subtitle')}</p>
                 </div>
                 <div className="relative grid grid-cols-4 gap-4">
@@ -470,7 +487,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               <div className="page-container-web px-6 py-14">
                 <div className="grid grid-cols-[0.85fr_1.15fr] gap-14 items-center">
                   <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
+                    <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
                     <p className="mb-7 max-w-[280px] leading-relaxed" style={{ color: THEME.webMuted }}>{t('about.whySubtitle')}</p>
                     <button
                       type="button"
@@ -482,6 +499,21 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     >
                       {t('desktopNav.bookTrip')}
                     </button>
+
+                    <div className="flex flex-col gap-3 mt-9 pt-7 border-t" style={{ borderColor: THEME.webLine }}>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('payment.securePayment')}
+                      </div>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <Clock className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('hero.trustSupport')}
+                      </div>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <Ticket className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('hero.trustTicket')}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex flex-col">
                     {whyFeatures.map((f) => (
@@ -498,7 +530,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="px-6 py-14" ref={routesRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
+                  <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
                   <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('routes.subtitle')}</p>
                 </div>
                 {popularRoutes.length > 0 ? (
@@ -514,7 +546,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
                     title={t('hero.exploreTitle')}
                     description={t('hero.exploreDesc')}
-                    className="rounded-2xl bg-white border"
+                    className="rounded-2xl bg-white"
+                    style={{ border: 'var(--border-bold)' }}
                   />
                 )}
               </div>
@@ -585,11 +618,11 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 /** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
 function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
   return (
-    <div className="rounded-xl bg-white border border-[var(--border)] px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ boxShadow: 'var(--shadow-sm)' }}>
-      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep }}>
+    <div className="rounded-xl bg-white px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep, border: '1.5px solid var(--ink)' }}>
         <Icon className="w-3.5 h-3.5" />
       </div>
-      <span className="text-[10.5px] font-semibold text-[var(--text-secondary)] leading-tight">{text}</span>
+      <span className="text-[10.5px] font-bold text-[var(--text-secondary)] leading-tight">{text}</span>
     </div>
   );
 }
@@ -625,9 +658,8 @@ function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className="text-left w-full rounded-xl bg-white border border-[var(--border)] p-5 transition-all duration-150 hover:shadow-md active:scale-[0.99]"
-      onMouseEnter={(e) => { e.currentTarget.style.borderColor = THEME.brandMid; }}
-      onMouseLeave={(e) => { e.currentTarget.style.borderColor = ''; }}
+      className="text-left w-full rounded-xl bg-white p-5 transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0"
+      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
     >
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <p className="font-semibold text-[var(--text-primary)] text-[14px] leading-snug flex items-center flex-wrap gap-1.5">
@@ -653,7 +685,8 @@ function RecentRouteCard({ route, onClick }: { route: RoutePair; onClick: () => 
     <button
       type="button"
       onClick={onClick}
-      className="text-left rounded-xl bg-white border border-[var(--border)] p-3 transition-colors hover:border-[var(--color-brand-border)] active:scale-[0.99]"
+      className="text-left rounded-xl bg-white p-3 transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0"
+      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
     >
       <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
         <Clock className="w-3 h-3" />
@@ -703,12 +736,12 @@ function DesktopStep({ step }: { step: { n: number; titleKey: string; descKey: s
   return (
     <div className="relative z-10 flex flex-col items-center text-center">
       <div
-        className="w-11 h-11 mb-4 rounded-full bg-white flex items-center justify-center text-[15px] font-bold"
-        style={{ border: `2px solid ${THEME.primary}`, color: THEME.primary, boxShadow: '0 0 0 6px var(--surface-app)' }}
+        className="w-11 h-11 mb-4 rounded-full flex items-center justify-center font-display text-[15px] font-bold"
+        style={{ backgroundColor: THEME.primary, border: '2px solid var(--ink)', color: THEME.textPrimary, boxShadow: '0 0 0 6px var(--surface-app)' }}
       >
         {step.n}
       </div>
-      <p className="font-semibold text-[var(--text-primary)]">{t(step.titleKey)}</p>
+      <p className="font-display font-bold text-[var(--text-primary)]">{t(step.titleKey)}</p>
       <p className="text-[13px] mt-1 leading-relaxed max-w-[160px]" style={{ color: THEME.webMuted }}>{t(step.descKey)}</p>
     </div>
   );
@@ -723,11 +756,11 @@ function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string;
       className="flex items-start gap-4 py-[18px] border-b transition-[padding] duration-150 hover:pl-1 last:border-b-0"
       style={{ borderColor: THEME.webLine }}
     >
-      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft }}>
+      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, border: '1.5px solid var(--ink)' }}>
         <Icon className="w-[18px] h-[18px]" style={{ color: THEME.brand }} />
       </div>
       <div className="min-w-0">
-        <p className="font-semibold text-[14px] text-[var(--text-primary)]">{t(feature.titleKey)}</p>
+        <p className="font-display font-bold text-[14px] text-[var(--text-primary)]">{t(feature.titleKey)}</p>
         <p className="text-[13px] mt-0.5" style={{ color: THEME.webMuted }}>{t(feature.textKey)}</p>
       </div>
     </div>
