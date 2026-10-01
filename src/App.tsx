@@ -116,6 +116,7 @@ export default function App() {
               searchParams={searchParams!}
               onSelectBus={(bus) => {
                 setSelectedBus(bus);
+                setSelectedSeats([]);
                 setStep('seats');
               }}
               onBack={resetBooking}

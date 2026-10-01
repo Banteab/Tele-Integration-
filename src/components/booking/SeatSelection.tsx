@@ -118,30 +118,6 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
     fetchSeatLayout();
   }, [bus.vehicleId, bus.scheduleId, t]);
 
-  // Generate mock layout for fallback
-  const generateMockLayout = (): SeatLayout => {
-    const seats: SeatData[] = [];
-    const rows = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J'];
-    const cols = [1, 2, 3, 4];
-    const bookedSeats = ['A1', 'A2', 'C3', 'C4', 'F1', 'H2', 'J3', 'J4'];
-
-    let id = 1;
-    rows.forEach((row, y) => {
-      cols.forEach((col, x) => {
-        const seatName = `${row}${col}`;
-        seats.push({
-          id: id++,
-          name: seatName,
-          type: bookedSeats.includes(seatName) ? 'sold' : 'seat',
-          x: x + 1,
-          y: y + 1,
-        });
-      });
-    });
-
-    return { seats, maxX: 4, maxY: 10 };
-  };
-
   const isSelectableSeat = (seatType: string): boolean => {
     return seatType === 'seat' || seatType === 'pending';
   };
