@@ -56,24 +56,24 @@ export default function DesktopNav({
   ];
 
   return (
-    <header className="hidden lg:block sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-[var(--border)]">
-      <div className="page-container flex items-center justify-between gap-6 px-6 h-[68px]">
+    <header className="font-web hidden lg:block sticky top-0 z-40 bg-white/92 backdrop-blur border-b border-[var(--border)]">
+      <div className="page-container-web flex items-center justify-between gap-6 px-6 h-16">
         <button
           type="button"
           onClick={onBrandClick}
-          className="flex items-center gap-3 shrink-0 rounded-lg"
+          className="flex items-center gap-2.5 shrink-0 rounded-lg"
         >
           <div
-            className="w-10 h-10 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: THEME.brandSoft }}
+            className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
+            style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: '0 2px 8px rgba(12,108,166,0.22)' }}
           >
-            <Bus className="w-5 h-5" style={{ color: THEME.brandDeep }} />
+            <Bus className="w-4 h-4 text-white" />
           </div>
           <div className="text-left">
-            <p className="font-extrabold text-base leading-tight" style={{ color: THEME.textPrimary }}>
+            <p className="font-semibold text-[15px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
               {BRAND.name}
             </p>
-            <p className="text-[11px] text-[var(--text-muted)] leading-tight">{BRAND.tagline}</p>
+            <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
           </div>
         </button>
 
@@ -100,10 +100,11 @@ export default function DesktopNav({
                   key={id}
                   type="button"
                   onClick={tab ? () => onTabChange?.(tab) : onClick}
-                  className="relative px-4 py-2 text-sm font-semibold rounded-lg transition-colors"
+                  className="relative px-[13px] py-[7px] text-sm rounded-lg transition-colors"
                   style={{
-                    color: isActive ? THEME.brandDeep : THEME.textSecondary,
+                    color: isActive ? THEME.brandDeep : THEME.webMuted,
                     backgroundColor: isActive ? THEME.brandSoft : 'transparent',
+                    fontWeight: isActive ? 600 : 500,
                   }}
                 >
                   {t(labelKey)}
@@ -120,10 +121,12 @@ export default function DesktopNav({
             <button
               type="button"
               onClick={onBook}
-              className="hidden xl:flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-bold text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] active:scale-[0.98]"
-              style={{ backgroundColor: THEME.primary, boxShadow: THEME.shadowPrimary }}
+              className="hidden xl:flex items-center gap-1.5 rounded-full px-[18px] py-[9px] text-sm font-semibold text-white transition-all duration-150 hover:-translate-y-px active:scale-[0.98]"
+              style={{ backgroundColor: THEME.primary, boxShadow: `0 2px 10px ${THEME.webGoldGlow}` }}
+              onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = THEME.webGoldHover; }}
+              onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = THEME.primary; }}
             >
-              <TicketPlus className="w-4 h-4" />
+              <TicketPlus className="w-3.5 h-3.5" />
               {t('desktopNav.bookTrip')}
             </button>
           )}
