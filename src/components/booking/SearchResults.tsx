@@ -3,7 +3,7 @@ import { Clock, MapPin, Users, AlertCircle, Bus as BusIcon } from 'lucide-react'
 import { SearchParams, Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { useEffect, useState, Fragment } from 'react';
-import { searchTrips, getAllRoutes } from '../../services/api';
+import { searchTrips } from '../../services/api';
 import { toast } from 'sonner';
 import {
   ScreenCard,
@@ -39,10 +39,8 @@ export default function SearchResults({
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    getAllRoutes().catch(() => undefined);
-  }, []);
+    let cancelled = false;
 
-  useEffect(() => {
     const fetchBuses = async () => {
       try {
         setLoading(true);
@@ -54,6 +52,7 @@ export default function SearchResults({
           searchParams.to,
           formattedDate,
         );
+        if (cancelled) return;
 
         const transformedBuses: Bus[] = (response || []).map((trip: Bus) => ({
           id: trip.id,
@@ -77,6 +76,7 @@ export default function SearchResults({
           setError(t('booking.noResults'));
         }
       } catch (err: unknown) {
+        if (cancelled) return;
         const message =
           (err as { response?: { data?: { message?: string } } })?.response?.data
             ?.message ||
@@ -85,13 +85,17 @@ export default function SearchResults({
         setError(message);
         toast.error(message);
       } finally {
-        setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     };
 
     if (searchParams.from && searchParams.to && searchParams.date) {
       fetchBuses();
     }
+
+    return () => {
+      cancelled = true;
+    };
   }, [searchParams, t]);
 
   const formatDate = (dateString: string) => {
