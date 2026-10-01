@@ -39,4 +39,4 @@ yarn-error.log*
 .env.test.local.backup.8
 .env.test.local.backup.9
 .env.test.local.backup.10
-.env.example
+!.env.example
