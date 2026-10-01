@@ -87,6 +87,33 @@ export default function MobileHeader({
 }: Props) {
   const { t } = useTranslation();
 
+  /** Back-navigation screens (booking flow) get a compact nav bar — the
+      BookingSteps stepper right below already carries the step context,
+      so a full hero-height header with a duplicate title is just weight. */
+  if (showBack) {
+    return (
+      <header
+        className="lg:hidden relative overflow-hidden app-gutter-x py-3"
+        style={{ background: `linear-gradient(175deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)` }}
+      >
+        <div className="absolute inset-0 bg-dot-grid opacity-[0.08] text-white pointer-events-none" />
+        <div className="relative flex items-center gap-3">
+          <button
+            type="button"
+            onClick={onBack}
+            className="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0"
+            aria-label={t('desktopNav.back')}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="flex-1 min-w-0 truncate text-[16px] min-[375px]:text-[17px] font-bold text-white">
+            {title}
+          </h1>
+        </div>
+      </header>
+    );
+  }
+
   return (
     <header
       className={`lg:hidden relative overflow-hidden app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
@@ -100,19 +127,9 @@ export default function MobileHeader({
 
       <div className="relative flex items-center justify-between gap-2 min-[375px]:gap-3 mb-3 min-[375px]:mb-4">
         <div className="flex items-center gap-2 min-[375px]:gap-3 min-w-0 flex-1">
-          {showBack ? (
-            <button
-              type="button"
-              onClick={onBack}
-              className="w-9 h-9 min-[375px]:w-10 min-[375px]:h-10 rounded-full bg-white/20 flex items-center justify-center text-white shrink-0"
-            >
-              <ArrowLeft className="w-5 h-5" />
-            </button>
-          ) : (
-            <div className="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
-              <Bus className="w-5 h-5 min-[375px]:w-6 min-[375px]:h-6" style={{ color: THEME.brand }} />
-            </div>
-          )}
+          <div className="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-full bg-white flex items-center justify-center shadow-md shrink-0">
+            <Bus className="w-5 h-5 min-[375px]:w-6 min-[375px]:h-6" style={{ color: THEME.brand }} />
+          </div>
           <div className="min-w-0">
             <div className="flex items-baseline gap-1.5 min-[375px]:gap-2 flex-wrap">
               <span className="font-extrabold text-base min-[375px]:text-lg" style={{ color: THEME.primary }}>
@@ -127,7 +144,7 @@ export default function MobileHeader({
         </div>
         <div className="flex items-center gap-1.5 min-[375px]:gap-2 shrink-0">
           <LanguageSelector variant="header" />
-          <ProfileChip userName={userName} userPhone={userPhone} compact={showBack || minimal} />
+          <ProfileChip userName={userName} userPhone={userPhone} compact={minimal} />
         </div>
       </div>
 

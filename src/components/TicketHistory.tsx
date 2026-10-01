@@ -142,6 +142,21 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
         </div>
       )}
 
+      {/* Desktop-only heading when reached via the tab bar — mobile already gets
+          this title from the shared MobileHeader, but DesktopNav's tab links
+          don't carry a page heading of their own (unlike Support/About, which
+          have one built in), so this screen would otherwise show no title at all. */}
+      {embedded && (
+        <div className="hidden lg:block mb-2">
+          <h2 className="text-2xl font-bold text-[var(--text-primary)]">
+            {t('ticketHistory.title')}
+          </h2>
+          <p className="text-[var(--text-muted)] text-sm mt-1">
+            {t('ticketHistory.subtitle')}
+          </p>
+        </div>
+      )}
+
       {loading && (
         <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
           {[1, 2, 3].map((i) => (
