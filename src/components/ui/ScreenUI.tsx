@@ -74,7 +74,7 @@ export function PrimaryButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] active:scale-[0.98] active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 ${className}`}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-base font-extrabold tracking-tight text-[var(--text-primary)] transition-all duration-150 hover:brightness-[1.03] hover:-translate-y-px active:scale-[0.98] active:brightness-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:active:scale-100 disabled:hover:translate-y-0 ${className}`}
       style={{
         backgroundImage: `linear-gradient(135deg, ${THEME.primary} 0%, ${THEME.primaryHover} 100%)`,
         boxShadow: THEME.shadowPrimary,
@@ -142,7 +142,7 @@ export function SecondaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-[15px] font-bold bg-white transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
+      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 text-base font-extrabold tracking-tight bg-white transition-all duration-150 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
       style={{ border: `1.5px solid ${THEME.brandBorder}`, color: THEME.brandDeep }}
     >
       {children}

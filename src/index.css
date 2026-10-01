@@ -97,10 +97,12 @@
     --status-expired-bg: var(--error-bg);
     --status-expired-fg: var(--error-fg);
 
-    /* Type scale — a controlled hierarchy instead of ad-hoc sizes */
-    --text-display: 2.25rem;   /* desktop hero */
-    --text-h1: 1.5rem;         /* page title */
-    --text-h2: 1.125rem;       /* section title */
+    /* Type scale — a controlled hierarchy instead of ad-hoc sizes. Bumped
+       for a bolder, more confident read: headings carry more visual
+       weight so the hierarchy is unmistakable at a glance. */
+    --text-display: 2.5rem;    /* desktop hero */
+    --text-h1: 1.625rem;       /* page title */
+    --text-h2: 1.375rem;       /* section title */
     --text-body: 0.9375rem;    /* body */
     --text-small: 0.8125rem;   /* secondary text */
     --text-label: 0.6875rem;   /* labels / eyebrow */

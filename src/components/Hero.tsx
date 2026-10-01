@@ -326,19 +326,22 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               <div className="rounded-2xl bg-white overflow-hidden" style={{ boxShadow: '0 16px 32px -12px rgba(12,108,166,0.35), var(--shadow-md)' }}>
                 <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, ${THEME.primary} 0%, ${THEME.brand} 100%)` }} />
                 <div className="p-4 space-y-4">
-                <h1 className="text-xl font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
+                <h1 className="text-[22px] font-extrabold text-[var(--text-primary)] tracking-tight leading-snug">
                   {t('hero.searchHeadline')}
                 </h1>
 
                 <div className="space-y-1">
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("common.from")}>
-                      <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-                      {fromOptions.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("common.from")}>
+                        <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+                        {fromOptions.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
 
                   <div className="relative z-10 flex justify-center -my-4">
@@ -353,20 +356,26 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     </button>
                   </div>
 
-                  <div className="relative">
-                    <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                    <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("hero.selectDestination")}>
-                      <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-                      {toOptions.map((city) => (
-                        <option key={city} value={city}>{city}</option>
-                      ))}
-                    </select>
+                  <div>
+                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.to')}</label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("hero.selectDestination")}>
+                        <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+                        {toOptions.map((city) => (
+                          <option key={city} value={city}>{city}</option>
+                        ))}
+                      </select>
+                    </div>
                   </div>
                 </div>
 
-                <div className="relative">
-                  <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                  <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={fieldClass} aria-label={t("common.date")} />
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.date')}</label>
+                  <div className="relative">
+                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                    <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={fieldClass} aria-label={t("common.date")} />
+                  </div>
                 </div>
 
                 <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
@@ -441,7 +450,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                 </span>
                 <h1
                   className="font-bold text-[var(--text-primary)]"
-                  style={{ fontSize: 'clamp(30px, 4.2vw, 44px)', letterSpacing: '-0.035em', lineHeight: 1.15 }}
+                  style={{ fontSize: 'clamp(34px, 4.6vw, 52px)', letterSpacing: '-0.035em', lineHeight: 1.12 }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
@@ -457,7 +466,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="px-6 py-14" ref={howItWorksRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
+                  <h2 className="text-[28px] font-extrabold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
                   <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('howItWorks.subtitle')}</p>
                 </div>
                 <div className="relative grid grid-cols-4 gap-4">
@@ -479,7 +488,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               <div className="page-container-web px-6 py-14">
                 <div className="grid grid-cols-[0.85fr_1.15fr] gap-14 items-center">
                   <div>
-                    <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
+                    <h2 className="text-[28px] font-extrabold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
                     <p className="mb-7 max-w-[280px] leading-relaxed" style={{ color: THEME.webMuted }}>{t('about.whySubtitle')}</p>
                     <button
                       type="button"
@@ -491,6 +500,21 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     >
                       {t('desktopNav.bookTrip')}
                     </button>
+
+                    <div className="flex flex-col gap-3 mt-9 pt-7 border-t" style={{ borderColor: THEME.webLine }}>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('payment.securePayment')}
+                      </div>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <Clock className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('hero.trustSupport')}
+                      </div>
+                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
+                        <Ticket className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                        {t('hero.trustTicket')}
+                      </div>
+                    </div>
                   </div>
                   <div className="flex flex-col">
                     {whyFeatures.map((f) => (
@@ -507,7 +531,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             <section className="px-6 py-14" ref={routesRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
-                  <h2 className="text-2xl font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
+                  <h2 className="text-[28px] font-extrabold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
                   <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('routes.subtitle')}</p>
                 </div>
                 {popularRoutes.length > 0 ? (
