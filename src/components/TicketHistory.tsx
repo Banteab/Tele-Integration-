@@ -93,7 +93,27 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
     return t(key, { defaultValue: status });
   };
 
-  const handleDownload = (_ticket: Ticket) => {
+  /** Builds a plain-text ticket summary from data already on screen — no fabricated fields, no server round-trip. */
+  const handleDownload = (ticket: Ticket) => {
+    const lines = [
+      `${t('ticketHistory.title')} — ${ticket.operator}`,
+      `${t('common.ref')}: ${ticket.refNumber}`,
+      `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
+      ticket.route,
+      `${t('common.date')}: ${new Date(ticket.departureDate).toLocaleDateString()}`,
+      `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
+      `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
+      `${t('common.amount')}: ETB ${ticket.totalAmount}`,
+    ];
+    const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `ticket-${ticket.refNumber}.txt`;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
     toast.success(t('ticketHistory.downloadStarted'));
   };
 
@@ -252,7 +272,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                   <StatusBadge status={getStatusKind(selectedTicket.status)} label={getStatusLabel(selectedTicket.status)} />
                 </div>
                 <div>
-                  <p className="text-[var(--text-muted)] text-xs">Date</p>
+                  <p className="text-[var(--text-muted)] text-xs">{t('common.date')}</p>
                   <p className="font-semibold">
                     {new Date(selectedTicket.departureDate).toLocaleDateString()}
                   </p>
