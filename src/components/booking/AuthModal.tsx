@@ -51,7 +51,7 @@ export default function AuthModal({
       return;
     }
 
-    if (password.length < 8) {
+    if (mode === 'register' && password.length < 8) {
       setError(t('auth.passwordMin8'));
       return;
     }
@@ -187,7 +187,6 @@ export default function AuthModal({
                 type="button"
                 onClick={() => {
                   setError(null);
-                  setPhoneNumber('');
                   setPassword('');
                   setConfirmPassword('');
                   onSwitchMode(mode === 'login' ? 'register' : 'login');
