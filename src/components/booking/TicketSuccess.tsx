@@ -38,7 +38,7 @@ export default function TicketSuccess({
     <PageContainer narrow className="pb-6 lg:pt-10 text-center">
       <div
         className="w-16 h-16 lg:w-20 lg:h-20 rounded-full flex items-center justify-center mx-auto mb-4"
-        style={{ backgroundColor: THEME.primarySoft, border: 'var(--border-bold)' }}
+        style={{ backgroundImage: `linear-gradient(145deg, ${THEME.primarySoft}, #fdecc8)`, boxShadow: '0 10px 24px -10px rgba(242,168,28,0.5)' }}
       >
         <CheckCircle className="w-9 h-9 lg:w-11 lg:h-11" style={{ color: THEME.primaryPressed }} />
       </div>

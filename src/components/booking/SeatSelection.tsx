@@ -163,7 +163,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   const getSeatInlineStyle = (seat: SeatData): CSSProperties | undefined => {
     if (isSelectableSeat(seat.type) && selectedSeats.includes(seat.name)) {
-      return { backgroundColor: 'var(--color-primary)', border: '2px solid var(--ink)', boxShadow: 'var(--shadow-hard-sm)' };
+      return { backgroundImage: 'linear-gradient(145deg, #f9bb3f, var(--color-primary-hover))', boxShadow: '0 8px 20px -6px rgba(242,168,28,0.5)' };
     }
     return undefined;
   };

@@ -67,7 +67,7 @@ function ProfileChip({
       </div>
       <div
         className="w-9 h-9 min-[375px]:w-10 min-[375px]:h-10 rounded-full bg-white flex items-center justify-center shrink-0 font-display font-bold text-xs min-[375px]:text-sm"
-        style={{ color: THEME.brand, border: '1.5px solid var(--ink)' }}
+        style={{ color: THEME.brand, boxShadow: '0 4px 14px rgba(16,39,71,0.22)' }}
         aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
       >
         {initials || <User className="w-5 h-5" />}
@@ -93,8 +93,8 @@ export default function MobileHeader({
   if (showBack) {
     return (
       <header
-        className="lg:hidden relative app-gutter-x py-3"
-        style={{ backgroundColor: THEME.brand, borderBottom: 'var(--border-bold)' }}
+        className="lg:hidden relative app-gutter-x py-3 overflow-hidden"
+        style={{ backgroundImage: `linear-gradient(135deg, ${THEME.brandDeep}, ${THEME.brand})`, boxShadow: '0 8px 24px -8px rgba(16,39,71,0.3)' }}
       >
         <div className="relative flex items-center gap-3">
           <button
@@ -115,17 +115,18 @@ export default function MobileHeader({
 
   return (
     <header
-      className={`lg:hidden relative app-gutter-x pt-4 min-[375px]:pt-5 ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
+      className={`lg:hidden relative app-gutter-x pt-4 min-[375px]:pt-5 overflow-hidden ${minimal ? 'pb-9 min-[375px]:pb-11' : 'pb-8 min-[375px]:pb-10'}`}
       style={{
-        backgroundColor: THEME.brand,
-        borderBottom: 'var(--border-bold)',
+        backgroundImage: `linear-gradient(135deg, ${THEME.brandDeep} 0%, ${THEME.brand} 60%, ${THEME.brandMid ?? THEME.brand} 100%)`,
+        boxShadow: '0 12px 32px -10px rgba(16,39,71,0.32)',
       }}
     >
+      <div className="float-blob" style={{ position: 'absolute', top: -50, right: -40, width: 180, height: 180, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.18), rgba(255,255,255,0) 70%)' }} />
       <div className="relative flex items-center justify-between gap-2 min-[375px]:gap-3 mb-3 min-[375px]:mb-4">
         <div className="flex items-center gap-2 min-[375px]:gap-3 min-w-0 flex-1">
           <div
             className="w-10 h-10 min-[375px]:w-11 min-[375px]:h-11 rounded-xl bg-white flex items-center justify-center shrink-0"
-            style={{ border: 'var(--border-bold)' }}
+            style={{ boxShadow: '0 6px 16px rgba(16,39,71,0.25)' }}
           >
             <Bus className="w-5 h-5 min-[375px]:w-6 min-[375px]:h-6" style={{ color: THEME.brand }} />
           </div>

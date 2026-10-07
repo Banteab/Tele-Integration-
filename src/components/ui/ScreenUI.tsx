@@ -6,12 +6,12 @@ interface Props {
   className?: string;
 }
 
-/** Bold surface — thick ink border + hard offset shadow, not a soft blur. */
+/** Glass surface — frosted translucent panel with soft layered depth. */
 export function ScreenCard({ children, className = '' }: Props) {
   return (
     <div
-      className={`rounded-2xl bg-white p-4 ${className}`}
-      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
+      className={`glass-surface rounded-3xl p-4 ${className}`}
+      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
     >
       {children}
     </div>
@@ -28,8 +28,8 @@ interface TripBannerProps {
 export function TripBanner({ from, to, meta }: TripBannerProps) {
   return (
     <div
-      className="rounded-xl px-4 py-3 mb-4 flex items-center justify-between gap-3"
-      style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
+      className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3"
+      style={{ background: `linear-gradient(135deg, ${THEME.brandSoft}, rgba(236,247,253,0.6))`, border: '1px solid rgba(24,154,216,0.18)', boxShadow: 'var(--shadow-depth-sm)' }}
     >
       <div className="min-w-0">
         <p className="text-sm font-display font-bold text-[var(--text-primary)] truncate">
@@ -38,8 +38,8 @@ export function TripBanner({ from, to, meta }: TripBannerProps) {
         {meta && <p className="text-xs text-[var(--text-muted)] mt-0.5">{meta}</p>}
       </div>
       <span
-        className="shrink-0 text-eyebrow px-2 py-1 rounded-full bg-white"
-        style={{ color: THEME.brandDeep, border: '1.5px solid var(--ink)' }}
+        className="shrink-0 text-eyebrow px-2.5 py-1 rounded-full bg-white/80"
+        style={{ color: THEME.brandDeep, boxShadow: '0 2px 6px rgba(16,39,71,0.08)' }}
       >
         Trip
       </span>
@@ -58,8 +58,8 @@ interface PrimaryButtonProps {
   form?: string;
 }
 
-/** The single highest-emphasis action on a screen — solid yellow, thick ink
- *  border, hard offset shadow. Press pushes the button into its own shadow. */
+/** The single highest-emphasis action on a screen — gradient yellow fill with
+ *  a soft glow and a shimmer sweep, lifting gently on hover. */
 export function PrimaryButton({
   children,
   onClick,
@@ -75,12 +75,13 @@ export function PrimaryButton({
       form={form}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-base font-bold tracking-tight text-[var(--text-primary)] transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
+      className={`shine ${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-2xl py-3.5 font-display text-base font-bold tracking-tight text-[#241100] transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
       style={{
-        backgroundColor: THEME.primary,
-        border: 'var(--border-bold)',
-        boxShadow: 'var(--shadow-hard-md)',
+        backgroundImage: `linear-gradient(135deg, #f9bb3f, ${THEME.primary} 55%, ${THEME.primaryHover})`,
+        boxShadow: 'var(--shadow-glow-primary)',
       }}
+      onMouseEnter={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-glow-primary-hover)'; }}
+      onMouseLeave={(e) => { e.currentTarget.style.boxShadow = 'var(--shadow-glow-primary)'; }}
     >
       {children}
     </button>
@@ -100,7 +101,7 @@ export function StickyFooter({ children }: StickyFooterProps) {
   return (
     <div
       className="app-fixed-shell bottom-0 z-40 app-gutter-x py-3 pb-safe lg:hidden"
-      style={{ backgroundColor: 'var(--surface-card)', borderTop: 'var(--border-bold)', boxShadow: '0 -4px 16px rgba(16,39,71,0.08)' }}
+      style={{ background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(var(--glass-blur))', WebkitBackdropFilter: 'blur(var(--glass-blur))', borderTop: '1px solid rgba(255,255,255,0.7)', boxShadow: '0 -8px 24px rgba(16,39,71,0.1)' }}
     >
       {children}
     </div>
@@ -108,7 +109,7 @@ export function StickyFooter({ children }: StickyFooterProps) {
 }
 
 export const fieldClass =
-  'w-full rounded-xl border-2 border-[var(--border-strong)] bg-white py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors placeholder:text-[var(--text-muted)] focus:border-[var(--ink)] focus:ring-0';
+  'w-full rounded-2xl border border-[var(--border-strong)] bg-white/80 py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10';
 
 export const labelClass = 'block text-[13px] font-bold text-[var(--text-secondary)] mb-1.5';
 
@@ -130,8 +131,8 @@ interface SecondaryButtonProps {
   className?: string;
 }
 
-/** Second-priority action — white surface, blue text, same bold ink border +
- *  hard shadow family as PrimaryButton, clearly subordinate to yellow. */
+/** Second-priority action — glass surface, blue text, soft depth shadow,
+ *  clearly subordinate to the gradient-yellow PrimaryButton. */
 export function SecondaryButton({
   children,
   onClick,
@@ -145,8 +146,8 @@ export function SecondaryButton({
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-xl py-3.5 font-display text-base font-bold tracking-tight bg-white transition-transform duration-100 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
-      style={{ border: 'var(--border-bold)', color: THEME.brandDeep, boxShadow: 'var(--shadow-hard-sm)' }}
+      className={`glass-surface ${fullWidth ? 'w-full' : ''} flex items-center justify-center gap-2 rounded-2xl py-3.5 font-display text-base font-bold tracking-tight transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:translate-y-0 ${className}`}
+      style={{ color: THEME.brandDeep, boxShadow: 'var(--shadow-depth-sm)' }}
     >
       {children}
     </button>
@@ -195,7 +196,7 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
   return (
     <span
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-bold ${className}`}
-      style={{ backgroundColor: tone.bg, color: tone.fg, border: `1.5px solid ${tone.fg}` }}
+      style={{ backgroundColor: tone.bg, color: tone.fg, boxShadow: `0 2px 8px -2px ${tone.fg}33` }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone.fg }} />
       {label ?? STATUS_LABEL_FALLBACK[status]}
@@ -219,7 +220,7 @@ export function EmptyState({ icon, title, description, action, className = '', s
       {icon && (
         <div
           className="w-14 h-14 rounded-full mx-auto mb-4 flex items-center justify-center"
-          style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
+          style={{ background: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, boxShadow: 'var(--shadow-depth-sm)' }}
         >
           {icon}
         </div>

@@ -246,8 +246,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
   const bookingBar = (
     <div
-      className="rounded-[18px] bg-white p-2.5 flex flex-col xl:flex-row items-stretch"
-      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
+      className="tilt-card glass-surface rounded-[24px] p-2.5 flex flex-col xl:flex-row items-stretch"
+      style={{ boxShadow: 'var(--shadow-depth-lg)' }}
     >
       <div className={webField}>
         <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
@@ -263,7 +263,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
         type="button"
         onClick={swapCities}
         className="hidden xl:flex w-[38px] h-[38px] self-center rounded-full flex-shrink-0 mx-1 items-center justify-center transition-transform duration-200 hover:rotate-180"
-        style={{ border: 'var(--border-bold)', color: THEME.textPrimary, backgroundColor: THEME.primarySoft }}
+        style={{ color: THEME.textPrimary, backgroundColor: THEME.primarySoft, boxShadow: '0 4px 12px -2px rgba(242,168,28,0.35)' }}
         aria-label={t('common.swap')}
       >
         <ArrowUpDown className="w-3.5 h-3.5" />
@@ -319,10 +319,18 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
       {activeTab === 'home' && (
         <>
           {/* ============ MOBILE / TABLET — one focused screen ============ */}
-          <div className="lg:hidden">
-            <div className="relative z-10 app-gutter-x -mt-7" ref={searchRef}>
-              <div className="rounded-2xl bg-white overflow-hidden" style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}>
-                <div className="h-1.5" style={{ backgroundColor: THEME.primary }} />
+          <div className="lg:hidden relative overflow-hidden">
+            <div
+              className="float-blob pointer-events-none"
+              style={{ position: 'absolute', top: -20, right: -60, width: 200, height: 200, borderRadius: '50%', background: `radial-gradient(circle at 35% 35%, ${THEME.brandSoft}, transparent 70%)`, filter: 'blur(2px)' }}
+            />
+            <div
+              className="float-blob pointer-events-none"
+              style={{ position: 'absolute', top: 260, left: -70, width: 170, height: 170, borderRadius: '50%', background: 'radial-gradient(circle at 40% 40%, rgba(242,168,28,0.28), transparent 70%)', filter: 'blur(2px)', animationDelay: '1.4s' }}
+            />
+            <div className="relative z-10 app-gutter-x -mt-7 tilt-wrap" ref={searchRef}>
+              <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
+                <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
                 <div className="p-4 space-y-4">
                 <h1 className="font-display text-[22px] font-bold text-[var(--text-primary)] tracking-tight leading-snug">
                   {t('hero.searchHeadline')}
@@ -346,8 +354,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     <button
                       type="button"
                       onClick={swapCities}
-                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center"
-                      style={{ backgroundColor: THEME.primary, color: THEME.textPrimary, boxShadow: '0 0 0 2px var(--ink), 0 2px 6px rgba(16,39,71,0.2)' }}
+                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center transition-transform duration-200 hover:rotate-180"
+                      style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 6px 16px -4px rgba(242,168,28,0.5)' }}
                       aria-label={t('common.swap')}
                     >
                       <ArrowUpDown className="w-4 h-4" />
@@ -393,7 +401,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             {recentRoutes.length > 0 && (
               <section className="app-gutter-x pt-6">
                 <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.recentTitle')}</h2>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="tilt-wrap grid grid-cols-2 gap-3">
                   {recentRoutes.map((route) => (
                     <Fragment key={`recent-${route.from}-${route.to}`}>
                       <RecentRouteCard route={route} onClick={() => selectRoute(route)} />
@@ -406,7 +414,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             {popularRoutes.length > 0 && (
               <section className="app-gutter-x pt-6">
                 <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.title')}</h2>
-                <div className="space-y-3">
+                <div className="tilt-wrap space-y-3">
                   {popularRoutes.slice(0, 3).map((route) => (
                     <Fragment key={`popular-${route.from}-${route.to}`}>
                       <RouteCard route={route} onClick={() => selectRoute(route)} />
@@ -422,8 +430,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
                   title={t('hero.exploreTitle')}
                   description={t('hero.exploreDesc')}
-                  className="rounded-2xl bg-white"
-                  style={{ border: 'var(--border-bold)' }}
+                  className="glass-surface rounded-3xl"
+                  style={{ boxShadow: 'var(--shadow-depth-sm)' }}
                 />
               </div>
             )}
@@ -437,13 +445,17 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
           <div className="hidden lg:block font-web">
             {/* Hero band — centered eyebrow + headline, search is the focal point below */}
             <section
-              className="pt-14 px-6"
+              className="relative overflow-hidden pt-14 px-6"
               style={{ background: `radial-gradient(ellipse 80% 60% at 50% -10%, ${THEME.brandSoft} 0%, transparent 60%)` }}
             >
-              <div className="page-container-web text-center pb-7">
+              <div
+                className="float-blob pointer-events-none"
+                style={{ position: 'absolute', top: -40, right: '8%', width: 260, height: 260, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, rgba(242,168,28,0.22), transparent 70%)', filter: 'blur(4px)' }}
+              />
+              <div className="page-container-web text-center pb-7 relative">
                 <span
-                  className="inline-block px-[13px] py-[5px] bg-white rounded-full text-[11px] font-bold uppercase tracking-wider mb-[18px]"
-                  style={{ border: '1.5px solid var(--ink)', color: THEME.brand }}
+                  className="glass-surface inline-block px-[13px] py-[5px] rounded-full text-[11px] font-bold uppercase tracking-wider mb-[18px]"
+                  style={{ color: THEME.brand, boxShadow: 'var(--shadow-depth-sm)' }}
                 >
                   {t('hero.eyebrow')}
                 </span>
@@ -458,7 +470,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 
             {/* Search — the focal point */}
             <section className="relative z-[5] px-6 pb-14" ref={searchRef}>
-              <div className="page-container-web">{bookingBar}</div>
+              <div className="page-container-web tilt-wrap">{bookingBar}</div>
             </section>
 
             {/* How it works */}
@@ -534,7 +546,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                   <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('routes.subtitle')}</p>
                 </div>
                 {popularRoutes.length > 0 ? (
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="tilt-wrap grid grid-cols-3 gap-3">
                     {popularRoutes.map((route) => (
                       <Fragment key={`${route.from}-${route.to}`}>
                         <RouteCard route={route} onClick={() => selectRoute(route)} />
@@ -546,8 +558,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
                     icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
                     title={t('hero.exploreTitle')}
                     description={t('hero.exploreDesc')}
-                    className="rounded-2xl bg-white"
-                    style={{ border: 'var(--border-bold)' }}
+                    className="glass-surface rounded-3xl"
+                    style={{ boxShadow: 'var(--shadow-depth-sm)' }}
                   />
                 )}
               </div>
@@ -618,8 +630,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
 /** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
 function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
   return (
-    <div className="rounded-xl bg-white px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}>
-      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, color: THEME.brandDeep, border: '1.5px solid var(--ink)' }}>
+    <div className="glass-surface rounded-2xl px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ boxShadow: 'var(--shadow-depth-sm)' }}>
+      <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, color: THEME.brandDeep }}>
         <Icon className="w-3.5 h-3.5" />
       </div>
       <span className="text-[10.5px] font-bold text-[var(--text-secondary)] leading-tight">{text}</span>
@@ -658,8 +670,8 @@ function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }
     <button
       type="button"
       onClick={onClick}
-      className="text-left w-full rounded-xl bg-white p-5 transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0"
-      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
+      className="tilt-card glass-surface text-left w-full rounded-2xl p-5"
+      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
     >
       <div className="flex items-start justify-between gap-3 mb-2.5">
         <p className="font-semibold text-[var(--text-primary)] text-[14px] leading-snug flex items-center flex-wrap gap-1.5">
@@ -685,8 +697,8 @@ function RecentRouteCard({ route, onClick }: { route: RoutePair; onClick: () => 
     <button
       type="button"
       onClick={onClick}
-      className="text-left rounded-xl bg-white p-3 transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0"
-      style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-sm)' }}
+      className="tilt-card glass-surface text-left rounded-2xl p-3"
+      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
     >
       <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
         <Clock className="w-3 h-3" />
@@ -737,7 +749,7 @@ function DesktopStep({ step }: { step: { n: number; titleKey: string; descKey: s
     <div className="relative z-10 flex flex-col items-center text-center">
       <div
         className="w-11 h-11 mb-4 rounded-full flex items-center justify-center font-display text-[15px] font-bold"
-        style={{ backgroundColor: THEME.primary, border: '2px solid var(--ink)', color: THEME.textPrimary, boxShadow: '0 0 0 6px var(--surface-app)' }}
+        style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 0 0 6px var(--surface-app), 0 8px 16px -4px rgba(242,168,28,0.45)' }}
       >
         {step.n}
       </div>
@@ -756,7 +768,7 @@ function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string;
       className="flex items-start gap-4 py-[18px] border-b transition-[padding] duration-150 hover:pl-1 last:border-b-0"
       style={{ borderColor: THEME.webLine }}
     >
-      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundColor: THEME.brandSoft, border: '1.5px solid var(--ink)' }}>
+      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, boxShadow: '0 4px 10px -3px rgba(24,154,216,0.3)' }}>
         <Icon className="w-[18px] h-[18px]" style={{ color: THEME.brand }} />
       </div>
       <div className="min-w-0">

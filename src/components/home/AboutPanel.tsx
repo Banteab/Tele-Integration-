@@ -17,7 +17,7 @@ export default function AboutPanel() {
       <ScreenCard className="text-center space-y-3 lg:p-10">
         <div
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full mx-auto flex items-center justify-center"
-          style={{ backgroundColor: THEME.primarySoft, border: 'var(--border-bold)' }}
+          style={{ backgroundImage: `linear-gradient(145deg, ${THEME.primarySoft}, #fdecc8)`, boxShadow: 'var(--shadow-depth-sm)' }}
         >
           <Bus className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brand }} />
         </div>
@@ -37,7 +37,7 @@ export default function AboutPanel() {
             <div key={textKey} className="flex items-center gap-3 lg:flex-col lg:text-center lg:items-center lg:gap-3 lg:p-2">
               <div
                 className="w-9 h-9 lg:w-12 lg:h-12 rounded-lg lg:rounded-xl flex items-center justify-center shrink-0"
-                style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand, border: '1.5px solid var(--ink)' }}
+                style={{ backgroundColor: `${THEME.brand}14`, color: THEME.brand, boxShadow: '0 4px 10px -3px rgba(24,154,216,0.25)' }}
               >
                 <Icon className="w-4 h-4 lg:w-5 lg:h-5" />
               </div>

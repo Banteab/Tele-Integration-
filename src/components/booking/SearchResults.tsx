@@ -115,7 +115,7 @@ export default function SearchResults({
     return (
       <div className="pb-6">
         <TripBanner from={searchParams.from} to={searchParams.to} meta={t('common.searching')} />
-        <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
+        <div className="tilt-wrap grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
           {[1, 2, 3].map((i) => (
             <Fragment key={i}>
               <ScreenCard className="space-y-3">
@@ -158,10 +158,10 @@ export default function SearchResults({
     >
       <TripBanner from={searchParams.from} to={searchParams.to} meta={tripMeta} />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
+      <div className="tilt-wrap grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-3 lg:gap-4">
       {buses.map((bus) => (
         <Fragment key={bus.id}>
-          <ScreenCard className="space-y-4 flex flex-col">
+          <ScreenCard className="tilt-card space-y-4 flex flex-col">
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
@@ -169,7 +169,7 @@ export default function SearchResults({
                 <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
                 <span
                   className="text-[10px] font-bold px-2 py-0.5 rounded-full"
-                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover, border: '1.5px solid var(--ink)' }}
+                  style={{ backgroundColor: THEME.primarySoft, color: THEME.primaryHover }}
                 >
                   {bus.type}
                 </span>

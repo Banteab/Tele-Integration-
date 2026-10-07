@@ -21,7 +21,7 @@ export default function SupportPanel() {
       <ScreenCard className="text-center space-y-3 lg:p-10">
         <div
           className="w-14 h-14 lg:w-16 lg:h-16 rounded-full mx-auto flex items-center justify-center"
-          style={{ backgroundColor: THEME.brandSoft, border: 'var(--border-bold)' }}
+          style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, boxShadow: 'var(--shadow-depth-sm)' }}
         >
           <Headset className="w-7 h-7 lg:w-8 lg:h-8" style={{ color: THEME.brandDeep }} />
         </div>

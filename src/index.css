@@ -1,15 +1,15 @@
-@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Hanken+Grotesk:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+Ethiopic:wght@400;500;600;700&display=swap');
 @import "tailwindcss";
 
 @layer theme {
   :root {
-    /* Bold Vibrant Transit direction: Space Grotesk for display/headlines
-       and every button, Hanken Grotesk for body — one consistent pairing
-       for mobile and desktop alike (no more split system). */
-    --font-ui: 'Hanken Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-amharic: 'Noto Sans Ethiopic', 'Hanken Grotesk', sans-serif;
-    --font-display: 'Space Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
-    --font-web: 'Hanken Grotesk', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    /* Glass Depth direction: Sora for display/headlines and every button,
+       Plus Jakarta Sans for body — one consistent pairing for mobile and
+       desktop alike. */
+    --font-ui: 'Plus Jakarta Sans', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-amharic: 'Noto Sans Ethiopic', 'Plus Jakarta Sans', sans-serif;
+    --font-display: 'Sora', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-web: 'Plus Jakarta Sans', 'Noto Sans Ethiopic', -apple-system, BlinkMacSystemFont, sans-serif;
 
     /* ============================================================
        BRAND COLOR SYSTEM — Yellow (action) + Light Blue (trust) + White (clarity)
@@ -123,14 +123,19 @@
     --shadow-primary: 0 6px 16px rgba(242, 168, 28, 0.28);
     --shadow-shell: none;
 
-    /* Bold Vibrant Transit structural language: thick ink borders and
-       hard offset shadows (not soft blur) on cards/buttons/chips. */
-    --ink: var(--text-primary);
-    --border-bold: 2px solid var(--ink);
-    --border-bold-width: 2px;
-    --shadow-hard-sm: 3px 3px 0 var(--ink);
-    --shadow-hard-md: 4px 4px 0 var(--ink);
-    --shadow-hard-lg: 6px 6px 0 var(--ink);
+    /* Glass Depth structural language: translucent frosted surfaces,
+       soft layered shadows (not hard offsets), and a gentle 3D tilt on
+       hover instead of a press-down. */
+    --glass-bg: rgba(255, 255, 255, 0.72);
+    --glass-bg-strong: rgba(255, 255, 255, 0.85);
+    --glass-border: rgba(255, 255, 255, 0.8);
+    --glass-blur: 16px;
+    --shadow-depth-sm: 0 10px 24px -12px rgba(16, 39, 71, 0.18), 0 2px 6px rgba(16, 39, 71, 0.06);
+    --shadow-depth-md: 0 20px 40px -16px rgba(16, 39, 71, 0.2), 0 4px 10px rgba(16, 39, 71, 0.07);
+    --shadow-depth-lg: 0 30px 60px -20px rgba(16, 39, 71, 0.24), 0 10px 24px -8px rgba(16, 39, 71, 0.1);
+    --shadow-glow-primary: 0 14px 28px -10px rgba(242, 168, 28, 0.5);
+    --shadow-glow-primary-hover: 0 20px 40px -10px rgba(242, 168, 28, 0.62), 0 4px 14px rgba(242, 168, 28, 0.4);
+    --shadow-glow-brand: 0 8px 20px -6px rgba(24, 154, 216, 0.4);
 
     /* Desktop/web content widths — used once we leave the mini-app frame */
     --content-max-width: 1120px;
@@ -237,6 +242,90 @@
 
   .bg-brand-gradient {
     background-image: linear-gradient(135deg, var(--blue-700) 0%, var(--blue-500) 100%);
+  }
+
+  /* Glass Depth surface — frosted translucent panel used by cards/footers/chips */
+  .glass-surface {
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border: 1px solid var(--glass-border);
+  }
+
+  .text-gradient-primary {
+    background-image: linear-gradient(90deg, var(--yellow-500), var(--yellow-600));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  /* Gentle 3D hover tilt for cards — wrap in .tilt-wrap (sets perspective) */
+  .tilt-wrap {
+    perspective: 900px;
+  }
+
+  .tilt-card {
+    transition: transform 0.45s cubic-bezier(0.2, 0.8, 0.2, 1), box-shadow 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+    transform-style: preserve-3d;
+  }
+
+  .tilt-card:hover {
+    transform: rotateX(3deg) rotateY(-4deg) translateY(-3px) scale(1.012);
+    box-shadow: var(--shadow-depth-lg);
+  }
+
+  /* Shimmer sweep across the primary CTA */
+  .shine {
+    position: relative;
+    overflow: hidden;
+  }
+
+  .shine::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(110deg, transparent 30%, rgba(255, 255, 255, 0.45) 48%, transparent 66%);
+    background-size: 200% 100%;
+    animation: shimmer 3.2s ease-in-out infinite;
+    pointer-events: none;
+  }
+
+  /* Ambient floating accent blob — decorative background depth */
+  .float-blob {
+    animation: floatBlob 7s ease-in-out infinite;
+  }
+
+  .rise-in {
+    animation: riseIn 0.6s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+}
+
+@keyframes floatBlob {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  50% {
+    transform: translate(14px, -18px) scale(1.06);
+  }
+}
+
+@keyframes riseIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
   }
 }
 

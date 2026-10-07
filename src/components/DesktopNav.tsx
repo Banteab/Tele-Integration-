@@ -65,7 +65,7 @@ export default function DesktopNav({
         >
           <div
             className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
-            style={{ backgroundColor: THEME.brand, border: '2px solid var(--ink)' }}
+            style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: 'var(--shadow-glow-brand)' }}
           >
             <Bus className="w-4 h-4 text-white" />
           </div>
@@ -100,11 +100,11 @@ export default function DesktopNav({
                   key={id}
                   type="button"
                   onClick={tab ? () => onTabChange?.(tab) : onClick}
-                  className="relative font-display px-[13px] py-[7px] text-sm rounded-lg transition-colors"
+                  className="relative font-display px-[13px] py-[7px] text-sm rounded-lg transition-all"
                   style={{
                     color: isActive ? THEME.brandDeep : THEME.webMuted,
                     backgroundColor: isActive ? THEME.brandSoft : 'transparent',
-                    border: isActive ? '1.5px solid var(--ink)' : '1.5px solid transparent',
+                    boxShadow: isActive ? '0 2px 8px -2px rgba(24,154,216,0.3)' : 'none',
                     fontWeight: isActive ? 700 : 500,
                   }}
                 >
@@ -122,8 +122,8 @@ export default function DesktopNav({
             <button
               type="button"
               onClick={onBook}
-              className="hidden xl:flex items-center gap-1.5 rounded-full font-display px-[18px] py-[9px] text-sm font-bold text-[var(--text-primary)] transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5"
-              style={{ backgroundColor: THEME.primary, border: '2px solid var(--ink)', boxShadow: 'var(--shadow-hard-sm)' }}
+              className="shine hidden xl:flex items-center gap-1.5 rounded-full font-display px-[18px] py-[9px] text-sm font-bold text-[#241100] transition-all duration-200 hover:-translate-y-0.5"
+              style={{ backgroundImage: `linear-gradient(135deg, #f9bb3f, ${THEME.primary} 55%, ${THEME.primaryHover})`, boxShadow: 'var(--shadow-glow-primary)' }}
             >
               <TicketPlus className="w-3.5 h-3.5" />
               {t('desktopNav.bookTrip')}
@@ -135,8 +135,8 @@ export default function DesktopNav({
               className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
               style={
                 isLoggedIn
-                  ? { backgroundColor: THEME.brand, color: THEME.white, border: '1.5px solid var(--ink)' }
-                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted, border: '1.5px solid var(--border-strong)' }
+                  ? { backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, color: THEME.white, boxShadow: 'var(--shadow-glow-brand)' }
+                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted }
               }
               aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
             >
