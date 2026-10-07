@@ -77,9 +77,11 @@ interface Props {
   userName?: string;
   userPhone?: string;
   onSearch?: (params: SearchParams) => void;
+  /** True when the persistent 3D hero scene is rendering behind this screen — drop the opaque page background so it shows through. */
+  has3DBackground?: boolean;
 }
 
-export default function Hero({ userName, userPhone, onSearch }: Props) {
+export default function Hero({ userName, userPhone, onSearch, has3DBackground = false }: Props) {
   const [activeTab, setActiveTab] = useState<HomeTab>('home');
   const [from, setFrom] = useState('Addis Ababa');
   const [to, setTo] = useState('');
@@ -299,7 +301,10 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
   );
 
   return (
-    <div className="min-h-screen lg:min-h-0 flex flex-col" style={{ background: 'var(--surface-app)' }}>
+    <div
+      className="min-h-screen lg:min-h-0 flex flex-col"
+      style={{ background: has3DBackground && activeTab === 'home' ? 'transparent' : 'var(--surface-app)' }}
+    >
       <DesktopNav
         userName={userName}
         userPhone={userPhone}
@@ -392,7 +397,10 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               </div>
             </div>
 
-            <div className="app-gutter-x pt-4 grid grid-cols-3 gap-2">
+            {/* Everything below the floating search card sits on its own solid
+                surface — the 3D bus belongs to the banner above, not the list. */}
+            <div className="relative pt-4" style={{ background: 'var(--surface-app)' }}>
+            <div className="app-gutter-x grid grid-cols-3 gap-2">
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
               <TrustPill icon={Clock} text={t('hero.trustSupport')} />
@@ -439,6 +447,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             {/* Mini App stays a single, focused screen — booking + quick route access is the whole page.
                 How it works / Why us / footer are desktop-web only (below). */}
             <div className="pb-28" />
+            </div>
           </div>
 
           {/* ============ DESKTOP / WEB ============ */}
@@ -473,8 +482,8 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
               <div className="page-container-web tilt-wrap">{bookingBar}</div>
             </section>
 
-            {/* How it works */}
-            <section className="px-6 py-14" ref={howItWorksRef}>
+            {/* How it works — its own solid surface; the 3D scene belongs to the banner above, not here */}
+            <section className="relative px-6 py-14" style={{ background: 'var(--surface-app)' }} ref={howItWorksRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
                   <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
@@ -539,7 +548,7 @@ export default function Hero({ userName, userPhone, onSearch }: Props) {
             </section>
 
             {/* Popular routes — real origin/destination pairs from the API only */}
-            <section className="px-6 py-14" ref={routesRef}>
+            <section className="relative px-6 py-14" style={{ background: 'var(--surface-app)' }} ref={routesRef}>
               <div className="page-container-web">
                 <div className="text-center mb-10">
                   <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>

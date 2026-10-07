@@ -27,6 +27,18 @@ function formatBusTime(value: string) {
   return d.toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' });
 }
 
+/** Estimated journey time from the real departure/arrival timestamps — never fabricated. */
+function formatDuration(departure: string, arrival: string): string | null {
+  const dep = new Date(departure);
+  const arr = new Date(arrival);
+  if (Number.isNaN(dep.getTime()) || Number.isNaN(arr.getTime())) return null;
+  const minutes = Math.round((arr.getTime() - dep.getTime()) / 60000);
+  if (minutes <= 0) return null;
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  return m ? `${h}h ${m}m` : `${h}h`;
+}
+
 export default function SearchResults({
   searchParams,
   onSelectBus,
@@ -165,7 +177,7 @@ export default function SearchResults({
           <div className="flex items-start justify-between gap-2">
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <BusIcon className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+                <BusIcon className="bus-chip-idle w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
                 <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{bus.operator}</h3>
                 <span
                   className="text-[10px] font-bold px-2 py-0.5 rounded-full"
@@ -197,6 +209,11 @@ export default function SearchResults({
             <div className="flex flex-col items-center px-2">
               <Clock className="w-3.5 h-3.5 text-[var(--text-muted)]" />
               <div className="w-10 h-px bg-[var(--border-strong)] my-1" />
+              {formatDuration(bus.departureTime, bus.arrivalTime) && (
+                <span className="text-[9px] font-semibold text-[var(--text-muted)] whitespace-nowrap">
+                  {formatDuration(bus.departureTime, bus.arrivalTime)}
+                </span>
+              )}
             </div>
             <div className="text-center flex-1">
               <p className="text-lg font-bold text-[var(--text-primary)] tnum">

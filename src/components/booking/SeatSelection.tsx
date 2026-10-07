@@ -1,9 +1,14 @@
 import { AlertCircle, Loader2 } from 'lucide-react';
 import { Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
-import { useState, useEffect, type CSSProperties } from 'react';
+import { type CSSProperties } from 'react';
 import { toast } from 'sonner';
-import { getVehicleLayout } from '../../services/api';
+import {
+  useSeatLayout,
+  isSelectableSeat,
+  isUnavailableSeat,
+  type SeatData,
+} from '../../hooks/useSeatLayout';
 import {
   ScreenCard,
   TripBanner,
@@ -21,106 +26,9 @@ interface Props {
   onSeatLayoutLoaded?: (seatLayout: Array<{ id: number; name: string; type: string; x: number; y: number }>) => void;
 }
 
-interface SeatData {
-  id: number;
-  name: string;
-  type: string; // 'seat', 'sold', 'aisle', 'staircase', 'driver seat'
-  x: number;
-  y: number;
-}
-
-interface SeatLayout {
-  seats: SeatData[];
-  maxX: number;
-  maxY: number;
-}
-
 export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onContinue, onBack, onSeatLayoutLoaded }: Props) {
   const { t } = useTranslation();
-  const [seatLayout, setSeatLayout] = useState<SeatLayout | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Fetch seat layout from API (Bank-Portal-2018 pattern)
-  useEffect(() => {
-    const fetchSeatLayout = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Use vehicleId and scheduleId from bus object
-        if (!bus.vehicleId || !bus.scheduleId) {
-          throw new Error('missingInfo');
-        }
-
-        const response = await getVehicleLayout(
-          String(bus.vehicleId),
-          String(bus.scheduleId)
-        );
-
-        if (response && response.seats && Array.isArray(response.seats)) {
-          setSeatLayout({
-            seats: response.seats,
-            maxX: response.maxX || 4,
-            maxY: response.maxY || 10,
-          });
-          // Notify parent component of loaded seat layout
-          if (onSeatLayoutLoaded) {
-            onSeatLayoutLoaded(response.seats);
-          }
-        } else {
-          throw new Error('noData');
-        }
-      } catch (err: any) {
-        console.error('Failed to fetch seat layout:', err);
-
-        const errorKeyMap: Record<string, string> = {
-          missingInfo: 'seats.errors.missingInfo',
-          noData: 'seats.errors.noData',
-          notFound: 'seats.errors.notFound',
-          notAvailable: 'seats.errors.notAvailable',
-          notFoundVehicle: 'seats.errors.notFoundVehicle',
-          serverError: 'seats.errors.serverError',
-        };
-
-        let errorMessage = t('seats.errors.loadFailed');
-
-        if (err.message && errorKeyMap[err.message]) {
-          errorMessage = t(errorKeyMap[err.message]);
-        } else if (err.response?.data?.message) {
-          errorMessage = err.response.data.message;
-        } else if (err.response?.data) {
-          const data = err.response.data;
-          if (typeof data === 'string') {
-            errorMessage = data.includes('No Seat Layout')
-              ? t('seats.errors.notFound')
-              : data;
-          } else {
-            errorMessage = t('seats.errors.notAvailable');
-          }
-        } else if (err.response?.status === 400) {
-          errorMessage = t('seats.errors.notFound');
-        } else if (err.response?.status === 404) {
-          errorMessage = t('seats.errors.notFoundVehicle');
-        } else if (err.response?.status === 500) {
-          errorMessage = t('seats.errors.serverError');
-        } else if (err.message && !errorKeyMap[err.message]) {
-          errorMessage = err.message;
-        }
-        
-        setError(errorMessage);
-        setSeatLayout(null);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchSeatLayout();
-  }, [bus.vehicleId, bus.scheduleId, t]);
-
-  const isSelectableSeat = (seatType: string): boolean => {
-    return seatType === 'seat' || seatType === 'pending';
-  };
+  const { seatLayout, loading, error } = useSeatLayout(bus, onSeatLayoutLoaded);
 
   const toggleSeat = (seatName: string) => {
     const seat = seatLayout?.seats.find(s => s.name === seatName);
@@ -147,7 +55,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
     const baseClass = 'w-11 h-11 rounded-lg border-2 font-semibold text-sm transition-all duration-150 flex items-center justify-center';
 
-    if (seat.type === 'sold') {
+    if (isUnavailableSeat(seat.type)) {
       return `${baseClass} bg-[var(--surface-muted)] border-[var(--border-strong)] text-[var(--text-muted)] cursor-not-allowed`;
     }
 
