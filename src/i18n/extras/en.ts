@@ -51,6 +51,9 @@ export default {
     routes: 'Routes',
     myBooking: 'My Booking',
     help: 'Help',
+    aboutUs: 'About Us',
+    helpCenter: 'Help Center',
+    safety: 'Safety',
   },
   header: {
     greeting: 'Where would you like to go today?',

@@ -1,4 +1,4 @@
-import { Bus, User, ArrowLeft, TicketPlus } from 'lucide-react';
+import { Bus, User, ArrowLeft, ArrowRight, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BRAND, THEME } from '../config/theme';
 import LanguageSelector from './LanguageSelector';
@@ -46,31 +46,33 @@ export default function DesktopNav({
   const isLoggedIn = Boolean(userName || userPhone);
   const initials = getInitials(userName);
 
-  /** Desktop has room for fuller wording than the compact mobile tab bar. */
+  /** Matches the reference header: Home / Routes / About Us / Help Center / Safety,
+   *  plus My Booking kept so ticket history stays reachable. */
   const navItems: { id: string; labelKey: string; tab?: HomeTab; onClick?: () => void }[] = [
     { id: 'home', labelKey: 'desktopNav.home', tab: 'home' },
     { id: 'routes', labelKey: 'desktopNav.routes', onClick: onRoutesClick },
+    { id: 'about', labelKey: 'desktopNav.aboutUs', tab: 'about' },
+    { id: 'help', labelKey: 'desktopNav.helpCenter', tab: 'support' },
+    { id: 'safety', labelKey: 'desktopNav.safety', tab: 'about' },
     { id: 'tickets', labelKey: 'desktopNav.myBooking', tab: 'tickets' },
-    { id: 'about', labelKey: 'tabs.about', tab: 'about' },
-    { id: 'support', labelKey: 'desktopNav.help', tab: 'support' },
   ];
 
   return (
-    <header className="font-web hidden lg:block sticky top-0 z-40 bg-white/92 backdrop-blur border-b border-[var(--border)]">
-      <div className="page-container-web flex items-center justify-between gap-6 px-6 h-16">
+    <header className="font-web hidden lg:block sticky top-0 z-40 bg-white border-b border-[var(--border)]">
+      <div className="page-container-web flex items-center justify-between gap-6 px-6 h-[72px]">
         <button
           type="button"
           onClick={onBrandClick}
           className="flex items-center gap-2.5 shrink-0 rounded-lg"
         >
           <div
-            className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
+            className="w-[38px] h-[38px] rounded-[10px] flex items-center justify-center"
             style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: 'var(--shadow-glow-brand)' }}
           >
-            <Bus className="w-4 h-4 text-white" />
+            <Bus className="w-[18px] h-[18px] text-white" />
           </div>
           <div className="text-left">
-            <p className="font-display font-bold text-[15px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
+            <p className="font-display font-bold text-[17px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
               {BRAND.name}
             </p>
             <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
@@ -92,7 +94,7 @@ export default function DesktopNav({
             <h1 className="font-display font-bold text-[var(--text-primary)] text-[15px] truncate">{flowTitle}</h1>
           </div>
         ) : (
-          <nav className="flex-1 flex items-center justify-center gap-1">
+          <nav className="flex-1 flex items-center justify-center gap-7">
             {navItems.map(({ id, labelKey, tab, onClick }) => {
               const isActive = tab ? activeTab === tab : false;
               return (
@@ -100,55 +102,65 @@ export default function DesktopNav({
                   key={id}
                   type="button"
                   onClick={tab ? () => onTabChange?.(tab) : onClick}
-                  className="relative font-display px-[13px] py-[7px] text-sm rounded-lg transition-all"
+                  className="relative font-display py-[7px] text-[15px] transition-colors"
                   style={{
-                    color: isActive ? THEME.brandDeep : THEME.webMuted,
-                    backgroundColor: isActive ? THEME.brandSoft : 'transparent',
-                    boxShadow: isActive ? '0 2px 8px -2px rgba(24,154,216,0.3)' : 'none',
+                    color: isActive ? THEME.brand : THEME.textSecondary,
                     fontWeight: isActive ? 700 : 500,
                   }}
                 >
                   {t(labelKey)}
+                  <span
+                    className="absolute left-0 right-0 -bottom-[1px] h-[2px] rounded-full transition-opacity"
+                    style={{ backgroundColor: THEME.brand, opacity: isActive ? 1 : 0 }}
+                  />
                 </button>
               );
             })}
           </nav>
         )}
 
-        <div className="flex items-center gap-3 shrink-0">
+        <div className="flex items-center gap-4 shrink-0">
           <LanguageSelector />
 
           {!flowTitle && (
             <button
               type="button"
               onClick={onBook}
-              className="shine hidden xl:flex items-center gap-1.5 rounded-full font-display px-[18px] py-[9px] text-sm font-bold text-[#241100] transition-all duration-200 hover:-translate-y-0.5"
-              style={{ backgroundImage: `linear-gradient(135deg, #f9bb3f, ${THEME.primary} 55%, ${THEME.primaryHover})`, boxShadow: 'var(--shadow-glow-primary)' }}
+              className="shine hidden xl:flex items-center gap-1.5 rounded-full font-display px-5 py-[10px] text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5"
+              style={{ backgroundColor: THEME.primary, boxShadow: 'var(--shadow-glow-primary)' }}
             >
-              <TicketPlus className="w-3.5 h-3.5" />
               {t('desktopNav.bookTrip')}
+              <ArrowRight className="w-3.5 h-3.5" />
             </button>
           )}
 
-          <div className="flex items-center gap-2 pl-3 border-l border-[var(--border)]">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
-              style={
-                isLoggedIn
-                  ? { backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, color: THEME.white, boxShadow: 'var(--shadow-glow-brand)' }
-                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted }
-              }
-              aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
-            >
-              {initials || <User className="w-4 h-4" />}
-            </div>
-            {isLoggedIn && (
-              <div className="hidden xl:block max-w-[9rem]">
-                <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{userName}</p>
-                {userPhone && <p className="text-[11px] text-[var(--text-muted)] truncate tnum">{userPhone}</p>}
-              </div>
-            )}
+          <div
+            className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
+            style={
+              isLoggedIn
+                ? { backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, color: THEME.white, boxShadow: 'var(--shadow-glow-brand)' }
+                : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted }
+            }
+            aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
+          >
+            {initials || <User className="w-4 h-4" />}
           </div>
+
+          {isLoggedIn ? (
+            <div className="hidden xl:block max-w-[9rem] pl-4 border-l border-[var(--border)]">
+              <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{userName}</p>
+              {userPhone && <p className="text-[11px] text-[var(--text-muted)] truncate tnum">{userPhone}</p>}
+            </div>
+          ) : (
+            <a
+              href={`tel:${BRAND.phone}`}
+              className="hidden xl:flex items-center gap-2 pl-4 border-l border-[var(--border)] text-sm font-semibold transition-colors hover:text-[var(--color-brand)]"
+              style={{ color: THEME.textPrimary }}
+            >
+              <Phone className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
+              {BRAND.phone}
+            </a>
+          )}
         </div>
       </div>
     </header>

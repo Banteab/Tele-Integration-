@@ -85,7 +85,9 @@ export default function App() {
   });
 
   const show3DSeats = quality !== 'off' && (step === 'seats' || isTransitioning) && Boolean(selectedBus);
-  const showScene = quality !== 'off' && (step === 'home' || step === 'search' || step === 'seats' || isTransitioning);
+  // The home/search steps now use a static photo hero (see Hero.tsx) — the persistent
+  // 3D canvas only renders for the seat-selection cinematic sequence.
+  const showScene = quality !== 'off' && (step === 'seats' || isTransitioning);
 
   const displayName = getDisplayName(user, telebirrProfile);
   const displayPhone = getDisplayPhone(user, telebirrProfile);
@@ -308,7 +310,7 @@ export default function App() {
           className="fixed inset-x-0 top-0 transition-[height,opacity] duration-500 ease-out"
           style={{
             zIndex: 0,
-            height: step === 'home' ? '70vh' : '100vh',
+            height: '100vh',
             opacity: showScene ? 1 : 0,
             pointerEvents: 'none',
           }}
@@ -345,7 +347,7 @@ export default function App() {
             userName={displayName}
             userPhone={displayPhone}
             onSearch={handleSearch}
-            has3DBackground={quality !== 'off'}
+            has3DBackground={false}
           />
         ) : (
           <div

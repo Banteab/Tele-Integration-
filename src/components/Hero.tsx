@@ -241,62 +241,80 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
   const year = new Date().getFullYear();
 
-  /** Field style matching the reference design: label above, no visible border until hover/focus. */
-  const webField = 'flex-1 min-w-0 flex flex-col justify-center px-[18px] py-3.5 rounded-xl transition-colors hover:bg-[var(--surface-muted)] focus-within:bg-[var(--surface-muted)]';
+  /** Field style matching the reference design: an icon chip + label-over-value column. */
+  const webField = 'flex-1 min-w-0 flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:bg-[var(--surface-muted)] focus-within:bg-[var(--surface-muted)]';
   const webLabel = 'text-[11px] font-medium tracking-wide mb-0.5';
   const webInput = 'border-0 bg-transparent text-[15px] font-semibold text-[var(--text-primary)] outline-none w-full p-0 appearance-none';
+  const fieldIconChip = 'w-10 h-10 rounded-full flex items-center justify-center shrink-0';
 
   const bookingBar = (
     <div
-      className="tilt-card glass-surface rounded-[24px] p-2.5 flex flex-col xl:flex-row items-stretch"
-      style={{ boxShadow: 'var(--shadow-depth-lg)' }}
+      className="tilt-card rounded-[22px] bg-white p-2 flex flex-col xl:flex-row items-stretch"
+      style={{ boxShadow: '0 24px 56px -16px rgba(16,39,71,0.28)' }}
     >
       <div className={webField}>
-        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
-        <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.from")}>
-          <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-          {fromOptions.map((city) => (
-            <option key={city} value={city}>{city}</option>
-          ))}
-        </select>
+        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
+          <MapPin className="w-[18px] h-[18px]" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
+          <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.from")}>
+            <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+            {fromOptions.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <button
-        type="button"
-        onClick={swapCities}
-        className="hidden xl:flex w-[38px] h-[38px] self-center rounded-full flex-shrink-0 mx-1 items-center justify-center transition-transform duration-200 hover:rotate-180"
-        style={{ color: THEME.textPrimary, backgroundColor: THEME.primarySoft, boxShadow: '0 4px 12px -2px rgba(242,168,28,0.35)' }}
-        aria-label={t('common.swap')}
-      >
-        <ArrowUpDown className="w-3.5 h-3.5" />
-      </button>
-
-      <div className={webField}>
-        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
-        <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.to")}>
-          <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-          {toOptions.map((city) => (
-            <option key={city} value={city}>{city}</option>
-          ))}
-        </select>
+      <div className="hidden xl:flex items-center">
+        <button
+          type="button"
+          onClick={swapCities}
+          className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-transform duration-200 hover:rotate-180"
+          style={{ color: THEME.brand, backgroundColor: THEME.brandSoft, boxShadow: '0 2px 10px -2px rgba(24,154,216,0.3)' }}
+          aria-label={t('common.swap')}
+        >
+          <ArrowUpDown className="w-4 h-4" />
+        </button>
       </div>
 
-      <div className="hidden xl:block w-px my-3.5 shrink-0" style={{ backgroundColor: THEME.webLine }} />
-
-      <div className={webField}>
-        <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
-        <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={webInput} aria-label={t("common.date")} />
+      <div className={`${webField} xl:border-l xl:border-[var(--border)]`}>
+        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
+          <MapPin className="w-[18px] h-[18px]" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
+          <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.to")}>
+            <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+            {toOptions.map((city) => (
+              <option key={city} value={city}>{city}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
-      <PrimaryButton
-        onClick={handleSearch}
-        disabled={loadingRoutes}
-        fullWidth={false}
-        className="w-full xl:w-auto px-7 !py-0 xl:h-[52px] text-[15px] shrink-0 ml-0 xl:ml-1.5 mt-2 xl:mt-0 !rounded-xl"
-      >
-        {loadingRoutes ? <Loader2 className="w-[17px] h-[17px] animate-spin" /> : <Search className="w-[17px] h-[17px]" />}
-        {t('hero.searchBuses')}
-      </PrimaryButton>
+      <div className={`${webField} xl:border-l xl:border-[var(--border)]`}>
+        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
+          <Calendar className="w-[18px] h-[18px]" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
+          <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={webInput} aria-label={t("common.date")} />
+        </div>
+      </div>
+
+      <div className="p-1.5 xl:p-1 flex items-stretch">
+        <PrimaryButton
+          onClick={handleSearch}
+          disabled={loadingRoutes}
+          fullWidth={false}
+          className="w-full xl:w-auto px-8 !py-0 xl:h-full min-h-[56px] text-[15px] shrink-0 !rounded-[16px]"
+        >
+          {loadingRoutes ? <Loader2 className="w-[17px] h-[17px] animate-spin" /> : <Search className="w-[17px] h-[17px]" />}
+          {t('hero.searchBuses')}
+        </PrimaryButton>
+      </div>
     </div>
   );
 
@@ -452,35 +470,59 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
           {/* ============ DESKTOP / WEB ============ */}
           <div className="hidden lg:block font-web">
-            {/* Hero band — centered eyebrow + headline, search is the focal point below */}
-            <section
-              className="relative overflow-hidden pt-14 px-6"
-              style={{ background: `radial-gradient(ellipse 80% 60% at 50% -10%, ${THEME.brandSoft} 0%, transparent 60%)` }}
-            >
+            {/* Hero band — an illustrated sky/road scene (no stock photo dependency) with the eyebrow badge + headline over it */}
+            <section className="relative overflow-hidden" style={{ height: 'clamp(460px, 54vw, 620px)' }}>
               <div
-                className="float-blob pointer-events-none"
-                style={{ position: 'absolute', top: -40, right: '8%', width: 260, height: 260, borderRadius: '50%', background: 'radial-gradient(circle at 35% 35%, rgba(242,168,28,0.22), transparent 70%)', filter: 'blur(4px)' }}
+                className="absolute inset-0"
+                style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
               />
-              <div className="page-container-web text-center pb-7 relative">
+              <div
+                className="absolute pointer-events-none"
+                style={{ top: '7%', right: '14%', width: 240, height: 240, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,210,135,0.85), rgba(255,210,135,0) 70%)', filter: 'blur(4px)' }}
+              />
+              <div className="absolute pointer-events-none" style={{ top: '13%', left: '9%', width: 150, height: 48, borderRadius: 999, background: 'rgba(255,255,255,0.8)', filter: 'blur(2px)' }} />
+              <div className="absolute pointer-events-none" style={{ top: '21%', left: '22%', width: 96, height: 34, borderRadius: 999, background: 'rgba(255,255,255,0.65)', filter: 'blur(2px)' }} />
+              <div
+                className="absolute inset-x-0 bottom-[30%] pointer-events-none"
+                style={{ height: '36%', backgroundColor: '#aecee3', clipPath: 'polygon(0% 100%, 0% 58%, 12% 30%, 24% 50%, 38% 16%, 52% 46%, 68% 20%, 82% 48%, 100% 28%, 100% 100%)' }}
+              />
+              <div
+                className="absolute inset-x-0 bottom-[25%] pointer-events-none"
+                style={{ height: '30%', backgroundColor: '#86b4d8', clipPath: 'polygon(0% 100%, 0% 64%, 15% 32%, 30% 56%, 48% 18%, 64% 52%, 80% 26%, 100% 50%, 100% 100%)' }}
+              />
+              <div className="absolute inset-x-0 bottom-0" style={{ height: '25%', backgroundColor: '#263650' }}>
+                <div
+                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
+                  style={{ height: 5, backgroundImage: `repeating-linear-gradient(90deg, ${THEME.primary} 0 34px, transparent 34px 62px)` }}
+                />
+              </div>
+              <HeroBusSilhouette />
+              <div
+                className="absolute inset-0"
+                style={{ backgroundImage: 'linear-gradient(180deg, rgba(8,20,36,0.08) 0%, rgba(8,20,36,0.0) 30%, rgba(8,20,36,0.42) 100%)' }}
+              />
+              <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
                 <span
-                  className="glass-surface inline-block px-[13px] py-[5px] rounded-full text-[11px] font-bold uppercase tracking-wider mb-[18px]"
-                  style={{ color: THEME.brand, boxShadow: 'var(--shadow-depth-sm)' }}
+                  className="inline-flex items-center gap-1.5 bg-white px-4 py-[9px] rounded-full text-[12px] font-bold uppercase tracking-wider mb-5"
+                  style={{ color: THEME.brand, boxShadow: '0 10px 24px -8px rgba(0,0,0,0.3)' }}
                 >
+                  <Bus className="w-3.5 h-3.5" />
                   {t('hero.eyebrow')}
                 </span>
                 <h1
-                  className="font-display font-bold text-[var(--text-primary)]"
-                  style={{ fontSize: 'clamp(34px, 4.6vw, 52px)', letterSpacing: '-0.02em', lineHeight: 1.1 }}
+                  className="font-display font-bold text-white"
+                  style={{ fontSize: 'clamp(34px, 4.6vw, 54px)', letterSpacing: '-0.02em', lineHeight: 1.12, textShadow: '0 2px 20px rgba(0,0,0,0.35)' }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
               </div>
             </section>
 
-            {/* Search — the focal point */}
-            <section className="relative z-[5] px-6 pb-14" ref={searchRef}>
+            {/* Search — floating card overlapping the hero photo's bottom edge */}
+            <section className="relative z-[5] px-6" style={{ marginTop: '-52px' }} ref={searchRef}>
               <div className="page-container-web tilt-wrap">{bookingBar}</div>
             </section>
+            <div className="h-14" aria-hidden="true" />
 
             {/* How it works — its own solid surface; the 3D scene belongs to the banner above, not here */}
             <section className="relative px-6 py-14" style={{ background: 'var(--surface-app)' }} ref={howItWorksRef}>
@@ -491,8 +533,8 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 </div>
                 <div className="relative grid grid-cols-4 gap-4">
                   <div
-                    className="hidden xl:block absolute top-[22px] left-[12%] right-[12%] h-px pointer-events-none"
-                    style={{ backgroundImage: `linear-gradient(90deg, transparent, ${THEME.webLine} 15%, ${THEME.webLine} 85%, transparent)` }}
+                    className="hidden xl:block absolute top-[36px] left-[12%] right-[12%] border-t-2 border-dashed pointer-events-none"
+                    style={{ borderColor: THEME.brandBorder }}
                   />
                   {steps.map((step) => (
                     <Fragment key={step.n}>
@@ -751,16 +793,25 @@ function StepItem({
   );
 }
 
-/** Desktop "how it works" — a numbered node on the connecting line, matching the reference design. */
-function DesktopStep({ step }: { step: { n: number; titleKey: string; descKey: string } }) {
+/** Desktop "how it works" — icon circle with an overlapping step-number badge, matching the reference design. */
+function DesktopStep({ step }: { step: { n: number; icon: typeof Search; titleKey: string; descKey: string } }) {
   const { t } = useTranslation();
+  const Icon = step.icon;
   return (
     <div className="relative z-10 flex flex-col items-center text-center">
-      <div
-        className="w-11 h-11 mb-4 rounded-full flex items-center justify-center font-display text-[15px] font-bold"
-        style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 0 0 6px var(--surface-app), 0 8px 16px -4px rgba(242,168,28,0.45)' }}
-      >
-        {step.n}
+      <div className="relative mb-4">
+        <div
+          className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
+          style={{ backgroundColor: THEME.brandSoft, boxShadow: '0 0 0 6px var(--surface-app)' }}
+        >
+          <Icon className="w-7 h-7" style={{ color: THEME.brand }} />
+        </div>
+        <div
+          className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center font-display text-[13px] font-bold"
+          style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 0 0 3px var(--surface-app), 0 4px 10px -2px rgba(242,168,28,0.5)' }}
+        >
+          {step.n}
+        </div>
       </div>
       <p className="font-display font-bold text-[var(--text-primary)]">{t(step.titleKey)}</p>
       <p className="text-[13px] mt-1 leading-relaxed max-w-[160px]" style={{ color: THEME.webMuted }}>{t(step.descKey)}</p>
@@ -784,6 +835,34 @@ function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string;
         <p className="font-display font-bold text-[14px] text-[var(--text-primary)]">{t(feature.titleKey)}</p>
         <p className="text-[13px] mt-0.5" style={{ color: THEME.webMuted }}>{t(feature.textKey)}</p>
       </div>
+    </div>
+  );
+}
+
+/** A flat, iconographic bus silhouette sitting on the hero's illustrated road —
+ *  built from plain divs so the hero has no stock-photo/asset dependency. */
+function HeroBusSilhouette() {
+  return (
+    <div className="absolute pointer-events-none" style={{ right: '8%', bottom: '13%', width: 230, height: 92 }} aria-hidden="true">
+      <div
+        className="absolute inset-x-0 bottom-0 rounded-[16px]"
+        style={{ top: 14, backgroundColor: THEME.brand, boxShadow: '0 18px 34px -10px rgba(12,108,166,0.5)' }}
+      />
+      <div className="absolute left-2 right-2 top-0 rounded-t-[14px]" style={{ height: 18, backgroundColor: THEME.brandDeep }} />
+      <div className="absolute left-3 right-3 rounded-[8px] flex gap-[5px] px-[5px]" style={{ top: 24, height: 24, backgroundColor: '#eaf6ff' }}>
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="flex-1" style={i ? { borderLeft: '2px solid rgba(12,108,166,0.3)' } : undefined} />
+        ))}
+      </div>
+      <div className="absolute left-3 right-3 rounded-full" style={{ top: 54, height: 5, backgroundColor: THEME.primary }} />
+      <div
+        className="absolute rounded-full"
+        style={{ width: 24, height: 24, left: 20, bottom: -9, backgroundColor: '#1b2434', boxShadow: '0 0 0 4px #4b5566 inset' }}
+      />
+      <div
+        className="absolute rounded-full"
+        style={{ width: 24, height: 24, right: 20, bottom: -9, backgroundColor: '#1b2434', boxShadow: '0 0 0 4px #4b5566 inset' }}
+      />
     </div>
   );
 }
