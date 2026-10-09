@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef, Fragment } from 'react';
 import {
   MapPin,
+  Navigation,
   Calendar,
   Search,
   ArrowUpDown,
@@ -8,13 +9,16 @@ import {
   Clock,
   Loader2,
   Bus,
-  Armchair,
-  Smartphone,
   Ticket,
   CreditCard,
   ShieldCheck,
-  ClipboardCheck,
   Compass,
+  CheckCircle2,
+  Luggage,
+  Zap,
+  Wallet,
+  RotateCcw,
+  Headphones,
 } from 'lucide-react';
 import { SearchParams } from '../types';
 import { useTranslation } from 'react-i18next';
@@ -95,6 +99,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
+  const telebirrRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setRecentRoutes(loadRecentRoutes().slice(0, 2));
@@ -214,6 +219,17 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
     }
   };
 
+  /** Nav "telebirr Pay" click — jump to the telebirr trust section, switching tabs first if needed. */
+  const goToTelebirr = () => {
+    const scroll = () => telebirrRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (activeTab !== 'home') {
+      handleTabChange('home');
+      requestAnimationFrame(() => requestAnimationFrame(scroll));
+    } else {
+      scroll();
+    }
+  };
+
   /** Picking a popular route prefills the real search fields — it never skips the date/search step. */
   const selectRoute = (route: RoutePair) => {
     setFrom(route.from);
@@ -224,96 +240,117 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const fieldClass =
     'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
-  const whyFeatures = [
-    { icon: Search, titleKey: 'about.featureSearchTitle', textKey: 'about.featureSearch' },
-    { icon: Armchair, titleKey: 'about.featureSeatsTitle', textKey: 'about.featureSeats' },
-    { icon: Smartphone, titleKey: 'about.featurePayTitle', textKey: 'about.featurePay' },
-    { icon: Ticket, titleKey: 'about.featureTicketTitle', textKey: 'about.featureTicket' },
-    { icon: ClipboardCheck, titleKey: 'about.featureInfoTitle', textKey: 'about.featureInfo' },
-  ];
-
   const steps = [
-    { n: 1, icon: Search, titleKey: 'howItWorks.step1Title', descKey: 'howItWorks.step1Desc' },
-    { n: 2, icon: Bus, titleKey: 'howItWorks.step2Title', descKey: 'howItWorks.step2Desc' },
-    { n: 3, icon: CreditCard, titleKey: 'howItWorks.step3Title', descKey: 'howItWorks.step3Desc' },
-    { n: 4, icon: Ticket, titleKey: 'howItWorks.step4Title', descKey: 'howItWorks.step4Desc' },
+    { n: 1, icon: Search, titleKey: 'howItWorks.step1Title', descKey: 'howItWorks.step1Desc', bg: 'bg-sky-100/80 group-hover:bg-sky-600', text: 'text-sky-600' },
+    { n: 2, icon: Bus, titleKey: 'howItWorks.step2Title', descKey: 'howItWorks.step2Desc', bg: 'bg-amber-100/80 group-hover:bg-amber-500', text: 'text-amber-600' },
+    { n: 3, icon: CreditCard, titleKey: 'howItWorks.step3Title', descKey: 'howItWorks.step3Desc', bg: 'bg-emerald-100/80 group-hover:bg-emerald-600', text: 'text-emerald-600' },
+    { n: 4, icon: Luggage, titleKey: 'howItWorks.step4Title', descKey: 'howItWorks.step4Desc', bg: 'bg-indigo-100/80 group-hover:bg-indigo-600', text: 'text-indigo-600' },
   ] as const;
 
   const year = new Date().getFullYear();
 
-  /** Field style matching the reference design: an icon chip + label-over-value column. */
-  const webField = 'flex-1 min-w-0 flex items-center gap-3 px-5 py-3.5 rounded-xl transition-colors hover:bg-[var(--surface-muted)] focus-within:bg-[var(--surface-muted)]';
-  const webLabel = 'text-[11px] font-medium tracking-wide mb-0.5';
-  const webInput = 'border-0 bg-transparent text-[15px] font-semibold text-[var(--text-primary)] outline-none w-full p-0 appearance-none';
-  const fieldIconChip = 'w-10 h-10 rounded-full flex items-center justify-center shrink-0';
-
   const bookingBar = (
-    <div
-      className="tilt-card rounded-[22px] bg-white p-2 flex flex-col xl:flex-row items-stretch"
-      style={{ boxShadow: '0 24px 56px -16px rgba(16,39,71,0.28)' }}
-    >
-      <div className={webField}>
-        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
-          <MapPin className="w-[18px] h-[18px]" />
+    <div className="rounded-3xl bg-white p-5 sm:p-7 border border-slate-100" style={{ boxShadow: '0 25px 50px -12px rgba(15,23,42,0.15)' }}>
+      <div className="flex flex-wrap items-center justify-between pb-4 mb-4 border-b border-slate-100 gap-3">
+        <div className="flex items-center gap-2">
+          <span className="px-3.5 py-1.5 bg-sky-50 text-sky-700 font-bold text-xs rounded-xl flex items-center gap-2 border border-sky-100">
+            <Bus className="w-3.5 h-3.5" /> {t('searchWidget.intercityCoach')}
+          </span>
+          <span className="hidden sm:flex px-3 py-1.5 text-slate-400 font-medium text-xs items-center gap-1.5">
+            {t('searchWidget.roundTripSoon')}
+          </span>
         </div>
-        <div className="min-w-0 flex-1">
-          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.from')}</label>
-          <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.from")}>
-            <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-            {fromOptions.map((city) => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
+        <span className="inline-flex items-center gap-1 text-emerald-600 font-bold text-xs">
+          <ShieldCheck className="w-3.5 h-3.5" /> {t('searchWidget.telebirrProtected')}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-center">
+        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+            <MapPin className="w-[18px] h-[18px]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.from')}</label>
+            <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.from")}>
+              <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+              {fromOptions.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="hidden xl:flex justify-center xl:col-span-1">
+          <button
+            type="button"
+            onClick={swapCities}
+            aria-label={t('common.swap')}
+            className="w-10 h-10 rounded-full bg-white border border-slate-200 text-sky-600 hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-all flex items-center justify-center shadow-sm transform hover:rotate-180"
+          >
+            <ArrowUpDown className="w-4 h-4" />
+          </button>
+        </div>
+
+        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+            <Navigation className="w-[18px] h-[18px]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.to')}</label>
+            <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.to")}>
+              <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+              {toOptions.map((city) => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+
+        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0">
+            <Calendar className="w-[18px] h-[18px]" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.date')}</label>
+            <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.date")} />
+          </div>
+        </div>
+
+        <div className="xl:col-span-2">
+          <button
+            type="button"
+            onClick={handleSearch}
+            disabled={loadingRoutes}
+            className="w-full min-h-[56px] bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-slate-950 font-black rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 text-base"
+            style={{ boxShadow: '0 8px 20px -4px rgba(245,158,11,0.45)' }}
+          >
+            {loadingRoutes ? <Loader2 className="w-[17px] h-[17px] animate-spin" /> : <Search className="w-[17px] h-[17px]" />}
+            <span>{t('hero.searchBuses')}</span>
+          </button>
         </div>
       </div>
 
-      <div className="hidden xl:flex items-center">
-        <button
-          type="button"
-          onClick={swapCities}
-          className="w-10 h-10 rounded-full flex-shrink-0 flex items-center justify-center transition-transform duration-200 hover:rotate-180"
-          style={{ color: THEME.brand, backgroundColor: THEME.brandSoft, boxShadow: '0 2px 10px -2px rgba(24,154,216,0.3)' }}
-          aria-label={t('common.swap')}
-        >
-          <ArrowUpDown className="w-4 h-4" />
-        </button>
-      </div>
-
-      <div className={`${webField} xl:border-l xl:border-[var(--border)]`}>
-        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
-          <MapPin className="w-[18px] h-[18px]" />
+      <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2 font-medium px-1">
+        <div className="flex flex-wrap items-center gap-3 sm:gap-4">
+          <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+            <Zap className="w-3.5 h-3.5 text-amber-500" /> {t('searchWidget.instantSms')}
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+            <ShieldCheck className="w-3.5 h-3.5 text-sky-600" /> {t('searchWidget.verifiedOperators')}
+          </span>
+          <span className="hidden sm:inline text-slate-300">•</span>
+          <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+            <Wallet className="w-3.5 h-3.5 text-emerald-600" /> {t('searchWidget.zeroFees')}
+          </span>
         </div>
-        <div className="min-w-0 flex-1">
-          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.to')}</label>
-          <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={webInput} aria-label={t("common.to")}>
-            <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-            {toOptions.map((city) => (
-              <option key={city} value={city}>{city}</option>
-            ))}
-          </select>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400">{t('searchWidget.supportedLabel')}</span>
+          <span className="font-bold text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200/60">
+            {t('searchWidget.supportedPayment')}
+          </span>
         </div>
-      </div>
-
-      <div className={`${webField} xl:border-l xl:border-[var(--border)]`}>
-        <div className={fieldIconChip} style={{ backgroundColor: THEME.brandSoft, color: THEME.brand }}>
-          <Calendar className="w-[18px] h-[18px]" />
-        </div>
-        <div className="min-w-0 flex-1">
-          <label className={webLabel} style={{ color: THEME.webSoft }}>{t('common.date')}</label>
-          <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={webInput} aria-label={t("common.date")} />
-        </div>
-      </div>
-
-      <div className="p-1.5 xl:p-1 flex items-stretch">
-        <PrimaryButton
-          onClick={handleSearch}
-          disabled={loadingRoutes}
-          fullWidth={false}
-          className="w-full xl:w-auto px-8 !py-0 xl:h-full min-h-[56px] text-[15px] shrink-0 !rounded-[16px]"
-        >
-          {loadingRoutes ? <Loader2 className="w-[17px] h-[17px] animate-spin" /> : <Search className="w-[17px] h-[17px]" />}
-          {t('hero.searchBuses')}
-        </PrimaryButton>
       </div>
     </div>
   );
@@ -329,6 +366,8 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         activeTab={activeTab}
         onTabChange={handleTabChange}
         onBook={handleBook}
+        onHowItWorksClick={goToHowItWorks}
+        onTelebirrClick={goToTelebirr}
         onRoutesClick={goToRoutes}
         onBrandClick={() => handleTabChange('home')}
       />
@@ -471,7 +510,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
           {/* ============ DESKTOP / WEB ============ */}
           <div className="hidden lg:block font-web">
             {/* Hero band — an illustrated sky/road scene (no stock photo dependency) with the eyebrow badge + headline over it */}
-            <section className="relative overflow-hidden" style={{ height: 'clamp(460px, 54vw, 620px)' }}>
+            <section className="relative overflow-hidden" style={{ height: 'clamp(540px, 58vw, 680px)' }}>
               <div
                 className="absolute inset-0"
                 style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
@@ -497,17 +536,20 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 />
               </div>
               <HeroBusSilhouette />
+              {/* Teal/amber color-grade matching the approved mockup's .hero-ethiopia-bg recipe,
+                  layered over the illustrated scene instead of a hotlinked stock photo. */}
               <div
-                className="absolute inset-0"
-                style={{ backgroundImage: 'linear-gradient(180deg, rgba(8,20,36,0.08) 0%, rgba(8,20,36,0.0) 30%, rgba(8,20,36,0.42) 100%)' }}
+                className="absolute inset-0 pointer-events-none"
+                style={{
+                  backgroundImage:
+                    'linear-gradient(180deg, rgba(14,116,144,0.28) 0%, rgba(2,132,199,0.35) 40%, rgba(248,250,252,0.95) 92%, #ffffff 100%), radial-gradient(circle at 75% 30%, rgba(254,240,138,0.25) 0%, transparent 40%), linear-gradient(90deg, rgba(12,74,110,0.6) 0%, rgba(12,74,110,0.15) 50%, rgba(15,23,42,0.4) 100%)',
+                }}
               />
               <div className="relative h-full flex flex-col items-center justify-center text-center px-6">
-                <span
-                  className="inline-flex items-center gap-1.5 bg-white px-4 py-[9px] rounded-full text-[12px] font-bold uppercase tracking-wider mb-5"
-                  style={{ color: THEME.brand, boxShadow: '0 10px 24px -8px rgba(0,0,0,0.3)' }}
-                >
+                <span className="inline-flex items-center gap-2.5 px-4 py-1.5 rounded-full bg-white/15 backdrop-blur-md text-sky-100 font-bold text-xs uppercase tracking-wider mb-6 border border-white/25">
+                  <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
                   <Bus className="w-3.5 h-3.5" />
-                  {t('hero.eyebrow')}
+                  <span>{t('hero.eyebrow')}</span>
                 </span>
                 <h1
                   className="font-display font-bold text-white"
@@ -515,6 +557,14 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
+                <p className="mt-4 text-base sm:text-lg text-sky-100 max-w-2xl mx-auto font-normal leading-relaxed">
+                  {t('hero.subcopy')}
+                </p>
+                <div className="mt-6 flex flex-wrap items-center justify-center gap-4 text-xs font-semibold text-sky-100">
+                  <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> {t('hero.trustVerifiedOperators')}</span>
+                  <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> {t('hero.trustGuaranteedSeat')}</span>
+                  <span className="inline-flex items-center gap-1.5"><CheckCircle2 className="w-3.5 h-3.5 text-emerald-400" /> {t('hero.trustInstantTicket')}</span>
+                </div>
               </div>
             </section>
 
@@ -524,18 +574,17 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             </section>
             <div className="h-14" aria-hidden="true" />
 
-            {/* How it works — its own solid surface; the 3D scene belongs to the banner above, not here */}
-            <section className="relative px-6 py-14" style={{ background: 'var(--surface-app)' }} ref={howItWorksRef}>
-              <div className="page-container-web">
-                <div className="text-center mb-10">
-                  <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('howItWorks.title')}</h2>
-                  <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('howItWorks.subtitle')}</p>
+            {/* How it works */}
+            <section className="py-20 bg-white relative" ref={howItWorksRef}>
+              <div className="page-container-web px-6">
+                <div className="text-center max-w-2xl mx-auto mb-16">
+                  <span className="text-sky-600 font-bold text-xs uppercase tracking-wider px-3 py-1 bg-sky-50 rounded-full border border-sky-100">
+                    {t('howItWorks.eyebrow')}
+                  </span>
+                  <h2 className="text-3xl font-extrabold text-slate-900 tracking-tight mt-3">{t('howItWorks.title')}</h2>
+                  <p className="mt-2.5 text-slate-500 text-base">{t('howItWorks.subtitle')}</p>
                 </div>
-                <div className="relative grid grid-cols-4 gap-4">
-                  <div
-                    className="hidden xl:block absolute top-[36px] left-[12%] right-[12%] border-t-2 border-dashed pointer-events-none"
-                    style={{ borderColor: THEME.brandBorder }}
-                  />
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
                   {steps.map((step) => (
                     <Fragment key={step.n}>
                       <DesktopStep step={step} />
@@ -545,59 +594,20 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               </div>
             </section>
 
-            {/* Why book with Menahariya */}
-            <section className="bg-white border-y" style={{ borderColor: THEME.webLine }}>
-              <div className="page-container-web px-6 py-14">
-                <div className="grid grid-cols-[0.85fr_1.15fr] gap-14 items-center">
-                  <div>
-                    <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)] mb-2.5">{t('about.whyTitle')}</h2>
-                    <p className="mb-7 max-w-[280px] leading-relaxed" style={{ color: THEME.webMuted }}>{t('about.whySubtitle')}</p>
-                    <button
-                      type="button"
-                      onClick={handleBook}
-                      className="inline-flex items-center gap-1.5 rounded-full px-[18px] py-[9px] text-sm font-semibold text-white transition-transform duration-150 hover:-translate-y-px"
-                      style={{ backgroundColor: THEME.primary, boxShadow: `0 2px 10px ${THEME.webGoldGlow}` }}
-                      onMouseEnter={(e) => { e.currentTarget.style.backgroundColor = THEME.webGoldHover; }}
-                      onMouseLeave={(e) => { e.currentTarget.style.backgroundColor = THEME.primary; }}
-                    >
-                      {t('desktopNav.bookTrip')}
-                    </button>
-
-                    <div className="flex flex-col gap-3 mt-9 pt-7 border-t" style={{ borderColor: THEME.webLine }}>
-                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
-                        <ShieldCheck className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                        {t('payment.securePayment')}
-                      </div>
-                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
-                        <Clock className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                        {t('hero.trustSupport')}
-                      </div>
-                      <div className="flex items-center gap-2.5 text-sm" style={{ color: THEME.webMuted }}>
-                        <Ticket className="w-4 h-4 shrink-0" style={{ color: THEME.brand }} />
-                        {t('hero.trustTicket')}
-                      </div>
-                    </div>
-                  </div>
-                  <div className="flex flex-col">
-                    {whyFeatures.map((f) => (
-                      <Fragment key={f.titleKey}>
-                        <WhyRow feature={f} />
-                      </Fragment>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </section>
-
             {/* Popular routes — real origin/destination pairs from the API only */}
-            <section className="relative px-6 py-14" style={{ background: 'var(--surface-app)' }} ref={routesRef}>
-              <div className="page-container-web">
-                <div className="text-center mb-10">
-                  <h2 className="font-display text-[28px] font-bold tracking-tight text-[var(--text-primary)]">{t('routes.title')}</h2>
-                  <p className="mt-1.5" style={{ color: THEME.webMuted }}>{t('routes.subtitle')}</p>
+            <section className="py-20 bg-slate-50 border-t border-slate-100" ref={routesRef}>
+              <div className="page-container-web px-6">
+                <div className="flex flex-col md:flex-row md:items-end justify-between mb-10">
+                  <div>
+                    <span className="text-sky-600 font-bold text-xs tracking-wider uppercase bg-sky-50 px-3 py-1 rounded-full border border-sky-100">
+                      {t('routes.eyebrow')}
+                    </span>
+                    <h2 className="text-3xl font-extrabold text-slate-900 mt-2">{t('routes.title')}</h2>
+                    <p className="text-sm text-slate-500 mt-1">{t('routes.subtitle')}</p>
+                  </div>
                 </div>
                 {popularRoutes.length > 0 ? (
-                  <div className="tilt-wrap grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {popularRoutes.map((route) => (
                       <Fragment key={`${route.from}-${route.to}`}>
                         <RouteCard route={route} onClick={() => selectRoute(route)} />
@@ -609,59 +619,105 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                     icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
                     title={t('hero.exploreTitle')}
                     description={t('hero.exploreDesc')}
-                    className="glass-surface rounded-3xl"
+                    className="bg-white rounded-3xl"
                     style={{ boxShadow: 'var(--shadow-depth-sm)' }}
                   />
                 )}
               </div>
             </section>
 
-            <footer className="bg-white border-t px-6 pt-10 pb-6" style={{ borderColor: THEME.webLine }}>
-              <div className="page-container-web">
-                <div className="flex justify-between gap-10 pb-7 border-b mb-[18px]" style={{ borderColor: THEME.webLine }}>
-                  <div className="max-w-[240px]">
-                    <div className="flex items-center gap-2.5">
-                      <div
-                        className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
-                        style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, boxShadow: '0 2px 8px rgba(12,108,166,0.22)' }}
-                      >
-                        <Bus className="w-4 h-4 text-white" />
+            {/* Telebirr trust CTA — real product copy; fabricated vanity stats (passenger counts,
+                star ratings, "N partner fleets") from the mockup are deliberately omitted. */}
+            <section className="py-16 bg-white border-t border-slate-100" ref={telebirrRef}>
+              <div className="page-container-web px-6">
+                <div className="bg-gradient-to-br from-slate-900 via-sky-950 to-slate-900 rounded-3xl p-8 lg:p-12 text-white shadow-xl relative overflow-hidden border border-slate-800">
+                  <div className="absolute -right-20 -bottom-20 w-80 h-80 rounded-full bg-amber-500/10 blur-3xl pointer-events-none" />
+                  <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center relative z-10">
+                    <div className="lg:col-span-8">
+                      <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/10 text-amber-400 text-xs font-bold mb-4 uppercase tracking-wider border border-white/10 backdrop-blur-md">
+                        <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> {t('telebirrSection.badge')}
                       </div>
-                      <div>
-                        <p className="font-semibold text-[15px] leading-tight text-[var(--text-primary)]">{BRAND.name}</p>
-                        <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
+                      <h2 className="text-2xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+                        {t('telebirrSection.title')}
+                      </h2>
+                      <p className="mt-3 text-slate-300 text-sm sm:text-base max-w-2xl leading-relaxed">
+                        {t('telebirrSection.body')}
+                      </p>
+                      <div className="mt-6 flex flex-wrap gap-4 text-xs font-semibold text-slate-300">
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10"><Zap className="w-3.5 h-3.5 text-amber-400" /> {t('telebirrSection.chipInstant')}</span>
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10"><RotateCcw className="w-3.5 h-3.5 text-emerald-400" /> {t('telebirrSection.chipRefund')}</span>
+                        <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-white/5 border border-white/10"><Headphones className="w-3.5 h-3.5 text-sky-400" /> {t('telebirrSection.chipSupport')}</span>
                       </div>
                     </div>
-                    <p className="text-[13px] mt-3 leading-relaxed" style={{ color: THEME.webMuted }}>{t('footer.blurb')}</p>
+                    <div className="lg:col-span-4 flex justify-start lg:justify-end w-full">
+                      <div className="bg-white/10 backdrop-blur-md p-6 rounded-2xl border border-white/15 w-full max-w-sm shadow-inner space-y-3">
+                        <div className="flex items-center gap-2.5 text-sm text-slate-100">
+                          <ShieldCheck className="w-4 h-4 text-amber-400 shrink-0" /> {t('telebirrSection.trustSecure')}
+                        </div>
+                        <div className="flex items-center gap-2.5 text-sm text-slate-100">
+                          <CheckCircle2 className="w-4 h-4 text-amber-400 shrink-0" /> {t('telebirrSection.trustLicensed')}
+                        </div>
+                        <div className="flex items-center gap-2.5 text-sm text-slate-100">
+                          <Ticket className="w-4 h-4 text-amber-400 shrink-0" /> {t('telebirrSection.trustDigital')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </section>
+
+            <footer className="bg-slate-900 text-slate-400 text-sm pt-16 pb-12 border-t border-slate-800">
+              <div className="page-container-web px-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
+                  <div className="lg:col-span-2">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center text-xl">
+                        <Bus className="w-5 h-5" />
+                      </div>
+                      <span className="text-2xl font-black text-white">{BRAND.name}</span>
+                    </div>
+                    <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-sm mb-6">
+                      {t('footer.blurb')}
+                    </p>
                   </div>
 
-                  <div className="flex gap-11 shrink-0">
-                    <FooterCol
-                      titleKey="footer.product"
-                      links={[
-                        { labelKey: 'desktopNav.routes', onClick: goToRoutes },
-                        { labelKey: 'desktopNav.myBooking', onClick: () => handleTabChange('tickets') },
-                        { labelKey: 'howItWorks.title', onClick: goToHowItWorks },
-                      ]}
-                    />
-                    <FooterCol
-                      titleKey="footer.company"
-                      links={[
-                        { labelKey: 'tabs.about', onClick: () => handleTabChange('about') },
-                        { labelKey: 'desktopNav.help', onClick: () => handleTabChange('support') },
-                      ]}
-                    />
+                  <FooterCol
+                    titleKey="footer.product"
+                    links={[
+                      { labelKey: 'desktopNav.routes', onClick: goToRoutes },
+                      { labelKey: 'desktopNav.myBooking', onClick: () => handleTabChange('tickets') },
+                      { labelKey: 'howItWorks.title', onClick: goToHowItWorks },
+                    ]}
+                  />
+                  <FooterCol
+                    titleKey="footer.company"
+                    links={[
+                      { labelKey: 'tabs.about', onClick: () => handleTabChange('about') },
+                      { labelKey: 'desktopNav.help', onClick: () => handleTabChange('support') },
+                    ]}
+                  />
+                  <div>
+                    <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">
+                      {t('support.title')}
+                    </h4>
+                    <ul className="space-y-2 text-xs">
+                      <li>
+                        <a href={`tel:${BRAND.phone}`} className="text-white font-bold block text-sm hover:text-sky-400 transition-colors">
+                          {BRAND.phone}
+                        </a>
+                      </li>
+                      <li className="pt-2">
+                        <button type="button" onClick={() => handleTabChange('support')} className="hover:text-white transition-colors text-left">
+                          {t('desktopNav.helpCenter')}
+                        </button>
+                      </li>
+                    </ul>
                   </div>
                 </div>
 
-                <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-3 text-xs" style={{ color: THEME.webSoft }}>
-                  <span>© {year} {BRAND.name}. {t('footer.rights')}</span>
-                  <div className="flex items-center gap-4">
-                    <a href={`tel:${BRAND.phone}`} className="font-semibold transition-colors" style={{ color: THEME.brandDeep }}>
-                      {t('support.hotline')}: {BRAND.phone}
-                    </a>
-                    <span>{t('footer.paymentBadge')}</span>
-                  </div>
+                <div className="mt-8 flex flex-col sm:flex-row items-center justify-between text-xs text-slate-500 gap-4">
+                  <p>© {year} {BRAND.name}. {t('footer.paymentBadge')}. {t('footer.rights')}</p>
                 </div>
               </div>
             </footer>
@@ -695,49 +751,50 @@ function FooterCol({ titleKey, links }: { titleKey: string; links: { labelKey: s
   const { t } = useTranslation();
   return (
     <div>
-      <h5 className="text-[11px] font-semibold uppercase tracking-wider mb-3" style={{ color: THEME.webSoft }}>
-        {t(titleKey)}
-      </h5>
-      {links.map((link) => (
-        <Fragment key={link.labelKey}>
-          <button
-            type="button"
-            onClick={link.onClick}
-            className="block text-left text-[13px] mb-2 transition-colors hover:text-[var(--text-primary)]"
-            style={{ color: THEME.webMuted }}
-          >
-            {t(link.labelKey)}
-          </button>
-        </Fragment>
-      ))}
+      <h4 className="text-white font-bold text-sm mb-4 uppercase tracking-wider">{t(titleKey)}</h4>
+      <ul className="space-y-2 text-xs">
+        {links.map((link) => (
+          <li key={link.labelKey}>
+            <button type="button" onClick={link.onClick} className="hover:text-white transition-colors text-left">
+              {t(link.labelKey)}
+            </button>
+          </li>
+        ))}
+      </ul>
     </div>
   );
 }
 
 /** A real origin → destination pair, presented as a bookable journey, not a generic feature card. */
+/** Shows only the real origin/destination pair from the API — no invented
+ *  operator names, departure counts, durations, or prices. */
 function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }) {
   const { t } = useTranslation();
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="tilt-card glass-surface text-left w-full rounded-2xl p-5"
-      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
-    >
-      <div className="flex items-start justify-between gap-3 mb-2.5">
-        <p className="font-semibold text-[var(--text-primary)] text-[14px] leading-snug flex items-center flex-wrap gap-1.5">
+    <div className="bg-white rounded-3xl p-5 border border-slate-200 shadow-sm hover:shadow-lg hover:border-sky-500 transition-all duration-300 group flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-4">
+          <span className="text-xs font-bold px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full border border-emerald-100">
+            <span className="inline-block w-1.5 h-1.5 rounded-full bg-emerald-500 mr-1 align-middle" />
+            {t('routes.multipleDepartures')}
+          </span>
+        </div>
+        <h3 className="text-lg font-bold text-slate-900 group-hover:text-sky-600 transition-colors flex items-center gap-2 flex-wrap">
           <span className="truncate">{route.from}</span>
-          <ArrowRight className="w-3 h-3 shrink-0" style={{ color: THEME.webSoft }} />
+          <ArrowRight className="w-3.5 h-3.5 shrink-0 text-slate-400" />
           <span className="truncate">{route.to}</span>
-        </p>
+        </h3>
       </div>
-      <div className="flex items-center justify-between text-xs">
-        <span style={{ color: THEME.webMuted }}>{t('routes.multipleDepartures')}</span>
-        <span className="inline-flex items-center gap-1 font-semibold shrink-0" style={{ color: THEME.brandDeep }}>
+      <div className="mt-6 pt-4 border-t border-slate-100 flex items-center justify-end">
+        <button
+          type="button"
+          onClick={onClick}
+          className="px-4 py-2 bg-slate-100 group-hover:bg-amber-500 group-hover:text-slate-950 font-bold text-xs rounded-xl transition-all shadow-sm"
+        >
           {t('routes.viewBuses')}
-        </span>
+        </button>
       </div>
-    </button>
+    </div>
   );
 }
 
@@ -794,51 +851,28 @@ function StepItem({
 }
 
 /** Desktop "how it works" — icon circle with an overlapping step-number badge, matching the reference design. */
-function DesktopStep({ step }: { step: { n: number; icon: typeof Search; titleKey: string; descKey: string } }) {
+function DesktopStep({
+  step,
+}: {
+  step: { n: number; icon: typeof Search; titleKey: string; descKey: string; bg: string; text: string };
+}) {
   const { t } = useTranslation();
   const Icon = step.icon;
   return (
-    <div className="relative z-10 flex flex-col items-center text-center">
-      <div className="relative mb-4">
-        <div
-          className="w-[72px] h-[72px] rounded-full flex items-center justify-center"
-          style={{ backgroundColor: THEME.brandSoft, boxShadow: '0 0 0 6px var(--surface-app)' }}
-        >
-          <Icon className="w-7 h-7" style={{ color: THEME.brand }} />
-        </div>
-        <div
-          className="absolute -bottom-1 -right-1 w-7 h-7 rounded-full flex items-center justify-center font-display text-[13px] font-bold"
-          style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 0 0 3px var(--surface-app), 0 4px 10px -2px rgba(242,168,28,0.5)' }}
-        >
-          {step.n}
-        </div>
+    <div className="bg-slate-50 rounded-3xl p-6 border border-slate-200/70 hover:shadow-lg transition-all duration-300 relative group flex flex-col items-center text-center">
+      <div className={`w-14 h-14 rounded-2xl ${step.bg} ${step.text} group-hover:text-white flex items-center justify-center text-xl mb-4 transition-all shadow-sm`}>
+        <Icon className="w-6 h-6" />
       </div>
-      <p className="font-display font-bold text-[var(--text-primary)]">{t(step.titleKey)}</p>
-      <p className="text-[13px] mt-1 leading-relaxed max-w-[160px]" style={{ color: THEME.webMuted }}>{t(step.descKey)}</p>
+      <span className="inline-block px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950 font-black text-xs mb-2">
+        {t('common.stepN', { n: step.n })}
+      </span>
+      <h3 className="text-lg font-bold text-slate-900 mb-1.5">{t(step.titleKey)}</h3>
+      <p className="text-xs text-slate-500 leading-relaxed">{t(step.descKey)}</p>
     </div>
   );
 }
 
 /** One row of a divided feature panel — never a standalone floating card. */
-function WhyRow({ feature }: { feature: { icon: typeof Search; titleKey: string; textKey: string } }) {
-  const { t } = useTranslation();
-  const Icon = feature.icon;
-  return (
-    <div
-      className="flex items-start gap-4 py-[18px] border-b transition-[padding] duration-150 hover:pl-1 last:border-b-0"
-      style={{ borderColor: THEME.webLine }}
-    >
-      <div className="w-10 h-10 rounded-[10px] flex items-center justify-center shrink-0" style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, boxShadow: '0 4px 10px -3px rgba(24,154,216,0.3)' }}>
-        <Icon className="w-[18px] h-[18px]" style={{ color: THEME.brand }} />
-      </div>
-      <div className="min-w-0">
-        <p className="font-display font-bold text-[14px] text-[var(--text-primary)]">{t(feature.titleKey)}</p>
-        <p className="text-[13px] mt-0.5" style={{ color: THEME.webMuted }}>{t(feature.textKey)}</p>
-      </div>
-    </div>
-  );
-}
-
 /** A flat, iconographic bus silhouette sitting on the hero's illustrated road —
  *  built from plain divs so the hero has no stock-photo/asset dependency. */
 function HeroBusSilhouette() {
