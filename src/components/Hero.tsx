@@ -45,34 +45,6 @@ interface RoutePair {
   to: string;
 }
 
-/** Client-side "recently searched" list — reflects the user's own real searches, never fabricated. */
-const RECENT_ROUTES_KEY = 'menahariya_recent_routes';
-
-function loadRecentRoutes(): RoutePair[] {
-  try {
-    const raw = localStorage.getItem(RECENT_ROUTES_KEY);
-    const parsed = raw ? JSON.parse(raw) : [];
-    if (!Array.isArray(parsed)) return [];
-    return parsed.filter(
-      (r): r is RoutePair => Boolean(r) && typeof r.from === 'string' && typeof r.to === 'string',
-    );
-  } catch {
-    return [];
-  }
-}
-
-function saveRecentRoute(route: RoutePair): RoutePair[] {
-  try {
-    const existing = loadRecentRoutes();
-    const deduped = existing.filter((r) => !(r.from === route.from && r.to === route.to));
-    const updated = [route, ...deduped].slice(0, 5);
-    localStorage.setItem(RECENT_ROUTES_KEY, JSON.stringify(updated));
-    return updated;
-  } catch {
-    return [route];
-  }
-}
-
 function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
@@ -94,16 +66,11 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const [fromOptions, setFromOptions] = useState<string[]>([]);
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
-  const [recentRoutes, setRecentRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const telebirrRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setRecentRoutes(loadRecentRoutes().slice(0, 2));
-  }, []);
 
   useEffect(() => {
     const fetchRoutes = async () => {
@@ -172,7 +139,6 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
       toast.error(t('hero.pastDate'));
       return;
     }
-    setRecentRoutes(saveRecentRoute({ from, to }).slice(0, 2));
     onSearch?.({ from, to, date });
   };
 
@@ -355,9 +321,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
     </div>
   );
 
+  /** Home tab on mobile is a single, fixed-height app screen — no scrolling.
+   *  Other tabs (tickets/support/about) keep normal page scroll. */
+  const mobileHomeScreen = activeTab === 'home';
+
   return (
     <div
-      className="min-h-screen lg:min-h-0 flex flex-col"
+      className={`flex flex-col lg:min-h-0 ${mobileHomeScreen ? 'h-[100dvh] overflow-hidden lg:h-auto lg:overflow-visible' : 'min-h-screen'}`}
       style={{ background: has3DBackground && activeTab === 'home' ? 'transparent' : 'var(--surface-app)' }}
     >
       <DesktopNav
@@ -380,10 +350,12 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
       {activeTab === 'home' && (
         <>
-          {/* ============ MOBILE / TABLET — one focused screen ============ */}
-          <div className="lg:hidden relative overflow-hidden">
-            {/* Illustrated hero band — the same teal/amber scene as desktop, scaled for mobile */}
-            <section className="relative overflow-hidden" style={{ height: 'clamp(300px, 86vw, 380px)' }}>
+          {/* ============ MOBILE / TABLET — one fixed app screen, no scroll ============ */}
+          <div className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-hidden">
+            {/* Illustrated hero band — the same teal/amber scene as desktop, scaled for mobile.
+                flex-1 so it absorbs whatever space is left after the card/trust row below,
+                instead of a fixed height that could force the screen to scroll. */}
+            <section className="relative overflow-hidden flex-1 min-h-0">
               <div
                 className="absolute inset-0"
                 style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
@@ -415,25 +387,22 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                     'linear-gradient(180deg, rgba(14,116,144,0.28) 0%, rgba(2,132,199,0.35) 40%, rgba(248,250,252,0.95) 92%, #ffffff 100%), radial-gradient(circle at 75% 25%, rgba(254,240,138,0.25) 0%, transparent 40%), linear-gradient(90deg, rgba(12,74,110,0.6) 0%, rgba(12,74,110,0.15) 50%, rgba(15,23,42,0.4) 100%)',
                 }}
               />
-              <div className="relative h-full flex flex-col items-center justify-center text-center app-gutter-x pt-2">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-sky-100 font-bold text-[9px] uppercase tracking-wider mb-3 border border-white/25">
+              <div className="relative h-full flex flex-col items-center justify-center text-center app-gutter-x">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-sky-100 font-bold text-[9px] uppercase tracking-wider mb-2.5 border border-white/25">
                   <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
                   <Bus className="w-3 h-3" />
                   <span>{t('hero.eyebrow')}</span>
                 </span>
                 <h1
-                  className="font-display font-bold text-white text-[26px] min-[400px]:text-[28px] leading-tight tracking-tight"
+                  className="font-display font-bold text-white text-[24px] min-[400px]:text-[26px] leading-tight tracking-tight"
                   style={{ textShadow: '0 2px 16px rgba(0,0,0,0.35)' }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
-                <p className="mt-2 text-[12px] text-sky-100 leading-relaxed max-w-[300px] mx-auto">
-                  {t('hero.subcopy')}
-                </p>
               </div>
             </section>
 
-            <div className="relative z-10 app-gutter-x -mt-14 tilt-wrap" ref={searchRef}>
+            <div className="relative z-10 app-gutter-x -mt-14 tilt-wrap shrink-0" ref={searchRef}>
               <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
                 <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
                 <div className="p-4 space-y-4">
@@ -493,56 +462,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               </div>
             </div>
 
-            {/* Everything below the floating search card sits on its own solid
-                surface — the 3D bus belongs to the banner above, not the list. */}
-            <div className="relative pt-4" style={{ background: 'var(--surface-app)' }}>
-            <div className="app-gutter-x grid grid-cols-3 gap-2">
+            {/* Trust row — the only thing below the card on this fixed, non-scrolling
+                screen. Recent/popular route suggestions stay desktop-only (below); on
+                mobile the From/To fields already cover that job without needing scroll. */}
+            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-3 shrink-0" style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
               <TrustPill icon={Clock} text={t('hero.trustSupport')} />
-            </div>
-
-            {recentRoutes.length > 0 && (
-              <section className="app-gutter-x pt-6">
-                <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.recentTitle')}</h2>
-                <div className="tilt-wrap grid grid-cols-2 gap-3">
-                  {recentRoutes.map((route) => (
-                    <Fragment key={`recent-${route.from}-${route.to}`}>
-                      <RecentRouteCard route={route} onClick={() => selectRoute(route)} />
-                    </Fragment>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {popularRoutes.length > 0 && (
-              <section className="app-gutter-x pt-6">
-                <h2 className="font-display text-sm font-bold text-[var(--text-primary)] mb-2.5">{t('routes.title')}</h2>
-                <div className="tilt-wrap space-y-3">
-                  {popularRoutes.slice(0, 3).map((route) => (
-                    <Fragment key={`popular-${route.from}-${route.to}`}>
-                      <RouteCard route={route} onClick={() => selectRoute(route)} />
-                    </Fragment>
-                  ))}
-                </div>
-              </section>
-            )}
-
-            {!loadingRoutes && recentRoutes.length === 0 && popularRoutes.length === 0 && (
-              <div className="app-gutter-x pt-6">
-                <EmptyState
-                  icon={<Compass className="w-6 h-6" style={{ color: THEME.brandDeep }} />}
-                  title={t('hero.exploreTitle')}
-                  description={t('hero.exploreDesc')}
-                  className="glass-surface rounded-3xl"
-                  style={{ boxShadow: 'var(--shadow-depth-sm)' }}
-                />
-              </div>
-            )}
-
-            {/* Mini App stays a single, focused screen — booking + quick route access is the whole page.
-                How it works / Why us / footer are desktop-web only (below). */}
-            <div className="pb-28" />
             </div>
           </div>
 
@@ -834,27 +760,6 @@ function RouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }
         </button>
       </div>
     </div>
-  );
-}
-
-/** Compact quick-tap card for a route the user actually searched before. */
-function RecentRouteCard({ route, onClick }: { route: RoutePair; onClick: () => void }) {
-  const { t } = useTranslation();
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="tilt-card glass-surface text-left rounded-2xl p-3"
-      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
-    >
-      <div className="flex items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-1.5">
-        <Clock className="w-3 h-3" />
-        {t('routes.recentTitle')}
-      </div>
-      <p className="text-sm font-bold text-[var(--text-primary)] truncate">{route.from}</p>
-      <ArrowRight className="w-3 h-3 my-0.5" style={{ color: THEME.brandDeep }} />
-      <p className="text-sm font-bold text-[var(--text-primary)] truncate">{route.to}</p>
-    </button>
   );
 }
 
