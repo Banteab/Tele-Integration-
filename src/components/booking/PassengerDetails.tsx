@@ -107,6 +107,7 @@ export default function PassengerDetails({
   const [email, setEmail] = useState(initialData?.email || '');
   const [dob, setDob] = useState(initialData?.dob || '');
   const [gender, setGender] = useState(initialData?.gender || '');
+  const [age, setAge] = useState(initialData?.age || '');
   const [maritalStatus, setMaritalStatus] = useState(
     initialData?.maritalStatus || '',
   );
@@ -140,6 +141,17 @@ export default function PassengerDetails({
     if (email.trim() && !email.includes('@')) {
       newErrors.email = t('passenger.errors.emailInvalidOptional');
     }
+    if (!gender) {
+      newErrors.gender = t('passenger.errors.genderRequired');
+    }
+    if (!age.trim()) {
+      newErrors.age = t('passenger.errors.ageRequired');
+    } else {
+      const ageNum = Number(age);
+      if (!Number.isFinite(ageNum) || ageNum < 1 || ageNum > 120) {
+        newErrors.age = t('passenger.errors.ageRange');
+      }
+    }
 
     setErrors(newErrors);
     if (newErrors.email) setShowOptional(true);
@@ -152,14 +164,15 @@ export default function PassengerDetails({
       onSubmit({
         phone: phone.replace(/[\s-]/g, ''),
         fullName: fullName.trim(),
+        gender,
+        age: age.trim(),
         email: email.trim() || undefined,
         dob: dob.trim() || undefined,
-        gender: gender || undefined,
         maritalStatus: maritalStatus || undefined,
       });
       return;
     }
-    toast.error(errors.form || errors.phone || errors.fullName || errors.email || t('passenger.errors.fixForm'));
+    toast.error(errors.form || errors.phone || errors.fullName || errors.gender || errors.age || errors.email || t('passenger.errors.fixForm'));
   };
 
   const locale = i18n.language === 'am' ? 'am-ET' : 'en-ET';
@@ -332,34 +345,69 @@ export default function PassengerDetails({
               </div>
             </div>
 
-            <div>
-              <label className={labelClass}>
-                {t('passenger.gender')} <span className="text-[var(--text-muted)] font-normal">({t('passenger.genderOptionalTag')})</span>
-              </label>
-              <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                {genderOptions.map((opt) => {
-                  const selected = gender === opt.value;
-                  return (
-                    <label
-                      key={opt.value}
-                      className="relative flex items-center justify-center p-2.5 rounded-xl cursor-pointer text-xs font-bold border transition-colors"
-                      style={
-                        selected
-                          ? { borderColor: THEME.brand, backgroundColor: THEME.brandSoft, color: THEME.brandDeep }
-                          : { borderColor: 'var(--border-strong)', backgroundColor: 'white', color: 'var(--text-secondary)' }
-                      }
-                    >
-                      <input
-                        type="radio"
-                        name="gender"
-                        className="sr-only"
-                        checked={selected}
-                        onChange={() => setGender(opt.value)}
-                      />
-                      <span>{t(opt.labelKey)}</span>
-                    </label>
-                  );
-                })}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+              <div>
+                <label className={labelClass}>
+                  {t('passenger.gender')} <span className="text-rose-500">*</span>
+                </label>
+                <div className="grid grid-cols-2 gap-3" role="radiogroup">
+                  {genderOptions.map((opt) => {
+                    const selected = gender === opt.value;
+                    return (
+                      <label
+                        key={opt.value}
+                        className="relative flex items-center justify-center p-2.5 rounded-xl cursor-pointer text-xs font-bold border transition-colors"
+                        style={
+                          selected
+                            ? { borderColor: THEME.brand, backgroundColor: THEME.brandSoft, color: THEME.brandDeep }
+                            : { borderColor: 'var(--border-strong)', backgroundColor: 'white', color: 'var(--text-secondary)' }
+                        }
+                      >
+                        <input
+                          type="radio"
+                          name="gender"
+                          className="sr-only"
+                          checked={selected}
+                          onChange={() => {
+                            setGender(opt.value);
+                            setErrors((prev) => ({ ...prev, gender: '' }));
+                          }}
+                        />
+                        <span>{t(opt.labelKey)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+                {errors.gender && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {errors.gender}
+                  </p>
+                )}
+              </div>
+
+              <div>
+                <label className={labelClass} htmlFor="passenger-age">
+                  {t('passenger.age')} <span className="text-rose-500">*</span>
+                </label>
+                <input
+                  id="passenger-age"
+                  type="number"
+                  min={1}
+                  max={120}
+                  inputMode="numeric"
+                  value={age}
+                  onChange={(e) => {
+                    setAge(e.target.value);
+                    setErrors((prev) => ({ ...prev, age: '' }));
+                  }}
+                  className={`${fieldClass} ${errors.age ? 'border-red-300 bg-red-50' : ''}`}
+                  placeholder={t('passenger.agePlaceholder')}
+                />
+                {errors.age && (
+                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                    <AlertCircle className="w-3.5 h-3.5" /> {errors.age}
+                  </p>
+                )}
               </div>
             </div>
 

@@ -1,6 +1,7 @@
 import { CheckCircle, Home, Copy, Check, Download, Share2 } from 'lucide-react';
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
+import * as QRCode from 'qrcode';
 import { Bus, PassengerInfo } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -15,27 +16,36 @@ interface Props {
   onHome: () => void;
 }
 
-/** A deterministic placeholder QR-style pattern seeded from the ticket
- *  reference — not a scannable code, but structured so a real one (an
- *  <img> of a generated QR, same size) drops in without touching layout. */
-function QrPlaceholder({ seed }: { seed: string }) {
-  const size = 7;
-  let h = 0;
-  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) >>> 0;
-  const cells = Array.from({ length: size * size }, (_, i) => {
-    h = (h * 1103515245 + 12345) >>> 0;
-    return (h >> 16) % 3 !== 0;
-  });
+/** A real, scannable QR code encoding the same plain-text ticket summary
+ *  already shown on screen and offered via Download/Share — no fabricated
+ *  verification link, since no backend endpoint exists to resolve one. */
+function TicketQrCode({ text }: { text: string }) {
+  const [dataUrl, setDataUrl] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    QRCode.toDataURL(text, { width: 148, margin: 1, color: { dark: THEME.textPrimary, light: '#ffffff' } })
+      .then((url) => {
+        if (!cancelled) setDataUrl(url);
+      })
+      .catch((err) => {
+        console.error('Failed to generate QR code:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [text]);
+
   return (
     <div
-      className="grid gap-[3px] p-3 bg-white rounded-xl mx-auto"
-      style={{ gridTemplateColumns: `repeat(${size}, 1fr)`, width: 148, boxShadow: 'var(--shadow-depth-sm)' }}
-      role="img"
-      aria-label="Digital ticket QR code"
+      className="mx-auto flex items-center justify-center bg-white rounded-xl p-3"
+      style={{ width: 148, height: 148, boxShadow: 'var(--shadow-depth-sm)' }}
     >
-      {cells.map((on, i) => (
-        <div key={i} className="aspect-square rounded-[2px]" style={{ backgroundColor: on ? THEME.textPrimary : 'transparent' }} />
-      ))}
+      {dataUrl ? (
+        <img src={dataUrl} width={124} height={124} alt="Digital ticket QR code" />
+      ) : (
+        <div className="w-full h-full rounded-lg animate-pulse" style={{ backgroundColor: 'var(--surface-muted)' }} />
+      )}
     </div>
   );
 }
@@ -159,7 +169,7 @@ export default function TicketSuccess({
             <Row label={t('ticketSuccess.details.seats')} value={selectedSeats.join(', ')} />
           </div>
           <div className="pt-3 border-t border-[var(--border)]">
-            <QrPlaceholder seed={reference} />
+            <TicketQrCode text={ticketText()} />
           </div>
         </ScreenCard>
 
