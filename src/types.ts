@@ -55,9 +55,10 @@ export interface Passenger {
 export interface PassengerInfo {
   phone: string;
   fullName: string;
+  gender?: string;
+  age?: string;
   email?: string;
   dob?: string;
-  gender?: string;
   maritalStatus?: string;
 }
 

@@ -106,6 +106,12 @@ export default function App() {
     flow[step]?.();
   };
 
+  const handleSelectBus = (bus: Bus) => {
+    setSelectedBus(bus);
+    setSelectedSeats([]);
+    setStep('seats');
+  };
+
   const renderBookingContent = () => {
     switch (step) {
       case 'search':
@@ -114,11 +120,7 @@ export default function App() {
             <BookingSteps currentStep={1} />
             <SearchResults
               searchParams={searchParams!}
-              onSelectBus={(bus) => {
-                setSelectedBus(bus);
-                setSelectedSeats([]);
-                setStep('seats');
-              }}
+              onSelectBus={handleSelectBus}
               onBack={resetBooking}
               isLoading={isSearching}
             />
@@ -145,6 +147,7 @@ export default function App() {
           <>
             <BookingSteps currentStep={3} />
             <PassengerDetails
+              bus={selectedBus!}
               selectedSeats={selectedSeats}
               onSubmit={(info) => {
                 setPassengerInfo(info);
@@ -154,11 +157,7 @@ export default function App() {
               initialData={
                 passengerInfo || buildPassengerPrefill(user, telebirrProfile)
               }
-              routeLabel={
-                searchParams
-                  ? `${searchParams.from} → ${searchParams.to}`
-                  : undefined
-              }
+              telebirrVerified={Boolean(telebirrProfile)}
             />
           </>
         );
@@ -201,33 +200,40 @@ export default function App() {
   return (
     <AppShell>
       <Toaster position="top-center" richColors />
-      {step === 'home' ? (
-        <Hero
-          userName={displayName}
-          userPhone={displayPhone}
-          onSearch={handleSearch}
-        />
-      ) : (
-        <div className="min-h-screen lg:min-h-0 flex flex-col pb-6" style={{ background: 'var(--surface-app)' }}>
-          <DesktopNav
+
+      <div className="relative" style={{ zIndex: 1 }}>
+        {step === 'home' ? (
+          <Hero
             userName={displayName}
             userPhone={displayPhone}
-            flowTitle={t(STEP_TITLE_KEYS[step])}
-            onBack={goBack}
-            onBrandClick={resetBooking}
+            onSearch={handleSearch}
+            has3DBackground={false}
           />
-          <MobileHeader
-            showBack
-            onBack={goBack}
-            title={t(STEP_TITLE_KEYS[step])}
-            userName={displayName}
-            userPhone={displayPhone}
-          />
-          <main className="relative z-10 -mt-4 lg:mt-0 app-gutter-x lg:px-6 flex-1 page-container lg:pt-8 w-full">
-            {renderBookingContent()}
-          </main>
-        </div>
-      )}
+        ) : (
+          <div
+            className="min-h-screen lg:min-h-0 flex flex-col pb-6"
+            style={{ background: 'var(--surface-app)' }}
+          >
+            <DesktopNav
+              userName={displayName}
+              userPhone={displayPhone}
+              flowTitle={t(STEP_TITLE_KEYS[step])}
+              onBack={goBack}
+              onBrandClick={resetBooking}
+            />
+            <MobileHeader
+              showBack
+              onBack={goBack}
+              title={t(STEP_TITLE_KEYS[step])}
+              userName={displayName}
+              userPhone={displayPhone}
+            />
+            <main className="relative z-10 -mt-4 lg:mt-0 app-gutter-x lg:px-6 flex-1 page-container lg:pt-8 w-full">
+              {renderBookingContent()}
+            </main>
+          </div>
+        )}
+      </div>
     </AppShell>
   );
 }

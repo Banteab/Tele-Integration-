@@ -259,7 +259,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
         >
           <div
             className="bg-white rounded-2xl p-6 max-w-sm sm:max-w-md w-full max-h-[90vh] overflow-y-auto"
-            style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
+            style={{ boxShadow: 'var(--shadow-depth-lg)' }}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex justify-between items-start mb-4">

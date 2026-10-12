@@ -21,7 +21,10 @@ export default function BottomNav({ active = 'home', onTabChange }: Props) {
   ];
 
   return (
-    <nav className="lg:hidden app-fixed-shell bottom-0 z-50 bg-white pb-safe" style={{ borderTop: 'var(--border-bold)' }}>
+    <nav
+      className="lg:hidden app-fixed-shell bottom-0 z-50 pb-safe"
+      style={{ background: 'rgba(255,255,255,0.78)', backdropFilter: 'blur(var(--glass-blur))', WebkitBackdropFilter: 'blur(var(--glass-blur))', borderTop: '1px solid rgba(255,255,255,0.7)', boxShadow: '0 -8px 24px rgba(16,39,71,0.1)' }}
+    >
       <div className="grid grid-cols-4 gap-0.5 min-[375px]:gap-1 app-gutter-x py-2.5">
         {items.map(({ id, labelKey, icon: Icon }) => {
           const isActive = active === id;

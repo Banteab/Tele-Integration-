@@ -38,9 +38,9 @@ export default function BookingSteps({ currentStep }: { currentStep: number }) {
                 }`}
                 style={
                   done
-                    ? { backgroundColor: 'var(--color-brand)', border: '1.5px solid var(--ink)' }
+                    ? { backgroundImage: 'linear-gradient(145deg, var(--blue-400), var(--color-brand))', boxShadow: '0 4px 10px -3px rgba(24,154,216,0.4)' }
                     : active
-                      ? { backgroundColor: 'var(--color-primary)', border: '1.5px solid var(--ink)', boxShadow: `0 0 0 4px var(--color-primary-soft)` }
+                      ? { backgroundImage: 'linear-gradient(145deg, #f9bb3f, var(--color-primary))', boxShadow: `0 0 0 4px var(--color-primary-soft), 0 4px 10px -3px rgba(242,168,28,0.45)` }
                       : undefined
                 }
               >

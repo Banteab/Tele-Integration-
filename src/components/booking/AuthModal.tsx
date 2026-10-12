@@ -106,7 +106,7 @@ export default function AuthModal({
         exit={reduceMotion ? { opacity: 0 } : { scale: 0.95, opacity: 0 }}
         transition={scaleTransition}
         className="bg-white rounded-2xl max-w-md w-full max-h-[90vh] overflow-y-auto"
-        style={{ border: 'var(--border-bold)', boxShadow: 'var(--shadow-hard-lg)' }}
+        style={{ boxShadow: 'var(--shadow-depth-lg)' }}
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}

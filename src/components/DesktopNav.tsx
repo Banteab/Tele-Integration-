@@ -1,4 +1,4 @@
-import { Bus, User, ArrowLeft, TicketPlus } from 'lucide-react';
+import { Bus, User, ArrowLeft, Ticket, Phone, ChevronDown } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BRAND, THEME } from '../config/theme';
 import LanguageSelector from './LanguageSelector';
@@ -13,6 +13,10 @@ interface Props {
   onBook?: () => void;
   /** Scrolls to the popular-routes section on the home tab. */
   onRoutesClick?: () => void;
+  /** Scrolls to the How It Works section on the home tab. */
+  onHowItWorksClick?: () => void;
+  /** Scrolls to the telebirr trust section on the home tab. */
+  onTelebirrClick?: () => void;
   /** Booking-flow context — when set, shows a back button + step title instead of tabs. */
   flowTitle?: string;
   onBack?: () => void;
@@ -38,6 +42,8 @@ export default function DesktopNav({
   onTabChange,
   onBook,
   onRoutesClick,
+  onHowItWorksClick,
+  onTelebirrClick,
   flowTitle,
   onBack,
   onBrandClick,
@@ -46,34 +52,42 @@ export default function DesktopNav({
   const isLoggedIn = Boolean(userName || userPhone);
   const initials = getInitials(userName);
 
-  /** Desktop has room for fuller wording than the compact mobile tab bar. */
+  /** Home / Routes / How it Works / Terminals / telebirr Pay, plus My Booking
+   *  kept so ticket history stays reachable. "Terminals" has no dedicated
+   *  content yet, so it opens the About page as the closest real destination. */
   const navItems: { id: string; labelKey: string; tab?: HomeTab; onClick?: () => void }[] = [
     { id: 'home', labelKey: 'desktopNav.home', tab: 'home' },
     { id: 'routes', labelKey: 'desktopNav.routes', onClick: onRoutesClick },
+    { id: 'how-it-works', labelKey: 'desktopNav.howItWorksNav', onClick: onHowItWorksClick },
+    { id: 'terminals', labelKey: 'desktopNav.terminals', tab: 'about' },
+    { id: 'telebirr', labelKey: 'desktopNav.telebirrPay', onClick: onTelebirrClick },
     { id: 'tickets', labelKey: 'desktopNav.myBooking', tab: 'tickets' },
-    { id: 'about', labelKey: 'tabs.about', tab: 'about' },
-    { id: 'support', labelKey: 'desktopNav.help', tab: 'support' },
   ];
 
   return (
-    <header className="font-web hidden lg:block sticky top-0 z-40 bg-white/92 backdrop-blur border-b border-[var(--border)]">
-      <div className="page-container-web flex items-center justify-between gap-6 px-6 h-16">
+    <header className="font-web hidden lg:block sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100">
+      <div className="page-container-web flex items-center justify-between gap-6 px-6 h-20">
         <button
           type="button"
           onClick={onBrandClick}
-          className="flex items-center gap-2.5 shrink-0 rounded-lg"
+          className="flex items-center gap-3 shrink-0 rounded-lg group"
         >
-          <div
-            className="w-[34px] h-[34px] rounded-[9px] flex items-center justify-center"
-            style={{ backgroundColor: THEME.brand, border: '2px solid var(--ink)' }}
-          >
-            <Bus className="w-4 h-4 text-white" />
+          <div className="w-11 h-11 rounded-2xl bg-sky-50 border border-sky-100 flex items-center justify-center shadow-sm transition-transform group-hover:scale-105">
+            <Bus className="w-[18px] h-[18px] text-sky-600" />
           </div>
           <div className="text-left">
-            <p className="font-display font-bold text-[15px] leading-tight tracking-tight" style={{ color: THEME.textPrimary }}>
+            <p className="font-display font-bold text-[17px] leading-tight tracking-tight flex items-center gap-1.5" style={{ color: THEME.textPrimary }}>
               {BRAND.name}
+              <span className="w-2 h-2 rounded-full bg-emerald-500 inline-block" />
             </p>
-            <p className="text-[11px] leading-tight" style={{ color: THEME.webSoft }}>{BRAND.tagline}</p>
+            <div className="flex items-center gap-1.5 mt-0.5">
+              <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">
+                {t('common.poweredBy', { defaultValue: 'Powered by' })}
+              </span>
+              <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200/60 text-[9px] font-bold text-amber-700 leading-none">
+                telebirr
+              </span>
+            </div>
           </div>
         </button>
 
@@ -92,7 +106,7 @@ export default function DesktopNav({
             <h1 className="font-display font-bold text-[var(--text-primary)] text-[15px] truncate">{flowTitle}</h1>
           </div>
         ) : (
-          <nav className="flex-1 flex items-center justify-center gap-1">
+          <nav className="flex-1 flex items-center justify-center gap-7">
             {navItems.map(({ id, labelKey, tab, onClick }) => {
               const isActive = tab ? activeTab === tab : false;
               return (
@@ -100,55 +114,66 @@ export default function DesktopNav({
                   key={id}
                   type="button"
                   onClick={tab ? () => onTabChange?.(tab) : onClick}
-                  className="relative font-display px-[13px] py-[7px] text-sm rounded-lg transition-colors"
+                  className="relative font-display py-[7px] text-[15px] transition-colors"
                   style={{
-                    color: isActive ? THEME.brandDeep : THEME.webMuted,
-                    backgroundColor: isActive ? THEME.brandSoft : 'transparent',
-                    border: isActive ? '1.5px solid var(--ink)' : '1.5px solid transparent',
+                    color: isActive ? THEME.brand : THEME.textSecondary,
                     fontWeight: isActive ? 700 : 500,
                   }}
                 >
                   {t(labelKey)}
+                  <span
+                    className="absolute left-0 right-0 -bottom-[1px] h-[2px] rounded-full transition-opacity"
+                    style={{ backgroundColor: THEME.brand, opacity: isActive ? 1 : 0 }}
+                  />
                 </button>
               );
             })}
           </nav>
         )}
 
-        <div className="flex items-center gap-3 shrink-0">
-          <LanguageSelector />
+        <div className="flex items-center gap-3.5 shrink-0">
+          <div className="hidden sm:flex items-center gap-1.5 bg-slate-100/80 hover:bg-slate-200/80 px-3 py-2 rounded-xl border border-slate-200/70 transition-all">
+            <LanguageSelector />
+            <ChevronDown className="w-3 h-3 text-slate-400" />
+          </div>
+
+          {isLoggedIn ? (
+            <div className="hidden lg:flex items-center gap-2">
+              <div
+                className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
+                style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandMid}, ${THEME.brandDeep})`, color: THEME.white, boxShadow: 'var(--shadow-glow-brand)' }}
+                aria-label={t('common.profileNamed', { name: userName })}
+              >
+                {initials || <User className="w-4 h-4" />}
+              </div>
+              <div className="max-w-[9rem]">
+                <p className="text-xs font-semibold text-slate-700 truncate">{userName}</p>
+                {userPhone && <p className="text-[11px] text-slate-400 truncate tnum">{userPhone}</p>}
+              </div>
+            </div>
+          ) : (
+            <a
+              href={`tel:${BRAND.phone}`}
+              className="hidden lg:flex items-center gap-2 text-xs font-bold text-slate-600 hover:text-sky-600 px-2 py-1.5 transition-colors"
+            >
+              <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500">
+                <Phone className="w-3.5 h-3.5" />
+              </div>
+              <span>{BRAND.phone}</span>
+            </a>
+          )}
 
           {!flowTitle && (
             <button
               type="button"
               onClick={onBook}
-              className="hidden xl:flex items-center gap-1.5 rounded-full font-display px-[18px] py-[9px] text-sm font-bold text-[var(--text-primary)] transition-transform duration-150 hover:-translate-y-0.5 active:translate-y-0.5 active:translate-x-0.5"
-              style={{ backgroundColor: THEME.primary, border: '2px solid var(--ink)', boxShadow: 'var(--shadow-hard-sm)' }}
+              className="inline-flex items-center gap-2 bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold px-5 py-2.5 rounded-xl text-sm transition-all duration-200 transform hover:-translate-y-0.5"
+              style={{ boxShadow: '0 8px 20px -4px rgba(245,158,11,0.45)' }}
             >
-              <TicketPlus className="w-3.5 h-3.5" />
-              {t('desktopNav.bookTrip')}
+              <Ticket className="w-3.5 h-3.5" />
+              <span>{t('desktopNav.bookTicket')}</span>
             </button>
           )}
-
-          <div className="flex items-center gap-2 pl-3 border-l border-[var(--border)]">
-            <div
-              className="w-9 h-9 rounded-full flex items-center justify-center font-display font-bold text-xs shrink-0"
-              style={
-                isLoggedIn
-                  ? { backgroundColor: THEME.brand, color: THEME.white, border: '1.5px solid var(--ink)' }
-                  : { backgroundColor: THEME.surfaceMuted, color: THEME.textMuted, border: '1.5px solid var(--border-strong)' }
-              }
-              aria-label={userName ? t('common.profileNamed', { name: userName }) : t('common.profile')}
-            >
-              {initials || <User className="w-4 h-4" />}
-            </div>
-            {isLoggedIn && (
-              <div className="hidden xl:block max-w-[9rem]">
-                <p className="text-xs font-semibold text-[var(--text-primary)] truncate">{userName}</p>
-                {userPhone && <p className="text-[11px] text-[var(--text-muted)] truncate tnum">{userPhone}</p>}
-              </div>
-            )}
-          </div>
         </div>
       </div>
     </header>

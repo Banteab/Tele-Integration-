@@ -28,7 +28,7 @@ export default function LanguageSelector({ variant = 'default' }: Props) {
         value={current}
         onChange={(e) => i18n.changeLanguage(e.target.value)}
         aria-label={t('common.selectLanguage')}
-        className={`bg-transparent border-none focus:ring-0 cursor-pointer outline-none font-medium max-w-[6.5rem] min-[400px]:max-w-[7.5rem] truncate ${
+        className={`appearance-none bg-transparent border-none focus:ring-0 cursor-pointer outline-none font-medium max-w-[6.5rem] min-[400px]:max-w-[7.5rem] truncate ${
           isHeader
             ? 'text-[11px] min-[375px]:text-xs text-white'
             : 'text-sm'

@@ -58,6 +58,8 @@ export function buildTicketPayload(
     }
     const gender = parseOptionalInt(passengerInfo.gender);
     if (gender !== undefined) detail.gender = gender;
+    const age = parseOptionalInt(passengerInfo.age);
+    if (age !== undefined) detail.age = age;
     const maritalStatus = parseOptionalInt(passengerInfo.maritalStatus);
     if (maritalStatus !== undefined) detail.maritalStatus = maritalStatus;
 
