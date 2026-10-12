@@ -2,7 +2,7 @@ export const BRAND = {
   name: 'Menahariya',
   nameAm: 'መናህሪያ',
   tagline: 'powered by telebirr',
-  phone: '8000',
+  phone: '9439',
 };
 
 /**
