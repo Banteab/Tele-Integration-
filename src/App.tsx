@@ -147,6 +147,7 @@ export default function App() {
           <>
             <BookingSteps currentStep={3} />
             <PassengerDetails
+              bus={selectedBus!}
               selectedSeats={selectedSeats}
               onSubmit={(info) => {
                 setPassengerInfo(info);
@@ -156,11 +157,7 @@ export default function App() {
               initialData={
                 passengerInfo || buildPassengerPrefill(user, telebirrProfile)
               }
-              routeLabel={
-                searchParams
-                  ? `${searchParams.from} → ${searchParams.to}`
-                  : undefined
-              }
+              telebirrVerified={Boolean(telebirrProfile)}
             />
           </>
         );
