@@ -86,6 +86,7 @@ export default {
     pastDate: 'Choose today or a future date',
     routesLoadFailed: "Couldn't load routes. Showing common cities instead.",
     recentSearches: 'Recent searches',
+    noRoutesAvailable: 'No routes available',
     errors: {
       fromRequired: 'Please select your departure city.',
       toRequired: 'Please select your destination.',

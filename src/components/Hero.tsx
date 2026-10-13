@@ -24,7 +24,6 @@ import {
 } from 'lucide-react';
 import { SearchParams } from '../types';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { getAllRoutes } from '../services/api';
 import { getRecentSearches, addRecentSearch, resolveSearchDate, type RecentSearch } from '../services/recentSearches';
 import MobileHeader from './MobileHeader';
@@ -76,17 +75,38 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
+  const [routesError, setRoutesError] = useState(false);
+  const [routesRetryToken, setRoutesRetryToken] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const telebirrRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchRoutes = async () => {
       try {
         setLoadingRoutes(true);
-        const response = await getAllRoutes();
-        if (!Array.isArray(response)) return;
+        setRoutesError(false);
+
+        // The external API is the only source of truth for routes — wait up to
+        // 3 minutes for it, but never fall back to a hardcoded city list.
+        const response = await Promise.race([
+          getAllRoutes(),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('routesTimeout')), 3 * 60 * 1000);
+          }),
+        ]);
+        if (cancelled) return;
+
+        if (!Array.isArray(response) || response.length === 0) {
+          setRoutesError(true);
+          setFromOptions([]);
+          setToOptions([]);
+          setPopularRoutes([]);
+          return;
+        }
 
         const fromSet = new Set<string>();
         const toSet = new Set<string>();
@@ -118,22 +138,34 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
           });
         });
 
+        if (fromSet.size === 0 || toSet.size === 0) {
+          setRoutesError(true);
+          setFromOptions([]);
+          setToOptions([]);
+          setPopularRoutes([]);
+          return;
+        }
+
         setFromOptions(Array.from(fromSet).sort());
         setToOptions(Array.from(toSet).sort());
         // Real route pairs only — never fabricated when the API has none.
         setPopularRoutes(pairs.slice(0, 6));
       } catch {
-        toast.error(t('hero.routesLoadFailed'));
-        const fallback = ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa', 'Adama'];
-        setFromOptions(fallback);
-        setToOptions(fallback);
+        if (cancelled) return;
+        setRoutesError(true);
+        setFromOptions([]);
+        setToOptions([]);
         setPopularRoutes([]);
       } finally {
-        setLoadingRoutes(false);
+        if (!cancelled) setLoadingRoutes(false);
       }
     };
     fetchRoutes();
-  }, []);
+
+    return () => {
+      cancelled = true;
+    };
+  }, [routesRetryToken]);
 
   /** Validates and, on success, records the search so it can be repeated later. */
   const handleSearch = () => {
@@ -229,6 +261,29 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const fieldClass =
     'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
+  const routesUnavailable = loadingRoutes || routesError;
+  const routeOptionPlaceholder = (destination: boolean) => {
+    if (loadingRoutes) return t('common.loading');
+    if (routesError) return t('hero.noRoutesAvailable');
+    return destination ? t('hero.selectDestination') : t('common.from');
+  };
+
+  const noRoutesBanner = routesError && !loadingRoutes && (
+    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 flex items-center justify-between gap-3 text-xs font-semibold text-amber-800">
+      <span className="flex items-center gap-2">
+        <AlertCircle className="w-4 h-4 shrink-0" />
+        {t('hero.noRoutesAvailable')}
+      </span>
+      <button
+        type="button"
+        onClick={() => setRoutesRetryToken((n) => n + 1)}
+        className="shrink-0 underline underline-offset-2 hover:text-amber-900"
+      >
+        {t('search.retry')}
+      </button>
+    </div>
+  );
+
   const steps = [
     { n: 1, icon: Search, titleKey: 'howItWorks.step1Title', descKey: 'howItWorks.step1Desc', bg: 'bg-sky-100/80 group-hover:bg-sky-600', text: 'text-sky-600' },
     { n: 2, icon: Bus, titleKey: 'howItWorks.step2Title', descKey: 'howItWorks.step2Desc', bg: 'bg-amber-100/80 group-hover:bg-amber-500', text: 'text-amber-600' },
@@ -254,6 +309,8 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         </span>
       </div>
 
+      {noRoutesBanner}
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start">
         <div className="xl:col-span-3">
           <div className={`bg-slate-50 hover:bg-slate-100/70 border rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3 ${errors.from ? 'border-red-300' : 'border-slate-200/90'}`}>
@@ -265,11 +322,11 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               <select
                 value={from}
                 onChange={(e) => { setFrom(e.target.value); setErrors((prev) => ({ ...prev, from: undefined })); }}
-                disabled={loadingRoutes}
+                disabled={routesUnavailable}
                 className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
                 aria-label={t('common.from')}
               >
-                <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+                <option value="">{routeOptionPlaceholder(false)}</option>
                 {fromOptionsFiltered.map((city) => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -300,11 +357,11 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               <select
                 value={to}
                 onChange={(e) => { setTo(e.target.value); setErrors((prev) => ({ ...prev, to: undefined })); }}
-                disabled={loadingRoutes}
+                disabled={routesUnavailable}
                 className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
                 aria-label={t('common.to')}
               >
-                <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+                <option value="">{routeOptionPlaceholder(true)}</option>
                 {toOptionsFiltered.map((city) => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -338,7 +395,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
           <button
             type="button"
             onClick={handleSearch}
-            disabled={loadingRoutes}
+            disabled={routesUnavailable}
             className="w-full min-h-[56px] bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-slate-950 font-black rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 text-base"
             style={{ boxShadow: '0 8px 20px -4px rgba(245,158,11,0.45)' }}
           >
@@ -475,6 +532,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
                 <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
                 <div className="p-4 space-y-4">
+                {noRoutesBanner}
                 <div className="space-y-1">
                   <div>
                     <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
@@ -483,11 +541,11 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                       <select
                         value={from}
                         onChange={(e) => { setFrom(e.target.value); setErrors((prev) => ({ ...prev, from: undefined })); }}
-                        disabled={loadingRoutes}
+                        disabled={routesUnavailable}
                         className={`${fieldClass} ${errors.from ? 'border-red-300 bg-red-50' : ''}`}
                         aria-label={t('common.from')}
                       >
-                        <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
+                        <option value="">{routeOptionPlaceholder(false)}</option>
                         {fromOptionsFiltered.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
@@ -515,11 +573,11 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                       <select
                         value={to}
                         onChange={(e) => { setTo(e.target.value); setErrors((prev) => ({ ...prev, to: undefined })); }}
-                        disabled={loadingRoutes}
+                        disabled={routesUnavailable}
                         className={`${fieldClass} ${errors.to ? 'border-red-300 bg-red-50' : ''}`}
                         aria-label={t('hero.selectDestination')}
                       >
-                        <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
+                        <option value="">{routeOptionPlaceholder(true)}</option>
                         {toOptionsFiltered.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
@@ -561,7 +619,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                   </div>
                 )}
 
-                <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
+                <PrimaryButton onClick={handleSearch} disabled={routesUnavailable}>
                   {loadingRoutes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
                   {t('hero.searchBuses')}
                 </PrimaryButton>
@@ -581,8 +639,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
           {/* ============ DESKTOP / WEB ============ */}
           <div className="hidden lg:block font-web">
+            {/* The hero band + search card together fill exactly one viewport (minus the
+                80px sticky nav) so the card is fully visible — centered, no scroll — on
+                first load. The hero band is flex-1 so it compresses gracefully on shorter
+                screens instead of pushing the card below the fold. */}
+            <div className="relative overflow-hidden flex flex-col" style={{ height: 'calc(100dvh - 80px)' }}>
             {/* Hero band — an illustrated sky/road scene (no stock photo dependency) with the eyebrow badge + headline over it */}
-            <section className="relative overflow-hidden" style={{ height: 'clamp(540px, 58vw, 680px)' }}>
+            <section className="relative overflow-hidden flex-1 min-h-0">
               <div
                 className="absolute inset-0"
                 style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
@@ -641,9 +704,10 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             </section>
 
             {/* Search — floating card overlapping the hero photo's bottom edge */}
-            <section className="relative z-[5] px-6" style={{ marginTop: '-52px' }} ref={searchRef}>
+            <div className="relative z-[5] px-6 shrink-0" style={{ marginTop: '-52px' }} ref={searchRef}>
               <div className="page-container-web tilt-wrap">{bookingBar}</div>
-            </section>
+            </div>
+            </div>
             <div className="h-14" aria-hidden="true" />
 
             {/* How it works */}
