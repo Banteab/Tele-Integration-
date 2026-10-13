@@ -243,7 +243,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const toOptionsFiltered = useMemo(() => toOptions.filter((c) => c !== DEPARTURE_CITY), [toOptions]);
 
   const fieldClass =
-    'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
+    'w-full rounded-2xl border-2 border-[var(--border-strong)] bg-white py-[18px] pl-[52px] pr-4 text-[17px] font-bold text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
   const routesUnavailable = loadingRoutes || routesError;
   const routeOptionPlaceholder = () => {
@@ -444,7 +444,10 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
       {activeTab === 'home' && (
         <>
           {/* ============ MOBILE / TABLET — compact, space-efficient home screen ============ */}
-          <div className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-y-auto">
+          <div
+            className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-y-auto"
+            style={{ marginBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}
+          >
             {/* Compact gradient strip — just the eyebrow + tagline, no illustration,
                 so the booking card (the actual job of this screen) gets the space. */}
             <section
@@ -464,33 +467,33 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               </div>
             </section>
 
-            <div className="relative z-10 app-gutter-x -mt-6 tilt-wrap shrink-0" ref={searchRef}>
-              <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
-                <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
-                <div className="p-4 space-y-4">
+            <div className="relative z-10 app-gutter-x -mt-7 tilt-wrap shrink-0" ref={searchRef}>
+              <div className="tilt-card glass-surface rounded-[28px] overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
+                <div className="h-2" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
+                <div className="p-6 space-y-6">
                 {noRoutesBanner}
-                <div className="space-y-1">
+                <div className="space-y-1.5">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
+                    <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.from')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6" style={{ color: THEME.brandDeep }} />
                       <div className={fieldClass} aria-label={t('common.from')}>{from}</div>
                     </div>
                   </div>
 
-                  <div className="relative z-10 flex justify-center -my-4" aria-hidden="true">
+                  <div className="relative z-10 flex justify-center -my-7" aria-hidden="true">
                     <div
-                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center"
-                      style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 6px 16px -4px rgba(242,168,28,0.5)' }}
+                      className="w-14 h-14 rounded-full border-[5px] border-white flex items-center justify-center"
+                      style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 8px 20px -4px rgba(242,168,28,0.55)' }}
                     >
-                      <ArrowLeftRight className="w-4 h-4" />
+                      <ArrowLeftRight className="w-6 h-6" strokeWidth={2.5} />
                     </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.to')}</label>
+                    <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.to')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6" style={{ color: THEME.brandDeep }} />
                       <select
                         value={to}
                         onChange={(e) => { setTo(e.target.value); setErrors((prev) => ({ ...prev, to: undefined })); }}
@@ -509,9 +512,9 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.date')}</label>
+                  <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.date')}</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[var(--text-muted)]" />
                     <input
                       type="date"
                       value={date}
@@ -540,8 +543,8 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                   </div>
                 )}
 
-                <PrimaryButton onClick={handleSearch} disabled={routesUnavailable}>
-                  {loadingRoutes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                <PrimaryButton onClick={handleSearch} disabled={routesUnavailable} className="py-5 text-lg rounded-2xl gap-3">
+                  {loadingRoutes ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" strokeWidth={2.5} />}
                   {t('hero.searchBuses')}
                 </PrimaryButton>
                 </div>
@@ -551,7 +554,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             {/* Trust row — sits directly under the card with minimal gap. Recent/popular
                 route suggestions stay desktop-only; on mobile the From/To fields already
                 cover that job without needing scroll. */}
-            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-2 pb-4 shrink-0">
+            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-2 pb-2 shrink-0">
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
               <TrustPill icon={Clock} text={t('hero.trustSupport')} />
