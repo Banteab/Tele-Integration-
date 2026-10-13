@@ -5,6 +5,7 @@ import {
   Calendar,
   Search,
   ArrowRight,
+  ArrowLeftRight,
   Clock,
   Loader2,
   Bus,
@@ -442,59 +443,28 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
       {activeTab === 'home' && (
         <>
-          {/* ============ MOBILE / TABLET — one fixed app screen, no scroll ============ */}
-          <div className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* Illustrated hero band — the same teal/amber scene as desktop, scaled for mobile.
-                flex-1 so it absorbs whatever space is left after the card/trust row below,
-                instead of a fixed height that could force the screen to scroll. */}
-            <section className="relative overflow-hidden flex-1 min-h-0">
-              <div
-                className="absolute inset-0"
-                style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
-              />
-              <div
-                className="absolute pointer-events-none"
-                style={{ top: '6%', right: '10%', width: 140, height: 140, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,210,135,0.85), rgba(255,210,135,0) 70%)', filter: 'blur(3px)' }}
-              />
-              <div className="absolute pointer-events-none" style={{ top: '10%', left: '8%', width: 90, height: 30, borderRadius: 999, background: 'rgba(255,255,255,0.8)', filter: 'blur(1.5px)' }} />
-              <div
-                className="absolute inset-x-0 bottom-[30%] pointer-events-none"
-                style={{ height: '36%', backgroundColor: '#aecee3', clipPath: 'polygon(0% 100%, 0% 58%, 12% 30%, 24% 50%, 38% 16%, 52% 46%, 68% 20%, 82% 48%, 100% 28%, 100% 100%)' }}
-              />
-              <div
-                className="absolute inset-x-0 bottom-[25%] pointer-events-none"
-                style={{ height: '30%', backgroundColor: '#86b4d8', clipPath: 'polygon(0% 100%, 0% 64%, 15% 32%, 30% 56%, 48% 18%, 64% 52%, 80% 26%, 100% 50%, 100% 100%)' }}
-              />
-              <div className="absolute inset-x-0 bottom-0" style={{ height: '25%', backgroundColor: '#263650' }}>
-                <div
-                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
-                  style={{ height: 4, backgroundImage: `repeating-linear-gradient(90deg, ${THEME.primary} 0 22px, transparent 22px 40px)` }}
-                />
-              </div>
-              <HeroBusSilhouette scale={0.62} />
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(180deg, rgba(14,116,144,0.28) 0%, rgba(2,132,199,0.35) 40%, rgba(248,250,252,0.95) 92%, #ffffff 100%), radial-gradient(circle at 75% 25%, rgba(254,240,138,0.25) 0%, transparent 40%), linear-gradient(90deg, rgba(12,74,110,0.6) 0%, rgba(12,74,110,0.15) 50%, rgba(15,23,42,0.4) 100%)',
-                }}
-              />
-              <div className="relative h-full flex flex-col items-center justify-center text-center app-gutter-x">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-sky-100 font-bold text-[9px] uppercase tracking-wider mb-2.5 border border-white/25">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <Bus className="w-3 h-3" />
-                  <span>{t('hero.eyebrow')}</span>
+          {/* ============ MOBILE / TABLET — compact, space-efficient home screen ============ */}
+          <div className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-y-auto">
+            {/* Compact gradient strip — just the eyebrow + tagline, no illustration,
+                so the booking card (the actual job of this screen) gets the space. */}
+            <section
+              className="relative overflow-hidden shrink-0 pt-5 min-[375px]:pt-6 pb-10 min-[375px]:pb-11"
+              style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #7bbbe8 100%)' }}
+            >
+              <div className="relative flex flex-col items-center text-center app-gutter-x">
+                <span className="text-white/95 font-bold text-[10px] min-[375px]:text-[11px] uppercase tracking-wider mb-1.5">
+                  {t('hero.eyebrow')}
                 </span>
                 <h1
-                  className="font-display font-bold text-white text-[24px] min-[400px]:text-[26px] leading-tight tracking-tight"
-                  style={{ textShadow: '0 2px 16px rgba(0,0,0,0.35)' }}
+                  className="font-display font-bold text-white text-[21px] min-[375px]:text-[23px] leading-tight tracking-tight"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
               </div>
             </section>
 
-            <div className="relative z-10 app-gutter-x -mt-14 tilt-wrap shrink-0" ref={searchRef}>
+            <div className="relative z-10 app-gutter-x -mt-6 tilt-wrap shrink-0" ref={searchRef}>
               <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
                 <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
                 <div className="p-4 space-y-4">
@@ -513,7 +483,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                       className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center"
                       style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 6px 16px -4px rgba(242,168,28,0.5)' }}
                     >
-                      <ArrowRight className="w-4 h-4" />
+                      <ArrowLeftRight className="w-4 h-4" />
                     </div>
                   </div>
 
@@ -578,10 +548,10 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               </div>
             </div>
 
-            {/* Trust row — the only thing below the card on this fixed, non-scrolling
-                screen. Recent/popular route suggestions stay desktop-only (below); on
-                mobile the From/To fields already cover that job without needing scroll. */}
-            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-3 shrink-0" style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
+            {/* Trust row — sits directly under the card with minimal gap. Recent/popular
+                route suggestions stay desktop-only; on mobile the From/To fields already
+                cover that job without needing scroll. */}
+            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-2 pb-4 shrink-0">
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
               <TrustPill icon={Clock} text={t('hero.trustSupport')} />

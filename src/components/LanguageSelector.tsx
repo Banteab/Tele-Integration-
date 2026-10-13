@@ -4,9 +4,11 @@ import { LANGUAGES, resolveLanguageCode } from '../config/languages';
 
 interface Props {
   variant?: 'header' | 'default';
+  /** Hides the globe glyph — for compact bars where plain text reads cleaner. */
+  hideIcon?: boolean;
 }
 
-export default function LanguageSelector({ variant = 'default' }: Props) {
+export default function LanguageSelector({ variant = 'default', hideIcon = false }: Props) {
   const { t, i18n } = useTranslation();
   const current = resolveLanguageCode(i18n.language);
 
@@ -20,10 +22,12 @@ export default function LanguageSelector({ variant = 'default' }: Props) {
           : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)] px-2'
       }`}
     >
-      <Globe
-        className={`w-3.5 h-3.5 ${isHeader ? 'text-white/90' : 'text-current'}`}
-        aria-hidden
-      />
+      {!hideIcon && (
+        <Globe
+          className={`w-3.5 h-3.5 ${isHeader ? 'text-white/90' : 'text-current'}`}
+          aria-hidden
+        />
+      )}
       <select
         value={current}
         onChange={(e) => i18n.changeLanguage(e.target.value)}
