@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2, DoorOpen, Gauge, MapPin, X, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Loader2, DoorOpen, Gauge, MapPin, X, ShieldCheck, Armchair, Check } from 'lucide-react';
 import { Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { Fragment, type ReactNode } from 'react';
@@ -340,13 +340,13 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-[var(--text-secondary)]">
-                    <span>{t('seats.baseFare', { count: selectedSeats.length })}</span>
-                    <span className="font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
+                  <div className="flex justify-between gap-2 text-[var(--text-secondary)]">
+                    <span className="min-w-0 truncate">{t('seats.baseFare', { count: selectedSeats.length })}</span>
+                    <span className="shrink-0 whitespace-nowrap font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
                   </div>
-                  <div className="pt-2.5 flex justify-between items-baseline border-t border-[var(--border)]">
-                    <span className="text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('seats.totalAmount')}</span>
-                    <span className="font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
+                  <div className="pt-2.5 flex justify-between items-baseline gap-2 border-t border-[var(--border)]">
+                    <span className="min-w-0 truncate text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('seats.totalAmount')}</span>
+                    <span className="shrink-0 whitespace-nowrap font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
                   </div>
                 </div>
 
@@ -369,11 +369,11 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
       {selectedSeats.length > 0 && (
         <StickyFooter>
-          <div className="flex items-center justify-between mb-2 text-sm">
-            <span className="text-[var(--text-muted)]">
+          <div className="flex items-center justify-between gap-3 mb-2 text-sm">
+            <span className="min-w-0 truncate text-[var(--text-muted)]">
               {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
             </span>
-            <span className="font-display font-bold tnum" style={{ color: THEME.brand }}>
+            <span className="shrink-0 whitespace-nowrap font-display font-bold tnum" style={{ color: THEME.brand }}>
               ETB {total}
             </span>
           </div>
@@ -428,14 +428,14 @@ function renderCell(
   if (sold) {
     return (
       <span className="bus-seat seat-sold" title={t('seats.sold')}>
-        <span className="seat-headrest w-9 h-3 rounded-t-lg mx-auto relative z-10" />
+        <span className="seat-headrest w-10 h-3 rounded-t-lg mx-auto relative z-10" />
         <span className="w-full flex items-center justify-center relative">
           <span className="seat-armrest w-1.5 h-9 rounded-full -mr-0.5 z-20" />
           <span className="flex-1 flex flex-col">
             <span className="seat-backrest h-4 rounded-t-sm block" />
-            <span className="seat-cushion h-8 rounded-b-xl flex flex-col items-center justify-center">
-              <span className="text-xs font-black text-slate-200 leading-none">{seat.name}</span>
-              <span className="text-[7px] font-bold text-slate-300 uppercase tracking-tight mt-0.5">{t('seats.sold')}</span>
+            <span className="seat-cushion h-9 rounded-b-xl flex flex-col items-center justify-center gap-0.5">
+              <Armchair className="w-3.5 h-3.5 text-slate-300" aria-hidden="true" />
+              <span className="text-[13px] font-black text-slate-200 leading-none">{seat.name}</span>
             </span>
           </span>
           <span className="seat-armrest w-1.5 h-9 rounded-full -ml-0.5 z-20" />
@@ -448,21 +448,25 @@ function renderCell(
     <button
       type="button"
       onClick={onToggle}
+      aria-pressed={selected}
+      aria-label={t(selected ? 'seats.ariaSelectedSeat' : 'seats.ariaAvailableSeat', { name: seat.name, price })}
       className={`bus-seat cursor-pointer ${selected ? 'seat-selected' : 'seat-available'}`}
       title={seat.name}
     >
-      <span className="seat-headrest w-9 h-3 rounded-t-lg mx-auto relative z-10 flex items-center justify-center">
+      <span className="seat-headrest w-10 h-3 rounded-t-lg mx-auto relative z-10 flex items-center justify-center">
         {label && <span className={`text-[7px] font-black ${selected ? 'text-amber-100' : 'text-sky-200'}`}>{label === 'window' ? 'W' : 'A'}</span>}
       </span>
       <span className="w-full flex items-center justify-center relative">
         <span className="seat-armrest w-1.5 h-9 rounded-full -mr-0.5 z-20" />
         <span className="flex-1 flex flex-col">
           <span className="seat-backrest h-4 rounded-t-sm block" />
-          <span className="seat-cushion h-8 rounded-b-xl flex flex-col items-center justify-center">
-            <span className="text-xs font-black text-white leading-none">{seat.name}</span>
-            <span className={`text-[7px] font-bold uppercase tracking-tight mt-0.5 ${selected ? 'text-amber-100' : 'text-sky-200'}`}>
-              {selected ? t('seats.selectedBadge') : `ETB ${price}`}
-            </span>
+          <span className="seat-cushion h-9 rounded-b-xl flex flex-col items-center justify-center gap-0.5">
+            {selected ? (
+              <Check className="w-3.5 h-3.5 text-amber-100" aria-hidden="true" />
+            ) : (
+              <Armchair className="w-3.5 h-3.5 text-sky-200" aria-hidden="true" />
+            )}
+            <span className="text-[13px] font-black text-white leading-none">{seat.name}</span>
           </span>
         </span>
         <span className="seat-armrest w-1.5 h-9 rounded-full -ml-0.5 z-20" />

@@ -8,6 +8,8 @@ import {
   ShieldCheck,
   Zap,
   RefreshCw,
+  WifiOff,
+  CalendarSearch,
 } from 'lucide-react';
 import { SearchParams, Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
@@ -120,6 +122,8 @@ export default function SearchResults({
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(isLoading || false);
   const [error, setError] = useState<string | null>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
   const [sortBy, setSortBy] = useState<SortKey>('cheapest');
   const [selectedOperators, setSelectedOperators] = useState<Set<string> | null>(null);
   const [selectedWindows, setSelectedWindows] = useState<Set<WindowKey> | null>(null);
@@ -137,6 +141,7 @@ export default function SearchResults({
       try {
         setLoading(true);
         setError(null);
+        setIsNetworkError(false);
         const dateObj = new Date(activeDate);
         const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         const response = await searchTrips(
@@ -167,18 +172,20 @@ export default function SearchResults({
         setSelectedOperators(null);
         setSelectedWindows(null);
         setSelectedTerminals(null);
-        if (transformedBuses.length === 0) {
-          setError(t('booking.noResults'));
-        }
       } catch (err: unknown) {
         if (cancelled) return;
+        const axiosErr = err as { response?: { data?: { message?: string } }; request?: unknown; code?: string };
+        // No `response` at all (request never got a reply) means a real
+        // connectivity failure, distinct from the server answering "no buses".
+        const networkFailure = !axiosErr.response && (Boolean(axiosErr.request) || axiosErr.code === 'ERR_NETWORK');
         const message =
-          (err as { response?: { data?: { message?: string } } })?.response?.data
-            ?.message ||
+          axiosErr.response?.data?.message ||
           (err as Error)?.message ||
           t('search.searchFailed');
-        setError(message);
-        toast.error(message);
+        setBuses([]);
+        setIsNetworkError(networkFailure);
+        setError(networkFailure ? t('search.networkError') : message);
+        if (!networkFailure) toast.error(message);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -191,7 +198,7 @@ export default function SearchResults({
     return () => {
       cancelled = true;
     };
-  }, [searchParams.from, searchParams.to, activeDate, t]);
+  }, [searchParams.from, searchParams.to, activeDate, retryToken, t]);
 
   /** Cheapest real fare per real operator appearing in this result set. */
   const operatorGroups = useMemo(() => {
@@ -291,29 +298,6 @@ export default function SearchResults({
               </div>
             </Fragment>
           ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (error && buses.length === 0) {
-    return (
-      <div className="pb-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 mb-4">
-          <p className="text-sm font-bold text-slate-900">{searchParams.from} → {searchParams.to}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{formatDate(activeDate)}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex gap-3 text-red-700">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">{t('search.noBusesFound')}</p>
-              <p className="text-xs mt-1">{error}</p>
-            </div>
-          </div>
-          <PrimaryButton className="mt-4" onClick={onBack}>
-            {t('search.changeSearch')}
-          </PrimaryButton>
         </div>
       </div>
     );
@@ -451,25 +435,63 @@ export default function SearchResults({
 
         {/* Results */}
         <section className="space-y-4 lg:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
-              <span className="font-bold text-slate-700">{t('search.sortBy')}</span>
-              <SortButton active={sortBy === 'cheapest'} onClick={() => setSortBy('cheapest')}>
-                {t('search.sortCheapest')}{cheapestPrice !== null ? ` (${cheapestPrice} ETB)` : ''}
-              </SortButton>
-              <SortButton active={sortBy === 'fastest'} onClick={() => setSortBy('fastest')}>
-                {t('search.sortFastest')}{fastestLabel ? ` (~${fastestLabel})` : ''}
-              </SortButton>
-              <SortButton active={sortBy === 'earliest'} onClick={() => setSortBy('earliest')}>
-                {t('search.sortEarliest')}{earliestBus ? ` (${formatBusTime(earliestBus.departureTime)})` : ''}
-              </SortButton>
+          {buses.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+                <span className="font-bold text-slate-700">{t('search.sortBy')}</span>
+                <SortButton active={sortBy === 'cheapest'} onClick={() => setSortBy('cheapest')}>
+                  {t('search.sortCheapest')}{cheapestPrice !== null ? ` (${cheapestPrice} ETB)` : ''}
+                </SortButton>
+                <SortButton active={sortBy === 'fastest'} onClick={() => setSortBy('fastest')}>
+                  {t('search.sortFastest')}{fastestLabel ? ` (~${fastestLabel})` : ''}
+                </SortButton>
+                <SortButton active={sortBy === 'earliest'} onClick={() => setSortBy('earliest')}>
+                  {t('search.sortEarliest')}{earliestBus ? ` (${formatBusTime(earliestBus.departureTime)})` : ''}
+                </SortButton>
+              </div>
+              <div className="text-xs font-bold text-slate-500">
+                {t('search.showingCount', { count: visibleBuses.length })}
+              </div>
             </div>
-            <div className="text-xs font-bold text-slate-500">
-              {t('search.showingCount', { count: visibleBuses.length })}
-            </div>
-          </div>
+          )}
 
-          {visibleBuses.length === 0 ? (
+          {isNetworkError ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <WifiOff className="w-8 h-8 mx-auto text-red-500" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.networkError')}</p>
+              <p className="mt-1 text-xs text-slate-500">{t('search.networkErrorHint')}</p>
+              <PrimaryButton fullWidth={false} className="mt-4 mx-auto px-8" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="w-4 h-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <AlertCircle className="w-8 h-8 mx-auto text-red-500" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.searchFailed')}</p>
+              <p className="mt-1 text-xs text-slate-500">{error}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <PrimaryButton fullWidth={false} className="px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                  <RefreshCw className="w-4 h-4" />
+                  {t('search.retry')}
+                </PrimaryButton>
+                <button type="button" onClick={onBack} className="text-xs font-bold text-sky-600 hover:text-sky-700 px-4 py-2">
+                  {t('search.changeSearch')}
+                </button>
+              </div>
+            </div>
+          ) : buses.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <CalendarSearch className="w-8 h-8 mx-auto text-slate-400" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.noBusesFound')}</p>
+              <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">{t('search.noBusesFoundHint')}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <button type="button" onClick={onBack} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                  {t('search.changeSearch')}
+                </button>
+              </div>
+            </div>
+          ) : visibleBuses.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
               <p className="text-sm font-semibold text-slate-700">{t('search.noMatchFilters')}</p>
               <button
@@ -489,29 +511,31 @@ export default function SearchResults({
           )}
 
           {/* Trust banner */}
-          <div className="mt-8 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-6 text-white shadow-lg">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-white">{t('search.trustTitle')}</h4>
-                  <p className="text-xs text-slate-300 mt-1 max-w-xl">{t('search.trustBody')}</p>
-                </div>
-              </div>
-              {terminalGroups.length > 0 && (
-                <div className="flex flex-col items-center sm:items-end gap-1.5">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t('search.trustBoarding')}</span>
-                  <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs font-semibold text-slate-300">
-                    {terminalGroups.slice(0, 4).map(([term]) => (
-                      <span key={term} className="rounded-lg bg-white/10 px-3 py-1.5 border border-white/10">{term}</span>
-                    ))}
+          {buses.length > 0 && (
+            <div className="mt-8 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-6 text-white shadow-lg">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30">
+                    <ShieldCheck className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">{t('search.trustTitle')}</h4>
+                    <p className="text-xs text-slate-300 mt-1 max-w-xl">{t('search.trustBody')}</p>
                   </div>
                 </div>
-              )}
+                {terminalGroups.length > 0 && (
+                  <div className="flex flex-col items-center sm:items-end gap-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t('search.trustBoarding')}</span>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs font-semibold text-slate-300">
+                      {terminalGroups.slice(0, 4).map(([term]) => (
+                        <span key={term} className="rounded-lg bg-white/10 px-3 py-1.5 border border-white/10">{term}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </section>
       </div>
     </motion.div>

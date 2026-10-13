@@ -213,14 +213,14 @@ export default function PassengerDetails({
   const fareSummary = (
     <>
       <div className="space-y-2 text-xs border-t border-[var(--border)] pt-3">
-        <div className="flex justify-between text-[var(--text-secondary)]">
-          <span>{t('seats.baseFare', { count: selectedSeats.length })}</span>
-          <span className="font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
+        <div className="flex justify-between gap-2 text-[var(--text-secondary)]">
+          <span className="min-w-0 truncate">{t('seats.baseFare', { count: selectedSeats.length })}</span>
+          <span className="shrink-0 whitespace-nowrap font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
         </div>
       </div>
-      <div className="flex items-baseline justify-between pt-2">
-        <span className="text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('passenger.totalPayable')}</span>
-        <span className="font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
+      <div className="flex items-baseline justify-between gap-2 pt-2">
+        <span className="min-w-0 truncate text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('passenger.totalPayable')}</span>
+        <span className="shrink-0 whitespace-nowrap font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
       </div>
     </>
   );
@@ -514,9 +514,9 @@ export default function PassengerDetails({
       </div>
 
       <StickyFooter>
-        <div className="flex items-center justify-between mb-2 text-sm">
-          <span className="text-[var(--text-muted)]">{t('passenger.seatsSelectedBadge', { count: selectedSeats.length })}</span>
-          <span className="font-display font-bold tnum" style={{ color: THEME.brand }}>ETB {total}</span>
+        <div className="flex items-center justify-between gap-3 mb-2 text-sm">
+          <span className="min-w-0 truncate text-[var(--text-muted)]">{t('passenger.seatsSelectedBadge', { count: selectedSeats.length })}</span>
+          <span className="shrink-0 whitespace-nowrap font-display font-bold tnum" style={{ color: THEME.brand }}>ETB {total}</span>
         </div>
         <PrimaryButton type="submit" form="passenger-form">
           {t('passenger.proceedToPayment')}

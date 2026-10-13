@@ -1,4 +1,4 @@
-import { ShieldCheck, Loader2, Clock, Smartphone, LogIn, UserPlus } from 'lucide-react';
+import { ShieldCheck, Loader2, Clock, Smartphone, LogIn, UserPlus, AlertTriangle, RefreshCw, Armchair } from 'lucide-react';
 import { Bus, PassengerInfo, SearchParams } from '../../types';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -33,6 +33,8 @@ interface Props {
   onPaid: (reference: string) => void;
   onBack: () => void;
   onAuthSuccess?: (user: User, telebirrProfile?: TelebirrProfile) => void;
+  /** A selected seat was booked by someone else before checkout finished. */
+  onSeatConflict?: () => void;
 }
 
 /**
@@ -51,12 +53,15 @@ export default function Payment({
   onPaid,
   onBack,
   onAuthSuccess,
+  onSeatConflict,
 }: Props) {
   const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(45 * 60);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [seatConflict, setSeatConflict] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() =>
     Boolean(localStorage.getItem(API_CONFIG.authTokenKey)),
   );
@@ -71,9 +76,11 @@ export default function Payment({
   const paymentStatus: StatusKind =
     timeRemaining <= 0
       ? 'expired'
-      : isWaitingForPayment || isProcessing
-        ? 'processing'
-        : 'pending';
+      : seatConflict || paymentError
+        ? 'failed'
+        : isWaitingForPayment || isProcessing
+          ? 'processing'
+          : 'pending';
   const paymentStatusLabel = t(`payment.statusLabel.${paymentStatus}`);
 
   useEffect(() => {
@@ -138,7 +145,9 @@ export default function Payment({
           clearInterval(pollInterval);
           clearTimeout(timeoutTimer);
           setIsWaitingForPayment(false);
-          toast.error(t('payment.paymentFailed') || 'Payment cancelled or failed');
+          const message = t('payment.paymentFailed') || 'Payment cancelled or failed';
+          setPaymentError(message);
+          toast.error(message);
           return;
         }
 
@@ -156,7 +165,9 @@ export default function Payment({
     const timeoutTimer = setTimeout(() => {
       clearInterval(pollInterval);
       setIsWaitingForPayment(false);
-      toast.error(t('payment.paymentTimeout') || 'Payment confirmation timed out');
+      const message = t('payment.paymentTimeout') || 'Payment confirmation timed out';
+      setPaymentError(message);
+      toast.error(message);
     }, 45 * 60 * 1000);
 
     pollCleanup.current = () => {
@@ -201,6 +212,9 @@ export default function Payment({
       return;
     }
 
+    setPaymentError(null);
+    setSeatConflict(false);
+
     try {
       setIsProcessing(true);
       setStatusMessage(t('payment.status.checkingSignIn'));
@@ -225,7 +239,23 @@ export default function Payment({
         paymentRefNumber,
       );
 
-      const ticketResponse = await telebirrCreateTicket(ticketPayload);
+      let ticketResponse: { reference?: { reference?: string }[] };
+      try {
+        ticketResponse = await telebirrCreateTicket(ticketPayload);
+      } catch (ticketError) {
+        const ticketMessage =
+          (ticketError as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+          (ticketError as Error)?.message ||
+          '';
+        // The seat a rider picked can be booked by someone else between
+        // selection and checkout — the backend rejects ticket creation for it.
+        if (/seat/i.test(ticketMessage)) {
+          setSeatConflict(true);
+          setIsWaitingForPayment(false);
+          return;
+        }
+        throw ticketError;
+      }
       const reference = ticketResponse?.reference?.[0]?.reference;
 
       if (!reference) {
@@ -263,6 +293,7 @@ export default function Payment({
           ?.data?.message ||
         (error as Error)?.message ||
         t('payment.failed');
+      setPaymentError(message);
       toast.error(message);
       setIsWaitingForPayment(false);
     } finally {
@@ -304,6 +335,37 @@ export default function Payment({
         <div className="lg:grid lg:grid-cols-[1fr_320px] lg:gap-6 lg:items-start">
         <ScreenCard className="space-y-4 mb-3 lg:mb-0 lg:p-8">
           <StatusBadge status={paymentStatus} label={paymentStatusLabel} />
+
+          {seatConflict && (
+            <div
+              className="p-3 rounded-xl border text-sm space-y-3"
+              style={{ backgroundColor: 'var(--status-failed-bg)', borderColor: 'var(--status-failed-fg)', color: 'var(--status-failed-fg)' }}
+            >
+              <div className="flex items-start gap-2.5">
+                <Armchair className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>{t('payment.seatConflict')}</p>
+              </div>
+              <PrimaryButton fullWidth={false} className="!py-2.5" onClick={onSeatConflict}>
+                {t('payment.chooseAnotherSeat')}
+              </PrimaryButton>
+            </div>
+          )}
+
+          {!seatConflict && paymentError && (
+            <div
+              className="p-3 rounded-xl border text-sm space-y-3"
+              style={{ backgroundColor: 'var(--status-failed-bg)', borderColor: 'var(--status-failed-fg)', color: 'var(--status-failed-fg)' }}
+            >
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>{paymentError}</p>
+              </div>
+              <PrimaryButton fullWidth={false} className="!py-2.5" onClick={handlePayment} disabled={isProcessing || timeRemaining <= 0}>
+                <RefreshCw className="w-4 h-4" />
+                {t('payment.tryAgain')}
+              </PrimaryButton>
+            </div>
+          )}
 
           {autoLoginChecked && !isAuthenticated && (
             <div

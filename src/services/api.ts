@@ -53,8 +53,17 @@ export const telebirrGetCurrentUser = async () => {
   return response.data;
 };
 
+let routesCache: { data: unknown; ts: number } | null = null;
+const ROUTES_CACHE_TTL_MS = 60_000;
+
+/** Real routes change rarely within a session — caching briefly avoids
+ *  re-fetching the same list on every search and every Home-screen mount. */
 export const getAllRoutes = async () => {
+  if (routesCache && Date.now() - routesCache.ts < ROUTES_CACHE_TTL_MS) {
+    return routesCache.data;
+  }
   const response = await apiClient.get(API_ENDPOINTS.tickets.proxy.routes);
+  routesCache = { data: response.data, ts: Date.now() };
   return response.data;
 };
 
@@ -69,13 +78,11 @@ export const getSchedulesByRoute = async (
 };
 
 export const searchTrips = async (from: string, to: string, date: string) => {
-  const allRoutesResponse = await apiClient.get(
-    API_ENDPOINTS.tickets.proxy.routes,
-  );
+  const allRoutesData = await getAllRoutes();
 
-  if (!Array.isArray(allRoutesResponse.data)) return [];
+  if (!Array.isArray(allRoutesData)) return [];
 
-  const allRoutes = allRoutesResponse.data.flatMap((origin: any) =>
+  const allRoutes = allRoutesData.flatMap((origin: any) =>
     (origin.routes || []).map((route: any) => ({
       ...route,
       originCityName: (origin.originCityName || '').trim(),
@@ -115,8 +122,14 @@ export const searchTrips = async (from: string, to: string, date: string) => {
   const routesWithSchedules = await Promise.all(
     matchedRoutes.map((route: any) =>
       getSchedulesByRoute(route.routeId, date)
-        .then((schedules) => ({ route, schedules: schedules || [] }))
-        .catch(() => ({ route, schedules: [] })),
+        .then((schedules) => ({ route, schedules: Array.isArray(schedules) ? schedules : [] }))
+        .catch((err) => {
+          // The server answering "no schedule for this route/date" (e.g. 404) is a
+          // legitimate empty result — but no response at all is a real connectivity
+          // failure, and swallowing it here would misreport it as "no buses found".
+          if (!err?.response) throw err;
+          return { route, schedules: [] };
+        }),
     ),
   );
 
