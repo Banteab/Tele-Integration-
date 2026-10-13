@@ -6,10 +6,6 @@ import { mergeDeep } from './i18n/mergeDeep';
 import extraEn from './i18n/extras/en';
 import extraAm from './i18n/extras/am';
 import extraOm from './i18n/extras/om';
-import extraTi from './i18n/extras/ti';
-import extraSo from './i18n/extras/so';
-import ti from './i18n/ti';
-import so from './i18n/so';
 
 const resources = {
   en: {
@@ -770,12 +766,6 @@ const resources = {
         payment: 'Malleen Kaffaltii'
       }
     }
-  },
-  ti: {
-    translation: ti
-  },
-  so: {
-    translation: so
   }
 };
 
@@ -783,8 +773,6 @@ const extrasByLang: Record<string, Record<string, unknown>> = {
   en: extraEn,
   am: extraAm,
   om: extraOm,
-  ti: extraTi,
-  so: extraSo,
 };
 
 for (const [lang, extra] of Object.entries(extrasByLang)) {
