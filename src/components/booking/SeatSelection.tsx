@@ -82,9 +82,16 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   const toggleSeat = (seatName: string) => {
     const seat = seatLayout?.seats.find((s) => s.name === seatName);
-    if (!seat || !isSelectableSeat(seat.type)) return;
+    if (!seat) return;
+    const alreadySelected = selectedSeats.includes(seatName);
 
-    if (selectedSeats.includes(seatName)) {
+    // A seat already in this booking can look "pending/sold" on a fresh layout
+    // fetch simply because this booking itself is holding it — that must never
+    // block deselecting it. Only block newly selecting a seat genuinely held
+    // by someone else.
+    if (!alreadySelected && !isSelectableSeat(seat.type)) return;
+
+    if (alreadySelected) {
       onSeatSelect(selectedSeats.filter((s) => s !== seatName));
     } else {
       if (selectedSeats.length >= 4) {
@@ -423,7 +430,10 @@ function renderCell(
 
   const { seat, label } = item;
   const { selected, onToggle, price, t } = opts;
-  const sold = isUnavailableSeat(seat.type);
+  // A seat this booking already holds must always render as the rider's own
+  // selection (yellow), even if a fresh layout fetch now reports it as
+  // sold/pending — that status only means someone (this booking) is holding it.
+  const sold = isUnavailableSeat(seat.type) && !selected;
 
   if (sold) {
     return (
