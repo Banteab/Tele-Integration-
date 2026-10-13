@@ -284,6 +284,10 @@ export default function SearchResults({
   if (loading) {
     return (
       <div className="pb-6">
+        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-500">
+          <span className="h-4 w-4 rounded-full border-2 border-sky-200 border-t-sky-600 animate-spin" />
+          {t('common.searching')}
+        </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 mb-4">
           <Skeleton className="h-5 w-48 mb-2" />
           <Skeleton className="h-3.5 w-32" />

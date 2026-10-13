@@ -77,10 +77,23 @@ export const getSchedulesByRoute = async (
   return response.data;
 };
 
+let searchCache: { key: string; data: any; ts: number } | null = null;
+const SEARCH_CACHE_TTL_MS = 30_000;
+
 export const searchTrips = async (from: string, to: string, date: string) => {
+  const cacheKey = `${from.toLowerCase().trim()}|${to.toLowerCase().trim()}|${date}`;
+  if (searchCache && searchCache.key === cacheKey && Date.now() - searchCache.ts < SEARCH_CACHE_TTL_MS) {
+    return searchCache.data;
+  }
+
   const allRoutesData = await getAllRoutes();
 
   if (!Array.isArray(allRoutesData)) return [];
+
+  const cacheAndReturn = <T,>(data: T): T => {
+    searchCache = { key: cacheKey, data, ts: Date.now() };
+    return data;
+  };
 
   const allRoutes = allRoutesData.flatMap((origin: any) =>
     (origin.routes || []).map((route: any) => ({
@@ -117,7 +130,7 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     });
   }
 
-  if (matchedRoutes.length === 0) return [];
+  if (matchedRoutes.length === 0) return cacheAndReturn([]);
 
   const routesWithSchedules = await Promise.all(
     matchedRoutes.map((route: any) =>
@@ -133,7 +146,7 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     ),
   );
 
-  return routesWithSchedules.flatMap(({ route, schedules }: any) =>
+  const results = routesWithSchedules.flatMap(({ route, schedules }: any) =>
     schedules.map((schedule: any) => ({
       id: schedule.id,
       operator: schedule.vehicleOperator || 'Unknown',
@@ -152,6 +165,8 @@ export const searchTrips = async (from: string, to: string, date: string) => {
       routeId: schedule.route,
     })),
   );
+
+  return cacheAndReturn(results);
 };
 
 export const getVehicleLayout = async (

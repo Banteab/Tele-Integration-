@@ -4,7 +4,6 @@ import {
   Navigation,
   Calendar,
   Search,
-  ArrowUpDown,
   ArrowRight,
   Clock,
   Loader2,
@@ -51,6 +50,10 @@ function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** The network currently only departs from Addis Ababa — the origin field
+ *  is fixed rather than user-selectable. */
+const DEPARTURE_CITY = 'Addis Ababa';
+
 interface Props {
   userName?: string;
   userPhone?: string;
@@ -63,15 +66,15 @@ interface Props {
 
 export default function Hero({ userName, userPhone, onSearch, has3DBackground = false, initialSearch }: Props) {
   const [activeTab, setActiveTab] = useState<HomeTab>('home');
-  const [from, setFrom] = useState(initialSearch?.from || 'Addis Ababa');
+  // Departure is fixed — the network only departs from Addis Ababa.
+  const from = DEPARTURE_CITY;
   const [to, setTo] = useState(initialSearch?.to || '');
   const [date, setDate] = useState(() =>
     resolveSearchDate(initialSearch?.date || todayIsoDate(), todayIsoDate()),
   );
-  const [errors, setErrors] = useState<{ from?: string; to?: string; date?: string }>({});
+  const [errors, setErrors] = useState<{ to?: string; date?: string }>({});
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() => getRecentSearches());
   const { t } = useTranslation();
-  const [fromOptions, setFromOptions] = useState<string[]>([]);
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
@@ -102,58 +105,49 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
         if (!Array.isArray(response) || response.length === 0) {
           setRoutesError(true);
-          setFromOptions([]);
           setToOptions([]);
           setPopularRoutes([]);
           return;
         }
 
-        const fromSet = new Set<string>();
         const toSet = new Set<string>();
         const pairs: RoutePair[] = [];
         const seenPairs = new Set<string>();
 
+        // Departure is fixed to Addis Ababa — only destinations reachable
+        // from an Addis Ababa origin are offered.
         response.forEach((origin: { originCityName?: string; originTerminalName?: string; routes?: { destinationCityName?: string; destinationTerminalName?: string }[] }) => {
           const originName = (origin.originCityName || origin.originTerminalName || '').trim();
-          if (origin.originCityName) fromSet.add(origin.originCityName.trim());
-          if (origin.originTerminalName) fromSet.add(origin.originTerminalName.trim());
+          if (originName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) return;
+
           origin.routes?.forEach((route) => {
-            if (route.destinationCityName) {
-              toSet.add(route.destinationCityName.trim());
-              fromSet.add(route.destinationCityName.trim());
-            }
-            if (route.destinationTerminalName) {
-              toSet.add(route.destinationTerminalName.trim());
-              fromSet.add(route.destinationTerminalName.trim());
-            }
+            if (route.destinationCityName) toSet.add(route.destinationCityName.trim());
+            if (route.destinationTerminalName) toSet.add(route.destinationTerminalName.trim());
 
             const destName = (route.destinationCityName || route.destinationTerminalName || '').trim();
-            if (originName && destName && originName !== destName) {
-              const key = `${originName}→${destName}`;
+            if (destName && destName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) {
+              const key = `${DEPARTURE_CITY}→${destName}`;
               if (!seenPairs.has(key)) {
                 seenPairs.add(key);
-                pairs.push({ from: originName, to: destName });
+                pairs.push({ from: DEPARTURE_CITY, to: destName });
               }
             }
           });
         });
 
-        if (fromSet.size === 0 || toSet.size === 0) {
+        if (toSet.size === 0) {
           setRoutesError(true);
-          setFromOptions([]);
           setToOptions([]);
           setPopularRoutes([]);
           return;
         }
 
-        setFromOptions(Array.from(fromSet).sort());
         setToOptions(Array.from(toSet).sort());
         // Real route pairs only — never fabricated when the API has none.
         setPopularRoutes(pairs.slice(0, 6));
       } catch {
         if (cancelled) return;
         setRoutesError(true);
-        setFromOptions([]);
         setToOptions([]);
         setPopularRoutes([]);
       } finally {
@@ -169,11 +163,9 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
   /** Validates and, on success, records the search so it can be repeated later. */
   const handleSearch = () => {
-    const nextErrors: { from?: string; to?: string; date?: string } = {};
-    if (!from) nextErrors.from = t('hero.errors.fromRequired');
+    const nextErrors: { to?: string; date?: string } = {};
     if (!to) nextErrors.to = t('hero.errors.toRequired');
     if (!date) nextErrors.date = t('hero.errors.dateRequired');
-    if (from && to && from === to) nextErrors.to = t('hero.sameOriginDestination');
     if (date && date < todayIsoDate()) nextErrors.date = t('hero.pastDate');
 
     setErrors(nextErrors);
@@ -184,7 +176,6 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   };
 
   const selectRecentSearch = (entry: RecentSearch) => {
-    setFrom(entry.from);
     setTo(entry.to);
     setDate(resolveSearchDate(entry.date, todayIsoDate()));
     setErrors({});
@@ -205,12 +196,6 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const handleBook = () => {
     handleTabChange('home');
     scrollToSearch();
-  };
-
-  const swapCities = () => {
-    setFrom(to);
-    setTo(from);
-    setErrors((prev) => ({ ...prev, from: undefined, to: undefined }));
   };
 
   /** Nav "Routes" click — jump to the popular-routes section, switching tabs first if needed. */
@@ -248,24 +233,22 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
   /** Picking a popular route prefills the real search fields — it never skips the date/search step. */
   const selectRoute = (route: RoutePair) => {
-    setFrom(route.from);
     setTo(route.to);
     setErrors({});
     scrollToSearch();
   };
 
-  /** Never let the rider pick the same city on both sides of the trip. */
-  const fromOptionsFiltered = useMemo(() => fromOptions.filter((c) => c !== to), [fromOptions, to]);
-  const toOptionsFiltered = useMemo(() => toOptions.filter((c) => c !== from), [toOptions, from]);
+  /** Destination can never be the fixed departure city. */
+  const toOptionsFiltered = useMemo(() => toOptions.filter((c) => c !== DEPARTURE_CITY), [toOptions]);
 
   const fieldClass =
     'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
 
   const routesUnavailable = loadingRoutes || routesError;
-  const routeOptionPlaceholder = (destination: boolean) => {
+  const routeOptionPlaceholder = () => {
     if (loadingRoutes) return t('common.loading');
     if (routesError) return t('hero.noRoutesAvailable');
-    return destination ? t('hero.selectDestination') : t('common.from');
+    return t('hero.selectDestination');
   };
 
   const noRoutesBanner = routesError && !loadingRoutes && (
@@ -313,38 +296,21 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start">
         <div className="xl:col-span-3">
-          <div className={`bg-slate-50 hover:bg-slate-100/70 border rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3 ${errors.from ? 'border-red-300' : 'border-slate-200/90'}`}>
+          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
               <MapPin className="w-[18px] h-[18px]" />
             </div>
             <div className="min-w-0 flex-1">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.from')}</label>
-              <select
-                value={from}
-                onChange={(e) => { setFrom(e.target.value); setErrors((prev) => ({ ...prev, from: undefined })); }}
-                disabled={routesUnavailable}
-                className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
-                aria-label={t('common.from')}
-              >
-                <option value="">{routeOptionPlaceholder(false)}</option>
-                {fromOptionsFiltered.map((city) => (
-                  <option key={city} value={city}>{city}</option>
-                ))}
-              </select>
+              <span className="block text-slate-900 font-bold text-[15px] truncate">{from}</span>
             </div>
           </div>
-          {errors.from && <FieldError message={errors.from} />}
         </div>
 
-        <div className="hidden xl:flex justify-center self-center xl:col-span-1">
-          <button
-            type="button"
-            onClick={swapCities}
-            aria-label={t('common.swap')}
-            className="w-10 h-10 rounded-full bg-white border border-slate-200 text-sky-600 hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-all flex items-center justify-center shadow-sm transform hover:rotate-180"
-          >
-            <ArrowUpDown className="w-4 h-4" />
-          </button>
+        <div className="hidden xl:flex justify-center self-center xl:col-span-1" aria-hidden="true">
+          <div className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 flex items-center justify-center shadow-sm">
+            <ArrowRight className="w-4 h-4" />
+          </div>
         </div>
 
         <div className="xl:col-span-3">
@@ -361,7 +327,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
                 aria-label={t('common.to')}
               >
-                <option value="">{routeOptionPlaceholder(true)}</option>
+                <option value="">{routeOptionPlaceholder()}</option>
                 {toOptionsFiltered.map((city) => (
                   <option key={city} value={city}>{city}</option>
                 ))}
@@ -538,32 +504,17 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                     <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
                     <div className="relative">
                       <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                      <select
-                        value={from}
-                        onChange={(e) => { setFrom(e.target.value); setErrors((prev) => ({ ...prev, from: undefined })); }}
-                        disabled={routesUnavailable}
-                        className={`${fieldClass} ${errors.from ? 'border-red-300 bg-red-50' : ''}`}
-                        aria-label={t('common.from')}
-                      >
-                        <option value="">{routeOptionPlaceholder(false)}</option>
-                        {fromOptionsFiltered.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
+                      <div className={fieldClass} aria-label={t('common.from')}>{from}</div>
                     </div>
-                    {errors.from && <FieldError message={errors.from} />}
                   </div>
 
-                  <div className="relative z-10 flex justify-center -my-4">
-                    <button
-                      type="button"
-                      onClick={swapCities}
-                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center transition-transform duration-200 hover:rotate-180"
+                  <div className="relative z-10 flex justify-center -my-4" aria-hidden="true">
+                    <div
+                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center"
                       style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 6px 16px -4px rgba(242,168,28,0.5)' }}
-                      aria-label={t('common.swap')}
                     >
-                      <ArrowUpDown className="w-4 h-4" />
-                    </button>
+                      <ArrowRight className="w-4 h-4" />
+                    </div>
                   </div>
 
                   <div>
@@ -577,7 +528,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                         className={`${fieldClass} ${errors.to ? 'border-red-300 bg-red-50' : ''}`}
                         aria-label={t('hero.selectDestination')}
                       >
-                        <option value="">{routeOptionPlaceholder(true)}</option>
+                        <option value="">{routeOptionPlaceholder()}</option>
                         {toOptionsFiltered.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
