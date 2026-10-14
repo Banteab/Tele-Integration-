@@ -1,4 +1,4 @@
-import { Bus, User, ArrowLeft, Ticket, Phone, ChevronDown } from 'lucide-react';
+import { Bus, User, ArrowLeft, Ticket, Phone } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BRAND, THEME } from '../config/theme';
 import LanguageSelector from './LanguageSelector';
@@ -137,7 +137,6 @@ export default function DesktopNav({
         <div className="flex items-center gap-5 shrink-0">
           <div className="hidden sm:flex items-center gap-1.5 bg-slate-100/80 hover:bg-slate-200/80 px-3 py-2 rounded-xl border border-slate-200/70 transition-all">
             <LanguageSelector />
-            <ChevronDown className="w-3 h-3 text-slate-400" />
           </div>
 
           {isLoggedIn ? (

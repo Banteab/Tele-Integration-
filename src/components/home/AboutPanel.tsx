@@ -1,4 +1,4 @@
-import { Bus, Shield, Smartphone, Phone } from 'lucide-react';
+import { Bus, Shield, Smartphone, Phone, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BRAND, THEME } from '../../config/theme';
 import { PageContainer, ScreenCard } from '../ui/ScreenUI';
@@ -101,6 +101,16 @@ export default function AboutPanel() {
           Whether you are planning your next journey or need assistance with your booking, LiyuBus makes travel more
           convenient through technology and customer-focused service.
         </p>
+        <a
+          href="https://www.liyubus.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 font-bold text-sm"
+          style={{ color: THEME.brand }}
+        >
+          <Globe className="w-4 h-4" />
+          Visit our website: www.liyubus.com
+        </a>
         <a
           href={`tel:${BRAND.phone}`}
           className="inline-flex items-center gap-2 font-bold text-sm"

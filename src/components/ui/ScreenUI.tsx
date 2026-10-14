@@ -109,7 +109,7 @@ export function StickyFooter({ children }: StickyFooterProps) {
 }
 
 export const fieldClass =
-  'w-full rounded-2xl border border-[var(--border-strong)] bg-white/80 py-3.5 px-4 text-[15px] text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10';
+  'w-full rounded-2xl border border-[var(--border-strong)] bg-white/80 py-3.5 px-4 text-[16px] text-[var(--text-primary)] outline-none transition-all placeholder:text-[var(--text-muted)] focus:border-[var(--color-brand)] focus:ring-4 focus:ring-[var(--color-brand)]/10';
 
 export const labelClass = 'block text-[13px] font-bold text-[var(--text-secondary)] mb-1.5';
 
