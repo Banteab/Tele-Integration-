@@ -259,6 +259,7 @@ export default {
     single: 'Single',
     married: 'Married',
     formTitle: 'Passenger Details',
+    passengerCardTitle: 'Passenger {{n}}',
     seatsSelectedBadge_one: '{{count}} seat selected',
     seatsSelectedBadge_other: '{{count}} seats selected',
     changeSeats: 'Change seats',

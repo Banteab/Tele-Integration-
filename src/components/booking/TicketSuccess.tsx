@@ -77,7 +77,7 @@ export default function TicketSuccess({
     `${t('ticketSuccess.reference')}: ${reference}`,
     `${t('ticketSuccess.details.operator')}: ${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
     `${bus.from} → ${bus.to}`,
-    `${t('ticketSuccess.details.contact')}: ${passengerInfo.fullName}`,
+    `${t('ticketSuccess.details.contact')}: ${passengerInfo.passengers.map((p) => p.fullName).join(', ')}`,
     `${t('ticketSuccess.details.seats')}: ${selectedSeats.join(', ')}`,
     `${t('ticketSuccess.amountPaid')}: ETB ${total}`,
   ].join('\n');
@@ -165,7 +165,7 @@ export default function TicketSuccess({
             />
             <Row label={t('ticketSuccess.details.operator')} value={`${bus.operator}${bus.sideNumber ? ` · ${bus.sideNumber}` : ''}`} />
             <Row label={t('common.route', { defaultValue: 'Route' })} value={`${bus.from} → ${bus.to}`} />
-            <Row label={t('ticketSuccess.details.contact')} value={passengerInfo.fullName} />
+            <Row label={t('ticketSuccess.details.contact')} value={passengerInfo.passengers.map((p) => p.fullName).join(', ')} />
             <Row label={t('ticketSuccess.details.seats')} value={selectedSeats.join(', ')} />
           </div>
           <div className="pt-3 border-t border-[var(--border)]">

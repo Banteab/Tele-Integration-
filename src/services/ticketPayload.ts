@@ -37,11 +37,12 @@ export function buildTicketPayload(
   selectedSeats: string[],
   paymentRefNumber: string,
 ) {
-  const names = splitName(passengerInfo.fullName);
   const seatLayout = bus.seatLayout || [];
 
-  const ticketDetail = selectedSeats.map((seatName) => {
+  const ticketDetail = selectedSeats.map((seatName, index) => {
     const seat = seatLayout.find((s) => s.name === seatName);
+    const passenger = passengerInfo.passengers[index] ?? passengerInfo.passengers[0];
+    const names = splitName(passenger?.fullName || '');
     const detail: Record<string, unknown> = {
       firstName: names.firstName,
       middleName: names.middleName,
@@ -51,16 +52,16 @@ export function buildTicketPayload(
       grandTotal: bus.price,
     };
 
-    if (passengerInfo.email?.trim()) detail.email = passengerInfo.email.trim();
-    if (passengerInfo.dob?.trim()) {
-      const dob = new Date(passengerInfo.dob);
+    if (passenger?.email?.trim()) detail.email = passenger.email.trim();
+    if (passenger?.dob?.trim()) {
+      const dob = new Date(passenger.dob);
       if (!Number.isNaN(dob.getTime())) detail.dob = dob.toISOString();
     }
-    const gender = parseOptionalInt(passengerInfo.gender);
+    const gender = parseOptionalInt(passenger?.gender);
     if (gender !== undefined) detail.gender = gender;
-    const age = parseOptionalInt(passengerInfo.age);
+    const age = parseOptionalInt(passenger?.age);
     if (age !== undefined) detail.age = age;
-    const maritalStatus = parseOptionalInt(passengerInfo.maritalStatus);
+    const maritalStatus = parseOptionalInt(passenger?.maritalStatus);
     if (maritalStatus !== undefined) detail.maritalStatus = maritalStatus;
 
     return detail;

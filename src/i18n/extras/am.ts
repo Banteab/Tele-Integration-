@@ -259,6 +259,7 @@ export default {
     single: 'ያላገባ',
     married: 'ያገባ',
     formTitle: 'የተጓዥ ዝርዝሮች',
+    passengerCardTitle: 'ተጓዥ {{n}}',
     seatsSelectedBadge_one: '{{count}} ወንበር ተመርጧል',
     seatsSelectedBadge_other: '{{count}} ወንበሮች ተመርጠዋል',
     changeSeats: 'ወንበር ቀይር',

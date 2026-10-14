@@ -124,7 +124,7 @@ export function buildPassengerPrefill(
 
   if (!phone && !fullName) return undefined;
 
-  return { phone, fullName };
+  return { phone, passengers: [{ fullName }] };
 }
 
 function normalizeDisplayPhone(identifier: string): string {

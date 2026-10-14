@@ -1,6 +1,6 @@
 import { User, Phone, AlertCircle, ChevronDown, ChevronUp, MapPin, ShieldCheck, Bus as BusIcon } from 'lucide-react';
 import React, { useState } from 'react';
-import { Bus, PassengerInfo } from '../../types';
+import { Bus, PassengerDetail, PassengerInfo } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import {
@@ -25,6 +25,10 @@ interface Props {
 interface SeatMeta {
   row: number;
   label?: 'window' | 'aisle';
+}
+
+function emptyPassenger(): PassengerDetail {
+  return { fullName: '', gender: '', age: '', email: '', dob: '', maritalStatus: '' };
 }
 
 /** Mirrors the row/window-aisle derivation used on the seat-selection page,
@@ -103,16 +107,25 @@ export default function PassengerDetails({
 }: Props) {
   const { t, i18n } = useTranslation();
   const [phone, setPhone] = useState(initialData?.phone || '');
-  const [fullName, setFullName] = useState(initialData?.fullName || '');
-  const [email, setEmail] = useState(initialData?.email || '');
-  const [dob, setDob] = useState(initialData?.dob || '');
-  const [gender, setGender] = useState(initialData?.gender || '');
-  const [age, setAge] = useState(initialData?.age || '');
-  const [maritalStatus, setMaritalStatus] = useState(
-    initialData?.maritalStatus || '',
+  const [phoneError, setPhoneError] = useState('');
+  const [passengers, setPassengers] = useState<PassengerDetail[]>(() =>
+    selectedSeats.map((_, index) => {
+      const existing = initialData?.passengers?.[index];
+      return existing ? { ...emptyPassenger(), ...existing } : emptyPassenger();
+    }),
   );
-  const [showOptional, setShowOptional] = useState(false);
-  const [errors, setErrors] = useState<Record<string, string>>({});
+  const [passengerErrors, setPassengerErrors] = useState<Record<number, Record<string, string>>>({});
+
+  const updatePassenger = (index: number, patch: Partial<PassengerDetail>) => {
+    setPassengers((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
+  };
+
+  const clearPassengerError = (index: number, field: string) => {
+    setPassengerErrors((prev) => {
+      if (!prev[index]?.[field]) return prev;
+      return { ...prev, [index]: { ...prev[index], [field]: '' } };
+    });
+  };
 
   const genderOptions = [
     { value: '181', labelKey: 'passenger.genderOptions.male' },
@@ -126,36 +139,42 @@ export default function PassengerDetails({
   ];
 
   const validateForm = () => {
-    const newErrors: Record<string, string> = {};
     const cleanPhone = phone.replace(/[\s-]/g, '');
+    let nextPhoneError = '';
+    if (!phone.trim()) {
+      nextPhoneError = t('passenger.errors.phoneRequired');
+    } else if (!/^09\d{8}$/.test(cleanPhone)) {
+      nextPhoneError = t('passenger.errors.phoneInvalid');
+    }
+    setPhoneError(nextPhoneError);
 
-    if (!phone.trim() || !fullName.trim()) {
-      newErrors.form = t('passenger.errors.formRequired');
-    }
-    if (phone.trim() && !/^09\d{8}$/.test(cleanPhone)) {
-      newErrors.phone = t('passenger.errors.phoneInvalid');
-    }
-    if (fullName.trim() && fullName.trim().length < 2) {
-      newErrors.fullName = t('passenger.errors.fullNameInvalid');
-    }
-    if (email.trim() && !email.includes('@')) {
-      newErrors.email = t('passenger.errors.emailInvalidOptional');
-    }
-    if (!gender) {
-      newErrors.gender = t('passenger.errors.genderRequired');
-    }
-    if (!age.trim()) {
-      newErrors.age = t('passenger.errors.ageRequired');
-    } else {
-      const ageNum = Number(age);
-      if (!Number.isFinite(ageNum) || ageNum < 1 || ageNum > 120) {
-        newErrors.age = t('passenger.errors.ageRange');
+    const nextErrors: Record<number, Record<string, string>> = {};
+    passengers.forEach((p, index) => {
+      const errs: Record<string, string> = {};
+      if (!p.fullName.trim()) {
+        errs.fullName = t('passenger.errors.nameRequired');
+      } else if (p.fullName.trim().length < 2) {
+        errs.fullName = t('passenger.errors.fullNameInvalid');
       }
-    }
+      if (!p.gender) {
+        errs.gender = t('passenger.errors.genderRequired');
+      }
+      if (!p.age?.trim()) {
+        errs.age = t('passenger.errors.ageRequired');
+      } else {
+        const ageNum = Number(p.age);
+        if (!Number.isFinite(ageNum) || ageNum < 1 || ageNum > 120) {
+          errs.age = t('passenger.errors.ageRange');
+        }
+      }
+      if (p.email?.trim() && !p.email.includes('@')) {
+        errs.email = t('passenger.errors.emailInvalidOptional');
+      }
+      if (Object.keys(errs).length > 0) nextErrors[index] = errs;
+    });
+    setPassengerErrors(nextErrors);
 
-    setErrors(newErrors);
-    if (newErrors.email) setShowOptional(true);
-    return Object.keys(newErrors).length === 0;
+    return !nextPhoneError && Object.keys(nextErrors).length === 0;
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -163,16 +182,18 @@ export default function PassengerDetails({
     if (validateForm()) {
       onSubmit({
         phone: phone.replace(/[\s-]/g, ''),
-        fullName: fullName.trim(),
-        gender,
-        age: age.trim(),
-        email: email.trim() || undefined,
-        dob: dob.trim() || undefined,
-        maritalStatus: maritalStatus || undefined,
+        passengers: passengers.map((p) => ({
+          fullName: p.fullName.trim(),
+          gender: p.gender,
+          age: p.age?.trim(),
+          email: p.email?.trim() || undefined,
+          dob: p.dob?.trim() || undefined,
+          maritalStatus: p.maritalStatus || undefined,
+        })),
       });
       return;
     }
-    toast.error(errors.form || errors.phone || errors.fullName || errors.gender || errors.age || errors.email || t('passenger.errors.fixForm'));
+    toast.error(t('passenger.errors.fixForm'));
   };
 
   const locale = i18n.language === 'am' ? 'am-ET' : 'en-ET';
@@ -272,7 +293,7 @@ export default function PassengerDetails({
             </p>
           </ScreenCard>
 
-          <ScreenCard className="space-y-5 lg:p-8">
+          <ScreenCard className="space-y-4 lg:p-8">
             <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] flex-wrap gap-2">
               <div className="flex items-center gap-3">
                 <span
@@ -282,204 +303,237 @@ export default function PassengerDetails({
                   1
                 </span>
                 <div>
-                  <h2 className="text-base font-bold text-[var(--text-primary)] leading-none">{t('passenger.formTitle')}</h2>
+                  <h2 className="text-base font-bold text-[var(--text-primary)] leading-none">{t('passenger.contactInfo')}</h2>
                   <p className="text-xs text-[var(--text-muted)] mt-1">{t('passenger.seatsSelectedBadge', { count: selectedSeats.length })}</p>
                 </div>
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label className={labelClass} htmlFor="phone-number" style={{ marginBottom: 0 }}>
-                    {t('passenger.phoneLabel')}
-                  </label>
-                  {telebirrVerified && (
-                    <span className="text-[10px] font-bold text-emerald-600">{t('passenger.telebirrVerifiedTag')}</span>
-                  )}
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                  <input
-                    id="phone-number"
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => {
-                      setPhone(e.target.value);
-                      setErrors((prev) => ({ ...prev, phone: '', form: '' }));
-                    }}
-                    className={`${fieldClass} pl-10 ${errors.phone ? 'border-red-300 bg-red-50' : ''}`}
-                    placeholder={t('passenger.phonePlaceholder')}
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-[var(--text-muted)]">{t('passenger.phoneHint')}</p>
-                {errors.phone && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {errors.phone}
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <label className={labelClass} htmlFor="full-name">{t('passenger.fullNameLabel')}</label>
-                <div className="relative">
-                  <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
-                  <input
-                    id="full-name"
-                    type="text"
-                    value={fullName}
-                    onChange={(e) => {
-                      setFullName(e.target.value);
-                      setErrors((prev) => ({ ...prev, fullName: '', form: '' }));
-                    }}
-                    className={`${fieldClass} pl-10 ${errors.fullName ? 'border-red-300 bg-red-50' : ''}`}
-                    placeholder={t('passenger.fullNamePlaceholder')}
-                  />
-                </div>
-                <p className="mt-1 text-[11px] text-[var(--text-muted)]">{t('passenger.fullNameHint')}</p>
-                {errors.fullName && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {errors.fullName}
-                  </p>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <div>
-                <label className={labelClass}>
-                  {t('passenger.gender')} <span className="text-rose-500">*</span>
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={labelClass} htmlFor="phone-number" style={{ marginBottom: 0 }}>
+                  {t('passenger.phoneLabel')}
                 </label>
-                <div className="grid grid-cols-2 gap-3" role="radiogroup">
-                  {genderOptions.map((opt) => {
-                    const selected = gender === opt.value;
-                    return (
-                      <label
-                        key={opt.value}
-                        className="relative flex items-center justify-center p-2.5 rounded-xl cursor-pointer text-xs font-bold border transition-colors"
-                        style={
-                          selected
-                            ? { borderColor: THEME.brand, backgroundColor: THEME.brandSoft, color: THEME.brandDeep }
-                            : { borderColor: 'var(--border-strong)', backgroundColor: 'white', color: 'var(--text-secondary)' }
-                        }
-                      >
-                        <input
-                          type="radio"
-                          name="gender"
-                          className="sr-only"
-                          checked={selected}
-                          onChange={() => {
-                            setGender(opt.value);
-                            setErrors((prev) => ({ ...prev, gender: '' }));
-                          }}
-                        />
-                        <span>{t(opt.labelKey)}</span>
-                      </label>
-                    );
-                  })}
-                </div>
-                {errors.gender && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {errors.gender}
-                  </p>
+                {telebirrVerified && (
+                  <span className="text-[10px] font-bold text-emerald-600">{t('passenger.telebirrVerifiedTag')}</span>
                 )}
               </div>
-
-              <div>
-                <label className={labelClass} htmlFor="passenger-age">
-                  {t('passenger.age')} <span className="text-rose-500">*</span>
-                </label>
+              <div className="relative">
+                <Phone className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
                 <input
-                  id="passenger-age"
-                  type="number"
-                  min={1}
-                  max={120}
-                  inputMode="numeric"
-                  value={age}
+                  id="phone-number"
+                  type="tel"
+                  value={phone}
                   onChange={(e) => {
-                    setAge(e.target.value);
-                    setErrors((prev) => ({ ...prev, age: '' }));
+                    setPhone(e.target.value);
+                    setPhoneError('');
                   }}
-                  className={`${fieldClass} ${errors.age ? 'border-red-300 bg-red-50' : ''}`}
-                  placeholder={t('passenger.agePlaceholder')}
+                  className={`${fieldClass} pl-10 ${phoneError ? 'border-red-300 bg-red-50' : ''}`}
+                  placeholder={t('passenger.phonePlaceholder')}
                 />
-                {errors.age && (
-                  <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                    <AlertCircle className="w-3.5 h-3.5" /> {errors.age}
-                  </p>
-                )}
               </div>
+              <p className="mt-1 text-[11px] text-[var(--text-muted)]">{t('passenger.phoneHint')}</p>
+              {phoneError && (
+                <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                  <AlertCircle className="w-3.5 h-3.5" /> {phoneError}
+                </p>
+              )}
             </div>
+          </ScreenCard>
 
-            <div className="space-y-2">
-              <div className="p-3 rounded-xl flex items-start gap-2.5 bg-[var(--surface-muted)]">
-                <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{t('seats.boardingPoint')}</p>
-                  <p className="text-xs font-bold text-[var(--text-primary)] truncate">{bus.from}</p>
-                  {departure && <p className="text-[11px] text-[var(--text-muted)]">{t('seats.departsAt', { time: departure.time })}</p>}
+          {passengers.map((passenger, index) => {
+            const seatName = selectedSeats[index];
+            const meta = seatMeta.get(seatName);
+            const errs = passengerErrors[index] || {};
+            return (
+              <ScreenCard key={seatName ?? index} className="space-y-5 lg:p-8">
+                <div className="flex items-center justify-between pb-4 border-b border-[var(--border)] flex-wrap gap-2">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div
+                      className="w-9 h-9 rounded-lg text-white font-black text-xs flex items-center justify-center shrink-0"
+                      style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brand}, ${THEME.brandHover})` }}
+                    >
+                      {seatName}
+                    </div>
+                    <div className="min-w-0">
+                      <h2 className="text-base font-bold text-[var(--text-primary)] leading-none truncate">
+                        {t('passenger.passengerCardTitle', { n: index + 1 })}
+                      </h2>
+                      {meta && (
+                        <p className="text-xs text-[var(--text-muted)] mt-1">
+                          {t('seats.rowLabel', { row: meta.row })}
+                          {meta.label ? ` · ${t(meta.label === 'window' ? 'seats.windowSeat' : 'seats.aisleSeat')}` : ''}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
-              </div>
-              <div className="p-3 rounded-xl flex items-start gap-2.5 bg-[var(--surface-muted)]">
-                <span className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0" />
-                <div className="min-w-0">
-                  <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{t('seats.dropOffPoint')}</p>
-                  <p className="text-xs font-bold text-[var(--text-primary)] truncate">{bus.to}</p>
-                  {arrival && <p className="text-[11px] text-[var(--text-muted)]">{t('seats.arrivesAt', { time: arrival.time })}</p>}
-                </div>
-              </div>
-              <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
-                <MapPin className="w-3 h-3 shrink-0" />
-                {t('seats.arriveEarly')}
-              </p>
-            </div>
 
-            <details className="group border border-[var(--border)] rounded-xl overflow-hidden">
-              <summary className="flex items-center justify-between p-3.5 cursor-pointer select-none bg-[var(--surface-muted)] font-bold text-xs text-[var(--text-secondary)]">
-                <span className="flex items-center gap-2">
-                  <ChevronDown className="w-4 h-4 group-open:hidden" style={{ color: THEME.brand }} />
-                  <ChevronUp className="w-4 h-4 hidden group-open:block" style={{ color: THEME.brand }} />
-                  {t('passenger.optionalDetails')}
-                </span>
-              </summary>
-              <div className="p-4 bg-white border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className={labelClass}>{t('passenger.email')}</label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => {
-                      setEmail(e.target.value);
-                      setErrors((prev) => ({ ...prev, email: '' }));
-                    }}
-                    className={`${fieldClass} ${errors.email ? 'border-red-300 bg-red-50' : ''}`}
-                  />
-                  {errors.email && (
+                  <label className={labelClass} htmlFor={`full-name-${index}`}>{t('passenger.fullNameLabel')}</label>
+                  <div className="relative">
+                    <User className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-muted)]" />
+                    <input
+                      id={`full-name-${index}`}
+                      type="text"
+                      value={passenger.fullName}
+                      onChange={(e) => {
+                        updatePassenger(index, { fullName: e.target.value });
+                        clearPassengerError(index, 'fullName');
+                      }}
+                      className={`${fieldClass} pl-10 ${errs.fullName ? 'border-red-300 bg-red-50' : ''}`}
+                      placeholder={t('passenger.fullNamePlaceholder')}
+                    />
+                  </div>
+                  <p className="mt-1 text-[11px] text-[var(--text-muted)]">{t('passenger.fullNameHint')}</p>
+                  {errs.fullName && (
                     <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
-                      <AlertCircle className="w-3.5 h-3.5" /> {errors.email}
+                      <AlertCircle className="w-3.5 h-3.5" /> {errs.fullName}
                     </p>
                   )}
                 </div>
-                <div>
-                  <label className={labelClass}>{t('passenger.dateOfBirth')}</label>
-                  <input
-                    type="date"
-                    value={dob}
-                    max={new Date().toISOString().slice(0, 10)}
-                    onChange={(e) => setDob(e.target.value)}
-                    className={fieldClass}
-                  />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <div>
+                    <label className={labelClass}>
+                      {t('passenger.gender')} <span className="text-rose-500">*</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3" role="radiogroup">
+                      {genderOptions.map((opt) => {
+                        const selected = passenger.gender === opt.value;
+                        return (
+                          <label
+                            key={opt.value}
+                            className="relative flex items-center justify-center p-2.5 rounded-xl cursor-pointer text-xs font-bold border transition-colors"
+                            style={
+                              selected
+                                ? { borderColor: THEME.brand, backgroundColor: THEME.brandSoft, color: THEME.brandDeep }
+                                : { borderColor: 'var(--border-strong)', backgroundColor: 'white', color: 'var(--text-secondary)' }
+                            }
+                          >
+                            <input
+                              type="radio"
+                              name={`gender-${index}`}
+                              className="sr-only"
+                              checked={selected}
+                              onChange={() => {
+                                updatePassenger(index, { gender: opt.value });
+                                clearPassengerError(index, 'gender');
+                              }}
+                            />
+                            <span>{t(opt.labelKey)}</span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    {errs.gender && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> {errs.gender}
+                      </p>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className={labelClass} htmlFor={`passenger-age-${index}`}>
+                      {t('passenger.age')} <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      id={`passenger-age-${index}`}
+                      type="number"
+                      min={1}
+                      max={120}
+                      inputMode="numeric"
+                      value={passenger.age}
+                      onChange={(e) => {
+                        updatePassenger(index, { age: e.target.value });
+                        clearPassengerError(index, 'age');
+                      }}
+                      className={`${fieldClass} ${errs.age ? 'border-red-300 bg-red-50' : ''}`}
+                      placeholder={t('passenger.agePlaceholder')}
+                    />
+                    {errs.age && (
+                      <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                        <AlertCircle className="w-3.5 h-3.5" /> {errs.age}
+                      </p>
+                    )}
+                  </div>
                 </div>
-                <div>
-                  <label className={labelClass}>{t('passenger.maritalStatus')}</label>
-                  <select value={maritalStatus} onChange={(e) => setMaritalStatus(e.target.value)} className={fieldClass}>
-                    {maritalOptions.map((opt) => (
-                      <option key={opt.value || 'unset'} value={opt.value}>{t(opt.labelKey)}</option>
-                    ))}
-                  </select>
-                </div>
+
+                <details className="group border border-[var(--border)] rounded-xl overflow-hidden">
+                  <summary className="flex items-center justify-between p-3.5 cursor-pointer select-none bg-[var(--surface-muted)] font-bold text-xs text-[var(--text-secondary)]">
+                    <span className="flex items-center gap-2">
+                      <ChevronDown className="w-4 h-4 group-open:hidden" style={{ color: THEME.brand }} />
+                      <ChevronUp className="w-4 h-4 hidden group-open:block" style={{ color: THEME.brand }} />
+                      {t('passenger.optionalDetails')}
+                    </span>
+                  </summary>
+                  <div className="p-4 bg-white border-t border-[var(--border)] grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className={labelClass}>{t('passenger.email')}</label>
+                      <input
+                        type="email"
+                        value={passenger.email}
+                        onChange={(e) => {
+                          updatePassenger(index, { email: e.target.value });
+                          clearPassengerError(index, 'email');
+                        }}
+                        className={`${fieldClass} ${errs.email ? 'border-red-300 bg-red-50' : ''}`}
+                      />
+                      {errs.email && (
+                        <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+                          <AlertCircle className="w-3.5 h-3.5" /> {errs.email}
+                        </p>
+                      )}
+                    </div>
+                    <div>
+                      <label className={labelClass}>{t('passenger.dateOfBirth')}</label>
+                      <input
+                        type="date"
+                        value={passenger.dob}
+                        max={new Date().toISOString().slice(0, 10)}
+                        onChange={(e) => updatePassenger(index, { dob: e.target.value })}
+                        className={fieldClass}
+                      />
+                    </div>
+                    <div>
+                      <label className={labelClass}>{t('passenger.maritalStatus')}</label>
+                      <select
+                        value={passenger.maritalStatus}
+                        onChange={(e) => updatePassenger(index, { maritalStatus: e.target.value })}
+                        className={fieldClass}
+                      >
+                        {maritalOptions.map((opt) => (
+                          <option key={opt.value || 'unset'} value={opt.value}>{t(opt.labelKey)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                </details>
+              </ScreenCard>
+            );
+          })}
+
+          <ScreenCard className="space-y-2">
+            <div className="p-3 rounded-xl flex items-start gap-2.5 bg-[var(--surface-muted)]">
+              <span className="w-2 h-2 rounded-full bg-emerald-500 mt-1.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{t('seats.boardingPoint')}</p>
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">{bus.from}</p>
+                {departure && <p className="text-[11px] text-[var(--text-muted)]">{t('seats.departsAt', { time: departure.time })}</p>}
               </div>
-            </details>
+            </div>
+            <div className="p-3 rounded-xl flex items-start gap-2.5 bg-[var(--surface-muted)]">
+              <span className="w-2 h-2 rounded-full bg-rose-500 mt-1.5 shrink-0" />
+              <div className="min-w-0">
+                <p className="text-[11px] font-bold uppercase tracking-wider text-[var(--text-muted)]">{t('seats.dropOffPoint')}</p>
+                <p className="text-xs font-bold text-[var(--text-primary)] truncate">{bus.to}</p>
+                {arrival && <p className="text-[11px] text-[var(--text-muted)]">{t('seats.arrivesAt', { time: arrival.time })}</p>}
+              </div>
+            </div>
+            <p className="text-[11px] text-[var(--text-muted)] flex items-center gap-1.5">
+              <MapPin className="w-3 h-3 shrink-0" />
+              {t('seats.arriveEarly')}
+            </p>
           </ScreenCard>
         </form>
 

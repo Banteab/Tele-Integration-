@@ -403,7 +403,10 @@ export default function Payment({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">{t('payment.passengerLabel')}</span>
-              <span className="font-medium">{passengerInfo.fullName}</span>
+              <span className="font-medium">
+                {passengerInfo.passengers[0]?.fullName}
+                {passengerInfo.passengers.length > 1 ? ` +${passengerInfo.passengers.length - 1}` : ''}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">{t('payment.seatsLabel')}</span>

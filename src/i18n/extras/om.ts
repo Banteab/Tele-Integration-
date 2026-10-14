@@ -259,6 +259,7 @@ export default {
     single: "Kan hin fuudhin/heerumin",
     married: "Kan fuudhee/heerumte",
     formTitle: 'Odeeffannoo Imaltuu',
+    passengerCardTitle: 'Imaltuu {{n}}',
     seatsSelectedBadge_one: 'Teessoo {{count}} filatameera',
     seatsSelectedBadge_other: 'Teessoowwan {{count}} filatamaniiru',
     changeSeats: 'Teessoo jijjiiri',

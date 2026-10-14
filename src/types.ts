@@ -52,14 +52,20 @@ export interface Passenger {
   longitude?: number;
 }
 
-export interface PassengerInfo {
-  phone: string;
+export interface PassengerDetail {
   fullName: string;
   gender?: string;
   age?: string;
   email?: string;
   dob?: string;
   maritalStatus?: string;
+}
+
+export interface PassengerInfo {
+  /** Shared contact/payer phone for the whole booking. */
+  phone: string;
+  /** One entry per selected seat, in the same order as `selectedSeats`. */
+  passengers: PassengerDetail[];
 }
 
 export interface User {
