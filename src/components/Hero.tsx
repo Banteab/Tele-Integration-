@@ -557,7 +557,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             <div className="app-gutter-x grid grid-cols-3 gap-2 pt-2 pb-2 shrink-0">
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
-              <TrustPill icon={Clock} text={t('hero.trustSupport')} />
+              <TrustPill icon={Clock} text={t('hero.trustSupport')} sub={BRAND.phone} href={`tel:${BRAND.phone}`} />
             </div>
           </div>
 
@@ -804,14 +804,24 @@ function FieldError({ message }: { message: string }) {
 }
 
 /** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
-function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
+function TrustPill({ icon: Icon, text, sub, href }: { icon: typeof ShieldCheck; text: string; sub?: string; href?: string }) {
+  const Tag = href ? 'a' : 'div';
   return (
-    <div className="glass-surface rounded-2xl px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ boxShadow: 'var(--shadow-depth-sm)' }}>
+    <Tag
+      {...(href ? { href } : {})}
+      className="glass-surface rounded-2xl px-2 py-2.5 flex flex-col items-center gap-1.5 text-center"
+      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
+    >
       <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, color: THEME.brandDeep }}>
         <Icon className="w-3.5 h-3.5" />
       </div>
       <span className="text-[10.5px] font-bold text-[var(--text-secondary)] leading-tight">{text}</span>
-    </div>
+      {sub && (
+        <span className="text-[11px] font-extrabold leading-none" style={{ color: THEME.brand }}>
+          {sub}
+        </span>
+      )}
+    </Tag>
   );
 }
 
