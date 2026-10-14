@@ -281,6 +281,18 @@ export default function SearchResults({
     }
   };
 
+  /** Short "Wed 28" form for the compact mobile date pills — no month, no comma. */
+  const formatDateCompact = (dateString: string) => {
+    try {
+      return new Date(dateString).toLocaleDateString(
+        i18n.language === 'am' ? 'am-ET' : 'en-ET',
+        { weekday: 'short', day: 'numeric' },
+      );
+    } catch {
+      return dateString;
+    }
+  };
+
   if (loading) {
     return (
       <div className="pb-6">
@@ -313,6 +325,99 @@ export default function SearchResults({
       animate={{ opacity: 1, y: 0 }}
       className="pb-6"
     >
+      {/* ============ MOBILE — compact native-app list ============ */}
+      <div className="lg:hidden -mx-[var(--gutter)]">
+        <div className="border-b border-slate-100 bg-white px-3.5 pb-3 pt-2.5">
+          <div className="truncate text-[15px] font-bold text-slate-900">
+            {searchParams.from} → {searchParams.to}
+          </div>
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+            <span
+              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+              style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+            >
+              {t('search.oneWay')}
+            </span>
+            <span>{formatDate(activeDate)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-1.5 text-xs font-semibold"
+            style={{ color: THEME.brand }}
+          >
+            ↻ {t('search.modifySearch')}
+          </button>
+        </div>
+
+        <div className="flex gap-1.5 overflow-x-auto border-b border-slate-100 bg-white px-3.5 py-2.5">
+          {dateStrip.map((d) => {
+            const selected = d === activeDate;
+            const past = d < todayIsoDate();
+            return (
+              <button
+                key={d}
+                type="button"
+                disabled={past}
+                onClick={() => setActiveDate(d)}
+                className={`shrink-0 whitespace-nowrap rounded-[10px] px-3 py-1.5 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                  selected ? 'text-white' : 'bg-slate-100 text-slate-600'
+                }`}
+                style={selected ? { backgroundColor: THEME.brand } : undefined}
+              >
+                {formatDateCompact(d)}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="px-3 py-2.5">
+          {isNetworkError ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <WifiOff className="mx-auto h-7 w-7 text-red-500" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.networkError')}</p>
+              <p className="mt-1 text-xs text-slate-500">{t('search.networkErrorHint')}</p>
+              <PrimaryButton fullWidth={false} className="mx-auto mt-3.5 px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="h-4 w-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <AlertCircle className="mx-auto h-7 w-7 text-red-500" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.searchFailed')}</p>
+              <p className="mt-1 text-xs text-slate-500">{error}</p>
+              <PrimaryButton fullWidth={false} className="mx-auto mt-3.5 px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="h-4 w-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : buses.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <CalendarSearch className="mx-auto h-7 w-7 text-slate-400" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.noBusesFound')}</p>
+              <p className="mx-auto mt-1 max-w-xs text-xs text-slate-500">{t('search.noBusesFoundHint')}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {visibleBuses.map((bus) => (
+                <Fragment key={bus.id}>
+                  <MobileBusCard bus={bus} onSelect={() => onSelectBus(bus)} />
+                </Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {buses.length > 0 && (
+          <div className="px-3.5 py-3 text-center text-[11px] text-slate-500">
+            🛡️ {t('search.trustCompact')}
+          </div>
+        )}
+      </div>
+
+      {/* ============ DESKTOP / TABLET — rich grid with filters + sort ============ */}
+      <div className="hidden lg:block">
       {/* Route context banner */}
       <div className="mb-4 rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50/80 via-white to-sky-50/50 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -542,6 +647,7 @@ export default function SearchResults({
           )}
         </section>
       </div>
+      </div>
     </motion.div>
   );
 }
@@ -669,6 +775,63 @@ function BusResultCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
             {bus.availableSeats === 0 ? t('booking.noSeats') : t('search.selectSeats')}
           </button>
         </div>
+      </div>
+    </article>
+  );
+}
+
+/** Compact, native-app-style bus card for the mobile result list — dense,
+ *  no duration label on the connector line, badge only for a non-standard
+ *  bus class, to match the approved compact mockup exactly. */
+function MobileBusCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
+  const { t } = useTranslation();
+  const showBadge = Boolean(bus.type) && !/^standard$/i.test(bus.type.trim());
+  const noSeats = bus.availableSeats === 0;
+
+  return (
+    <article className="rounded-xl bg-white px-3.5 py-3 shadow-sm">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="truncate text-sm font-bold text-slate-900">{bus.operator}</h3>
+          {showBadge && (
+            <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[10px] font-bold uppercase ${typeBadgeClasses(bus.type)}`}>
+              {bus.type}
+            </span>
+          )}
+        </div>
+        <div className="shrink-0 text-lg font-extrabold" style={{ color: THEME.brand }}>
+          {bus.price} <span className="text-sm">ETB</span>
+        </div>
+      </div>
+
+      <div className="mb-2 flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-base font-bold text-slate-900 tnum">{formatBusTime(bus.departureTime)}</div>
+          <div className="truncate text-[11px] text-slate-500">{bus.from}</div>
+        </div>
+        <div className="relative mx-2.5 h-px flex-1 bg-slate-200">
+          <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs leading-none text-slate-300">•</span>
+        </div>
+        <div className="min-w-0 text-right">
+          <div className="text-base font-bold text-slate-900 tnum">{formatBusTime(bus.arrivalTime)}</div>
+          <div className="truncate text-[11px] text-slate-500">{bus.to}</div>
+        </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-xs text-slate-500">
+          {t('search.seatsLeft', { count: bus.availableSeats })}
+          {bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''}
+        </span>
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={noSeats}
+          className="shrink-0 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: THEME.primary }}
+        >
+          {noSeats ? t('booking.noSeats') : t('search.selectSeats')}
+        </button>
       </div>
     </article>
   );

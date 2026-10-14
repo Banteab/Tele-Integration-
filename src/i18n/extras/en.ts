@@ -160,6 +160,8 @@ export default {
     sideNumber: 'Side {{number}}',
     searchFailed: 'Failed to search buses',
     oneWayTrip: 'One Way Trip',
+    oneWay: 'One Way',
+    trustCompact: 'Secure telebirr booking · Instant SMS e-ticket',
     directCashless: 'Direct telebirr Cashless Ticket',
     modifySearch: 'Modify Search',
     showingCount: 'Showing {{count}} buses',

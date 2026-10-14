@@ -160,6 +160,8 @@ export default {
     sideNumber: 'ጎን {{number}}',
     searchFailed: 'አውቶቡሶችን መፈለግ አልተሳካም',
     oneWayTrip: 'ባለ አንድ አቅጣጫ ጉዞ',
+    oneWay: 'ባለ አንድ አቅጣጫ',
+    trustCompact: 'ደህንነቱ የተጠበቀ telebirr ቦታ ማስያዣ · ፈጣን የSMS ትኬት',
     directCashless: 'ቀጥታ የ telebirr ያለ ጥሬ ገንዘብ ትኬት',
     modifySearch: 'ፍለጋ ቀይር',
     showingCount: '{{count}} አውቶቡሶች እያሳየ ነው',

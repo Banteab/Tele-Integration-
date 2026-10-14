@@ -160,6 +160,8 @@ export default {
     sideNumber: 'Gama {{number}}',
     searchFailed: 'Baasii barbaachuu hin dandeenye',
     oneWayTrip: 'Imala Karaa Tokko',
+    oneWay: 'Karaa Tokko',
+    trustCompact: "Qabannaa telebirr nageenya qabu · Tikkeettii SMS battalaa",
     directCashless: "Tikkeettii Maallaqa Harkaa Hin Barbaachifne telebirr",
     modifySearch: 'Barbaacha Jijjiiri',
     showingCount: 'Baasii {{count}} agarsiisaa jira',
