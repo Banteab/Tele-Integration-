@@ -1,11 +1,11 @@
-import { useState, useEffect, useRef, Fragment } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
 import {
   MapPin,
   Navigation,
   Calendar,
   Search,
-  ArrowUpDown,
   ArrowRight,
+  ArrowLeftRight,
   Clock,
   Loader2,
   Bus,
@@ -19,11 +19,13 @@ import {
   Wallet,
   RotateCcw,
   Headphones,
+  AlertCircle,
+  History,
 } from 'lucide-react';
 import { SearchParams } from '../types';
 import { useTranslation } from 'react-i18next';
-import { toast } from 'sonner';
 import { getAllRoutes } from '../services/api';
+import { getRecentSearches, addRecentSearch, resolveSearchDate, type RecentSearch } from '../services/recentSearches';
 import MobileHeader from './MobileHeader';
 import DesktopNav from './DesktopNav';
 import BottomNav, { type HomeTab } from './BottomNav';
@@ -49,97 +51,136 @@ function todayIsoDate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** The network currently only departs from Addis Ababa — the origin field
+ *  is fixed rather than user-selectable. */
+const DEPARTURE_CITY = 'Addis Ababa';
+
 interface Props {
   userName?: string;
   userPhone?: string;
   onSearch?: (params: SearchParams) => void;
   /** True when the persistent 3D hero scene is rendering behind this screen — drop the opaque page background so it shows through. */
   has3DBackground?: boolean;
+  /** Carries the last search (from the booking flow going back) so fields don't reset to blank. */
+  initialSearch?: SearchParams;
 }
 
-export default function Hero({ userName, userPhone, onSearch, has3DBackground = false }: Props) {
+export default function Hero({ userName, userPhone, onSearch, has3DBackground = false, initialSearch }: Props) {
   const [activeTab, setActiveTab] = useState<HomeTab>('home');
-  const [from, setFrom] = useState('Addis Ababa');
-  const [to, setTo] = useState('');
-  const [date, setDate] = useState(todayIsoDate());
+  // Departure is fixed — the network only departs from Addis Ababa.
+  const from = DEPARTURE_CITY;
+  const [to, setTo] = useState(initialSearch?.to || '');
+  const [date, setDate] = useState(() =>
+    resolveSearchDate(initialSearch?.date || todayIsoDate(), todayIsoDate()),
+  );
+  const [errors, setErrors] = useState<{ to?: string; date?: string }>({});
+  const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() => getRecentSearches());
   const { t } = useTranslation();
-  const [fromOptions, setFromOptions] = useState<string[]>([]);
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
+  const [routesError, setRoutesError] = useState(false);
+  const [routesRetryToken, setRoutesRetryToken] = useState(0);
   const searchRef = useRef<HTMLDivElement>(null);
   const routesRef = useRef<HTMLDivElement>(null);
   const howItWorksRef = useRef<HTMLDivElement>(null);
   const telebirrRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    let cancelled = false;
+
     const fetchRoutes = async () => {
       try {
         setLoadingRoutes(true);
-        const response = await getAllRoutes();
-        if (!Array.isArray(response)) return;
+        setRoutesError(false);
 
-        const fromSet = new Set<string>();
+        // The external API is the only source of truth for routes — wait up to
+        // 3 minutes for it, but never fall back to a hardcoded city list.
+        const response = await Promise.race([
+          getAllRoutes(),
+          new Promise<never>((_, reject) => {
+            setTimeout(() => reject(new Error('routesTimeout')), 3 * 60 * 1000);
+          }),
+        ]);
+        if (cancelled) return;
+
+        if (!Array.isArray(response) || response.length === 0) {
+          setRoutesError(true);
+          setToOptions([]);
+          setPopularRoutes([]);
+          return;
+        }
+
         const toSet = new Set<string>();
         const pairs: RoutePair[] = [];
         const seenPairs = new Set<string>();
 
+        // Departure is fixed to Addis Ababa — only destinations reachable
+        // from an Addis Ababa origin are offered.
         response.forEach((origin: { originCityName?: string; originTerminalName?: string; routes?: { destinationCityName?: string; destinationTerminalName?: string }[] }) => {
           const originName = (origin.originCityName || origin.originTerminalName || '').trim();
-          if (origin.originCityName) fromSet.add(origin.originCityName.trim());
-          if (origin.originTerminalName) fromSet.add(origin.originTerminalName.trim());
+          if (originName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) return;
+
           origin.routes?.forEach((route) => {
-            if (route.destinationCityName) {
-              toSet.add(route.destinationCityName.trim());
-              fromSet.add(route.destinationCityName.trim());
-            }
-            if (route.destinationTerminalName) {
-              toSet.add(route.destinationTerminalName.trim());
-              fromSet.add(route.destinationTerminalName.trim());
-            }
+            if (route.destinationCityName) toSet.add(route.destinationCityName.trim());
+            if (route.destinationTerminalName) toSet.add(route.destinationTerminalName.trim());
 
             const destName = (route.destinationCityName || route.destinationTerminalName || '').trim();
-            if (originName && destName && originName !== destName) {
-              const key = `${originName}→${destName}`;
+            if (destName && destName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) {
+              const key = `${DEPARTURE_CITY}→${destName}`;
               if (!seenPairs.has(key)) {
                 seenPairs.add(key);
-                pairs.push({ from: originName, to: destName });
+                pairs.push({ from: DEPARTURE_CITY, to: destName });
               }
             }
           });
         });
 
-        setFromOptions(Array.from(fromSet).sort());
+        if (toSet.size === 0) {
+          setRoutesError(true);
+          setToOptions([]);
+          setPopularRoutes([]);
+          return;
+        }
+
         setToOptions(Array.from(toSet).sort());
         // Real route pairs only — never fabricated when the API has none.
         setPopularRoutes(pairs.slice(0, 6));
       } catch {
-        toast.error(t('hero.routesLoadFailed'));
-        const fallback = ['Addis Ababa', 'Hawassa', 'Bahir Dar', 'Dire Dawa', 'Adama'];
-        setFromOptions(fallback);
-        setToOptions(fallback);
+        if (cancelled) return;
+        setRoutesError(true);
+        setToOptions([]);
         setPopularRoutes([]);
       } finally {
-        setLoadingRoutes(false);
+        if (!cancelled) setLoadingRoutes(false);
       }
     };
     fetchRoutes();
-  }, []);
 
+    return () => {
+      cancelled = true;
+    };
+  }, [routesRetryToken]);
+
+  /** Validates and, on success, records the search so it can be repeated later. */
   const handleSearch = () => {
-    if (!from || !to || !date) {
-      toast.error(t('hero.fillRequired'));
-      return;
-    }
-    if (from === to) {
-      toast.error(t('hero.sameOriginDestination'));
-      return;
-    }
-    if (date < todayIsoDate()) {
-      toast.error(t('hero.pastDate'));
-      return;
-    }
+    const nextErrors: { to?: string; date?: string } = {};
+    if (!to) nextErrors.to = t('hero.errors.toRequired');
+    if (!date) nextErrors.date = t('hero.errors.dateRequired');
+    if (date && date < todayIsoDate()) nextErrors.date = t('hero.pastDate');
+
+    setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setRecentSearches(addRecentSearch({ from, to, date }));
     onSearch?.({ from, to, date });
+  };
+
+  const selectRecentSearch = (entry: RecentSearch) => {
+    setTo(entry.to);
+    setDate(resolveSearchDate(entry.date, todayIsoDate()));
+    setErrors({});
+    scrollToSearch();
   };
 
   const scrollToSearch = () => {
@@ -156,11 +197,6 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   const handleBook = () => {
     handleTabChange('home');
     scrollToSearch();
-  };
-
-  const swapCities = () => {
-    setFrom(to);
-    setTo(from);
   };
 
   /** Nav "Routes" click — jump to the popular-routes section, switching tabs first if needed. */
@@ -198,13 +234,39 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
   /** Picking a popular route prefills the real search fields — it never skips the date/search step. */
   const selectRoute = (route: RoutePair) => {
-    setFrom(route.from);
     setTo(route.to);
+    setErrors({});
     scrollToSearch();
   };
 
+  /** Destination can never be the fixed departure city. */
+  const toOptionsFiltered = useMemo(() => toOptions.filter((c) => c !== DEPARTURE_CITY), [toOptions]);
+
   const fieldClass =
-    'w-full rounded-xl border border-[var(--border-strong)] bg-white py-3.5 pl-11 pr-4 text-[15px] text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
+    'w-full rounded-2xl border-2 border-[var(--border-strong)] bg-white py-[18px] pl-[52px] pr-4 text-[17px] font-bold text-[var(--text-primary)] outline-none transition-colors focus:border-[var(--color-brand)] focus:ring-2 focus:ring-[var(--blue-100)]';
+
+  const routesUnavailable = loadingRoutes || routesError;
+  const routeOptionPlaceholder = () => {
+    if (loadingRoutes) return t('common.loading');
+    if (routesError) return t('hero.noRoutesAvailable');
+    return t('hero.selectDestination');
+  };
+
+  const noRoutesBanner = routesError && !loadingRoutes && (
+    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-2.5 flex items-center justify-between gap-3 text-xs font-semibold text-amber-800">
+      <span className="flex items-center gap-2">
+        <AlertCircle className="w-4 h-4 shrink-0" />
+        {t('hero.noRoutesAvailable')}
+      </span>
+      <button
+        type="button"
+        onClick={() => setRoutesRetryToken((n) => n + 1)}
+        className="shrink-0 underline underline-offset-2 hover:text-amber-900"
+      >
+        {t('search.retry')}
+      </button>
+    </div>
+  );
 
   const steps = [
     { n: 1, icon: Search, titleKey: 'howItWorks.step1Title', descKey: 'howItWorks.step1Desc', bg: 'bg-sky-100/80 group-hover:bg-sky-600', text: 'text-sky-600' },
@@ -231,63 +293,76 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         </span>
       </div>
 
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-center">
-        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
-            <MapPin className="w-[18px] h-[18px]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.from')}</label>
-            <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.from")}>
-              <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-              {fromOptions.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+      {noRoutesBanner}
+
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-3 items-start">
+        <div className="xl:col-span-3">
+          <div className="bg-slate-50 border border-slate-200/90 rounded-2xl p-3 flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center shrink-0">
+              <MapPin className="w-[18px] h-[18px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.from')}</label>
+              <span className="block text-slate-900 font-bold text-[15px] truncate">{from}</span>
+            </div>
           </div>
         </div>
 
-        <div className="hidden xl:flex justify-center xl:col-span-1">
-          <button
-            type="button"
-            onClick={swapCities}
-            aria-label={t('common.swap')}
-            className="w-10 h-10 rounded-full bg-white border border-slate-200 text-sky-600 hover:bg-sky-600 hover:text-white hover:border-sky-600 transition-all flex items-center justify-center shadow-sm transform hover:rotate-180"
-          >
-            <ArrowUpDown className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
-            <Navigation className="w-[18px] h-[18px]" />
-          </div>
-          <div className="min-w-0 flex-1">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.to')}</label>
-            <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.to")}>
-              <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-              {toOptions.map((city) => (
-                <option key={city} value={city}>{city}</option>
-              ))}
-            </select>
+        <div className="hidden xl:flex justify-center self-center xl:col-span-1" aria-hidden="true">
+          <div className="w-10 h-10 rounded-full bg-white border border-slate-200 text-slate-400 flex items-center justify-center shadow-sm">
+            <ArrowRight className="w-4 h-4" />
           </div>
         </div>
 
-        <div className="xl:col-span-3 bg-slate-50 hover:bg-slate-100/70 border border-slate-200/90 rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0">
-            <Calendar className="w-[18px] h-[18px]" />
+        <div className="xl:col-span-3">
+          <div className={`bg-slate-50 hover:bg-slate-100/70 border rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3 ${errors.to ? 'border-red-300' : 'border-slate-200/90'}`}>
+            <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center shrink-0">
+              <Navigation className="w-[18px] h-[18px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.to')}</label>
+              <select
+                value={to}
+                onChange={(e) => { setTo(e.target.value); setErrors((prev) => ({ ...prev, to: undefined })); }}
+                disabled={routesUnavailable}
+                className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
+                aria-label={t('common.to')}
+              >
+                <option value="">{routeOptionPlaceholder()}</option>
+                {toOptionsFiltered.map((city) => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+            </div>
           </div>
-          <div className="min-w-0 flex-1">
-            <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.date')}</label>
-            <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none" aria-label={t("common.date")} />
-          </div>
+          {errors.to && <FieldError message={errors.to} />}
         </div>
 
-        <div className="xl:col-span-2">
+        <div className="xl:col-span-3">
+          <div className={`bg-slate-50 hover:bg-slate-100/70 border rounded-2xl p-3 transition-all focus-within:ring-2 focus-within:ring-sky-500 flex items-center gap-3 ${errors.date ? 'border-red-300' : 'border-slate-200/90'}`}>
+            <div className="w-10 h-10 rounded-xl bg-slate-200/70 text-slate-700 flex items-center justify-center shrink-0">
+              <Calendar className="w-[18px] h-[18px]" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.date')}</label>
+              <input
+                type="date"
+                value={date}
+                min={todayIsoDate()}
+                onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
+                className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
+                aria-label={t('common.date')}
+              />
+            </div>
+          </div>
+          {errors.date && <FieldError message={errors.date} />}
+        </div>
+
+        <div className="xl:col-span-2 self-center">
           <button
             type="button"
             onClick={handleSearch}
-            disabled={loadingRoutes}
+            disabled={routesUnavailable}
             className="w-full min-h-[56px] bg-amber-500 hover:bg-amber-600 disabled:opacity-60 text-slate-950 font-black rounded-2xl transition-all duration-200 flex items-center justify-center gap-2 text-base"
             style={{ boxShadow: '0 8px 20px -4px rgba(245,158,11,0.45)' }}
           >
@@ -296,6 +371,24 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
           </button>
         </div>
       </div>
+
+      {recentSearches.length > 0 && (
+        <div className="mt-4 pt-3.5 border-t border-slate-100 flex items-center gap-2 overflow-x-auto">
+          <span className="shrink-0 flex items-center gap-1 text-[11px] font-bold text-slate-400 uppercase tracking-wide">
+            <History className="w-3.5 h-3.5" /> {t('hero.recentSearches')}
+          </span>
+          {recentSearches.map((entry) => (
+            <button
+              key={`${entry.from}-${entry.to}`}
+              type="button"
+              onClick={() => selectRecentSearch(entry)}
+              className="shrink-0 whitespace-nowrap px-3 py-1.5 rounded-full bg-slate-50 hover:bg-sky-50 border border-slate-200 hover:border-sky-200 text-xs font-semibold text-slate-700 hover:text-sky-700 transition-colors"
+            >
+              {entry.from} <ArrowRight className="inline w-3 h-3 mx-0.5 -mt-0.5 text-slate-400" /> {entry.to}
+            </button>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 pt-3.5 border-t border-slate-100 flex flex-wrap items-center justify-between text-xs text-slate-500 gap-2 font-medium px-1">
         <div className="flex flex-wrap items-center gap-3 sm:gap-4">
@@ -350,132 +443,133 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
 
       {activeTab === 'home' && (
         <>
-          {/* ============ MOBILE / TABLET — one fixed app screen, no scroll ============ */}
-          <div className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-hidden">
-            {/* Illustrated hero band — the same teal/amber scene as desktop, scaled for mobile.
-                flex-1 so it absorbs whatever space is left after the card/trust row below,
-                instead of a fixed height that could force the screen to scroll. */}
-            <section className="relative overflow-hidden flex-1 min-h-0">
-              <div
-                className="absolute inset-0"
-                style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
-              />
-              <div
-                className="absolute pointer-events-none"
-                style={{ top: '6%', right: '10%', width: 140, height: 140, borderRadius: '50%', background: 'radial-gradient(circle, rgba(255,210,135,0.85), rgba(255,210,135,0) 70%)', filter: 'blur(3px)' }}
-              />
-              <div className="absolute pointer-events-none" style={{ top: '10%', left: '8%', width: 90, height: 30, borderRadius: 999, background: 'rgba(255,255,255,0.8)', filter: 'blur(1.5px)' }} />
-              <div
-                className="absolute inset-x-0 bottom-[30%] pointer-events-none"
-                style={{ height: '36%', backgroundColor: '#aecee3', clipPath: 'polygon(0% 100%, 0% 58%, 12% 30%, 24% 50%, 38% 16%, 52% 46%, 68% 20%, 82% 48%, 100% 28%, 100% 100%)' }}
-              />
-              <div
-                className="absolute inset-x-0 bottom-[25%] pointer-events-none"
-                style={{ height: '30%', backgroundColor: '#86b4d8', clipPath: 'polygon(0% 100%, 0% 64%, 15% 32%, 30% 56%, 48% 18%, 64% 52%, 80% 26%, 100% 50%, 100% 100%)' }}
-              />
-              <div className="absolute inset-x-0 bottom-0" style={{ height: '25%', backgroundColor: '#263650' }}>
-                <div
-                  className="absolute left-0 right-0 top-1/2 -translate-y-1/2"
-                  style={{ height: 4, backgroundImage: `repeating-linear-gradient(90deg, ${THEME.primary} 0 22px, transparent 22px 40px)` }}
-                />
-              </div>
-              <HeroBusSilhouette scale={0.62} />
-              <div
-                className="absolute inset-0 pointer-events-none"
-                style={{
-                  backgroundImage:
-                    'linear-gradient(180deg, rgba(14,116,144,0.28) 0%, rgba(2,132,199,0.35) 40%, rgba(248,250,252,0.95) 92%, #ffffff 100%), radial-gradient(circle at 75% 25%, rgba(254,240,138,0.25) 0%, transparent 40%), linear-gradient(90deg, rgba(12,74,110,0.6) 0%, rgba(12,74,110,0.15) 50%, rgba(15,23,42,0.4) 100%)',
-                }}
-              />
-              <div className="relative h-full flex flex-col items-center justify-center text-center app-gutter-x">
-                <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-md text-sky-100 font-bold text-[9px] uppercase tracking-wider mb-2.5 border border-white/25">
-                  <span className="w-1.5 h-1.5 rounded-full bg-amber-500 animate-pulse" />
-                  <Bus className="w-3 h-3" />
-                  <span>{t('hero.eyebrow')}</span>
+          {/* ============ MOBILE / TABLET — compact, space-efficient home screen ============ */}
+          <div
+            className="lg:hidden relative flex-1 min-h-0 flex flex-col overflow-y-auto"
+            style={{ marginBottom: 'calc(76px + env(safe-area-inset-bottom, 0px))' }}
+          >
+            {/* Compact gradient strip — just the eyebrow + tagline, no illustration,
+                so the booking card (the actual job of this screen) gets the space. */}
+            <section
+              className="relative overflow-hidden shrink-0 pt-5 min-[375px]:pt-6 pb-10 min-[375px]:pb-11"
+              style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #7bbbe8 100%)' }}
+            >
+              <div className="relative flex flex-col items-center text-center app-gutter-x">
+                <span className="text-white/95 font-bold text-[10px] min-[375px]:text-[11px] uppercase tracking-wider mb-1.5">
+                  {t('hero.eyebrow')}
                 </span>
                 <h1
-                  className="font-display font-bold text-white text-[24px] min-[400px]:text-[26px] leading-tight tracking-tight"
-                  style={{ textShadow: '0 2px 16px rgba(0,0,0,0.35)' }}
+                  className="font-display font-bold text-white text-[21px] min-[375px]:text-[23px] leading-tight tracking-tight"
+                  style={{ textShadow: '0 2px 12px rgba(0,0,0,0.2)' }}
                 >
                   {userName ? t('hero.headlineNamed', { name: userName.split(' ')[0] }) : t('hero.headline')}
                 </h1>
               </div>
             </section>
 
-            <div className="relative z-10 app-gutter-x -mt-14 tilt-wrap shrink-0" ref={searchRef}>
-              <div className="tilt-card glass-surface rounded-3xl overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
-                <div className="h-1.5" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
-                <div className="p-4 space-y-4">
-                <div className="space-y-1">
+            <div className="relative z-10 app-gutter-x -mt-7 tilt-wrap shrink-0" ref={searchRef}>
+              <div className="tilt-card glass-surface rounded-[28px] overflow-hidden" style={{ boxShadow: 'var(--shadow-depth-lg)' }}>
+                <div className="h-2" style={{ backgroundImage: `linear-gradient(90deg, #f9bb3f, ${THEME.primary})` }} />
+                <div className="p-6 space-y-6">
+                {noRoutesBanner}
+                <div className="space-y-1.5">
                   <div>
-                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.from')}</label>
+                    <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.from')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                      <select value={from} onChange={(e) => setFrom(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("common.from")}>
-                        <option value="">{loadingRoutes ? t('common.loading') : t('common.from')}</option>
-                        {fromOptions.map((city) => (
-                          <option key={city} value={city}>{city}</option>
-                        ))}
-                      </select>
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6" style={{ color: THEME.brandDeep }} />
+                      <div className={fieldClass} aria-label={t('common.from')}>{from}</div>
                     </div>
                   </div>
 
-                  <div className="relative z-10 flex justify-center -my-4">
-                    <button
-                      type="button"
-                      onClick={swapCities}
-                      className="w-9 h-9 rounded-full border-4 border-white flex items-center justify-center transition-transform duration-200 hover:rotate-180"
-                      style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 6px 16px -4px rgba(242,168,28,0.5)' }}
-                      aria-label={t('common.swap')}
+                  <div className="relative z-10 flex justify-center -my-7" aria-hidden="true">
+                    <div
+                      className="w-14 h-14 rounded-full border-[5px] border-white flex items-center justify-center"
+                      style={{ backgroundImage: `linear-gradient(145deg, #f9bb3f, ${THEME.primaryHover})`, color: '#241100', boxShadow: '0 8px 20px -4px rgba(242,168,28,0.55)' }}
                     >
-                      <ArrowUpDown className="w-4 h-4" />
-                    </button>
+                      <ArrowLeftRight className="w-6 h-6" strokeWidth={2.5} />
+                    </div>
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.to')}</label>
+                    <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.to')}</label>
                     <div className="relative">
-                      <MapPin className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5" style={{ color: THEME.brandDeep }} />
-                      <select value={to} onChange={(e) => setTo(e.target.value)} disabled={loadingRoutes} className={fieldClass} aria-label={t("hero.selectDestination")}>
-                        <option value="">{loadingRoutes ? t('common.loading') : t('hero.selectDestination')}</option>
-                        {toOptions.map((city) => (
+                      <MapPin className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6" style={{ color: THEME.brandDeep }} />
+                      <select
+                        value={to}
+                        onChange={(e) => { setTo(e.target.value); setErrors((prev) => ({ ...prev, to: undefined })); }}
+                        disabled={routesUnavailable}
+                        className={`${fieldClass} ${errors.to ? 'border-red-300 bg-red-50' : ''}`}
+                        aria-label={t('hero.selectDestination')}
+                      >
+                        <option value="">{routeOptionPlaceholder()}</option>
+                        {toOptionsFiltered.map((city) => (
                           <option key={city} value={city}>{city}</option>
                         ))}
                       </select>
                     </div>
+                    {errors.to && <FieldError message={errors.to} />}
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-[11px] font-semibold text-[var(--text-muted)] uppercase tracking-wide mb-1">{t('common.date')}</label>
+                  <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.date')}</label>
                   <div className="relative">
-                    <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--text-muted)]" />
-                    <input type="date" value={date} min={todayIsoDate()} onChange={(e) => setDate(e.target.value)} className={fieldClass} aria-label={t("common.date")} />
+                    <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[var(--text-muted)]" />
+                    <input
+                      type="date"
+                      value={date}
+                      min={todayIsoDate()}
+                      onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
+                      className={`${fieldClass} ${errors.date ? 'border-red-300 bg-red-50' : ''}`}
+                      aria-label={t('common.date')}
+                    />
                   </div>
+                  {errors.date && <FieldError message={errors.date} />}
                 </div>
 
-                <PrimaryButton onClick={handleSearch} disabled={loadingRoutes}>
-                  {loadingRoutes ? <Loader2 className="w-5 h-5 animate-spin" /> : <Search className="w-5 h-5" />}
+                {recentSearches.length > 0 && (
+                  <div className="flex items-center gap-1.5 overflow-x-auto -mx-1 px-1">
+                    {recentSearches.slice(0, 3).map((entry) => (
+                      <button
+                        key={`${entry.from}-${entry.to}`}
+                        type="button"
+                        onClick={() => selectRecentSearch(entry)}
+                        className="shrink-0 whitespace-nowrap flex items-center gap-1 px-2.5 py-1 rounded-full bg-[var(--surface-muted)] text-[11px] font-semibold text-[var(--text-secondary)]"
+                      >
+                        <History className="w-3 h-3 text-[var(--text-muted)]" />
+                        {entry.from} → {entry.to}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <PrimaryButton onClick={handleSearch} disabled={routesUnavailable} className="py-5 text-lg rounded-2xl gap-3">
+                  {loadingRoutes ? <Loader2 className="w-6 h-6 animate-spin" /> : <Search className="w-6 h-6" strokeWidth={2.5} />}
                   {t('hero.searchBuses')}
                 </PrimaryButton>
                 </div>
               </div>
             </div>
 
-            {/* Trust row — the only thing below the card on this fixed, non-scrolling
-                screen. Recent/popular route suggestions stay desktop-only (below); on
-                mobile the From/To fields already cover that job without needing scroll. */}
-            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-3 shrink-0" style={{ paddingBottom: 'calc(72px + env(safe-area-inset-bottom, 0px))' }}>
+            {/* Trust row — sits directly under the card with minimal gap. Recent/popular
+                route suggestions stay desktop-only; on mobile the From/To fields already
+                cover that job without needing scroll. */}
+            <div className="app-gutter-x grid grid-cols-3 gap-2 pt-2 pb-2 shrink-0">
               <TrustPill icon={ShieldCheck} text={t('hero.trustSecure')} />
               <TrustPill icon={Ticket} text={t('hero.trustTicket')} />
-              <TrustPill icon={Clock} text={t('hero.trustSupport')} />
+              <TrustPill icon={Clock} text={t('hero.trustSupport')} sub={BRAND.phone} href={`tel:${BRAND.phone}`} />
             </div>
           </div>
 
           {/* ============ DESKTOP / WEB ============ */}
           <div className="hidden lg:block font-web">
+            {/* The hero band + search card together fill exactly one viewport (minus the
+                80px sticky nav) so the card is fully visible — centered, no scroll — on
+                first load. The hero band is flex-1 so it compresses gracefully on shorter
+                screens instead of pushing the card below the fold. */}
+            <div className="relative overflow-hidden flex flex-col" style={{ height: 'calc(100dvh - 80px)' }}>
             {/* Hero band — an illustrated sky/road scene (no stock photo dependency) with the eyebrow badge + headline over it */}
-            <section className="relative overflow-hidden" style={{ height: 'clamp(540px, 58vw, 680px)' }}>
+            <section className="relative overflow-hidden flex-1 min-h-0">
               <div
                 className="absolute inset-0"
                 style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #e8f5fd 42%, #fdf1de 100%)' }}
@@ -534,9 +628,10 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             </section>
 
             {/* Search — floating card overlapping the hero photo's bottom edge */}
-            <section className="relative z-[5] px-6" style={{ marginTop: '-52px' }} ref={searchRef}>
+            <div className="relative z-[5] px-6 shrink-0" style={{ marginTop: '-52px' }} ref={searchRef}>
               <div className="page-container-web tilt-wrap">{bookingBar}</div>
-            </section>
+            </div>
+            </div>
             <div className="h-14" aria-hidden="true" />
 
             {/* How it works */}
@@ -699,15 +794,34 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   );
 }
 
-/** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
-function TrustPill({ icon: Icon, text }: { icon: typeof ShieldCheck; text: string }) {
+/** Small contextual error shown beside the relevant field, instead of a generic alert. */
+function FieldError({ message }: { message: string }) {
   return (
-    <div className="glass-surface rounded-2xl px-2 py-2.5 flex flex-col items-center gap-1.5 text-center" style={{ boxShadow: 'var(--shadow-depth-sm)' }}>
+    <p className="mt-1 text-xs text-red-600 flex items-center gap-1">
+      <AlertCircle className="w-3.5 h-3.5 shrink-0" /> {message}
+    </p>
+  );
+}
+
+/** Compact mobile trust badge — fills the space below the search card with real value props instead of empty gray. */
+function TrustPill({ icon: Icon, text, sub, href }: { icon: typeof ShieldCheck; text: string; sub?: string; href?: string }) {
+  const Tag = href ? 'a' : 'div';
+  return (
+    <Tag
+      {...(href ? { href } : {})}
+      className="glass-surface rounded-2xl px-2 py-2.5 flex flex-col items-center gap-1.5 text-center"
+      style={{ boxShadow: 'var(--shadow-depth-sm)' }}
+    >
       <div className="w-7 h-7 rounded-full flex items-center justify-center shrink-0" style={{ backgroundImage: `linear-gradient(145deg, ${THEME.brandSoft}, #dceefb)`, color: THEME.brandDeep }}>
         <Icon className="w-3.5 h-3.5" />
       </div>
       <span className="text-[10.5px] font-bold text-[var(--text-secondary)] leading-tight">{text}</span>
-    </div>
+      {sub && (
+        <span className="text-[11px] font-extrabold leading-none" style={{ color: THEME.brand }}>
+          {sub}
+        </span>
+      )}
+    </Tag>
   );
 }
 

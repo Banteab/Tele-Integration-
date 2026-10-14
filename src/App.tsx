@@ -95,15 +95,29 @@ export default function App() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
+  /** Returning from the results list to Home keeps the searched from/to/date
+   *  intact (Hero prefills from it) instead of wiping the search entirely. */
+  const backToHome = () => {
+    setStep('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const goBack = () => {
     const flow: Record<string, () => void> = {
-      search: resetBooking,
+      search: backToHome,
       seats: () => setStep('search'),
       passenger: () => setStep('seats'),
       payment: () => setStep('passenger'),
       success: resetBooking,
     };
     flow[step]?.();
+  };
+
+  /** A seat the rider picked was taken by someone else before checkout completed —
+   *  send them back to pick a different one instead of leaving them stuck on a dead payment. */
+  const handleSeatConflict = () => {
+    setSelectedSeats([]);
+    setStep('seats');
   };
 
   const handleSelectBus = (bus: Bus) => {
@@ -121,7 +135,7 @@ export default function App() {
             <SearchResults
               searchParams={searchParams!}
               onSelectBus={handleSelectBus}
-              onBack={resetBooking}
+              onBack={backToHome}
               isLoading={isSearching}
             />
           </>
@@ -176,6 +190,7 @@ export default function App() {
               }}
               onBack={() => setStep('passenger')}
               onAuthSuccess={applyAuth}
+              onSeatConflict={handleSeatConflict}
             />
           </>
         );
@@ -208,6 +223,7 @@ export default function App() {
             userPhone={displayPhone}
             onSearch={handleSearch}
             has3DBackground={false}
+            initialSearch={searchParams ?? undefined}
           />
         ) : (
           <div

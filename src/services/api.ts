@@ -53,8 +53,17 @@ export const telebirrGetCurrentUser = async () => {
   return response.data;
 };
 
+let routesCache: { data: unknown; ts: number } | null = null;
+const ROUTES_CACHE_TTL_MS = 60_000;
+
+/** Real routes change rarely within a session — caching briefly avoids
+ *  re-fetching the same list on every search and every Home-screen mount. */
 export const getAllRoutes = async () => {
+  if (routesCache && Date.now() - routesCache.ts < ROUTES_CACHE_TTL_MS) {
+    return routesCache.data;
+  }
   const response = await apiClient.get(API_ENDPOINTS.tickets.proxy.routes);
+  routesCache = { data: response.data, ts: Date.now() };
   return response.data;
 };
 
@@ -68,14 +77,25 @@ export const getSchedulesByRoute = async (
   return response.data;
 };
 
+let searchCache: { key: string; data: any; ts: number } | null = null;
+const SEARCH_CACHE_TTL_MS = 30_000;
+
 export const searchTrips = async (from: string, to: string, date: string) => {
-  const allRoutesResponse = await apiClient.get(
-    API_ENDPOINTS.tickets.proxy.routes,
-  );
+  const cacheKey = `${from.toLowerCase().trim()}|${to.toLowerCase().trim()}|${date}`;
+  if (searchCache && searchCache.key === cacheKey && Date.now() - searchCache.ts < SEARCH_CACHE_TTL_MS) {
+    return searchCache.data;
+  }
 
-  if (!Array.isArray(allRoutesResponse.data)) return [];
+  const allRoutesData = await getAllRoutes();
 
-  const allRoutes = allRoutesResponse.data.flatMap((origin: any) =>
+  if (!Array.isArray(allRoutesData)) return [];
+
+  const cacheAndReturn = <T,>(data: T): T => {
+    searchCache = { key: cacheKey, data, ts: Date.now() };
+    return data;
+  };
+
+  const allRoutes = allRoutesData.flatMap((origin: any) =>
     (origin.routes || []).map((route: any) => ({
       ...route,
       originCityName: (origin.originCityName || '').trim(),
@@ -110,17 +130,23 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     });
   }
 
-  if (matchedRoutes.length === 0) return [];
+  if (matchedRoutes.length === 0) return cacheAndReturn([]);
 
   const routesWithSchedules = await Promise.all(
     matchedRoutes.map((route: any) =>
       getSchedulesByRoute(route.routeId, date)
-        .then((schedules) => ({ route, schedules: schedules || [] }))
-        .catch(() => ({ route, schedules: [] })),
+        .then((schedules) => ({ route, schedules: Array.isArray(schedules) ? schedules : [] }))
+        .catch((err) => {
+          // The server answering "no schedule for this route/date" (e.g. 404) is a
+          // legitimate empty result — but no response at all is a real connectivity
+          // failure, and swallowing it here would misreport it as "no buses found".
+          if (!err?.response) throw err;
+          return { route, schedules: [] };
+        }),
     ),
   );
 
-  return routesWithSchedules.flatMap(({ route, schedules }: any) =>
+  const results = routesWithSchedules.flatMap(({ route, schedules }: any) =>
     schedules.map((schedule: any) => ({
       id: schedule.id,
       operator: schedule.vehicleOperator || 'Unknown',
@@ -139,6 +165,8 @@ export const searchTrips = async (from: string, to: string, date: string) => {
       routeId: schedule.route,
     })),
   );
+
+  return cacheAndReturn(results);
 };
 
 export const getVehicleLayout = async (
