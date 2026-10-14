@@ -164,6 +164,10 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
   const total = bus.price * selectedSeats.length;
   const departure = formatDateTime(bus.departureTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
   const arrival = formatDateTime(bus.arrivalTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
+  const totalBookableSeats = rows.reduce(
+    (sum, { items }) => sum + items.filter((item) => item.kind === 'seat').length,
+    0,
+  );
 
   const legend = (
     <div className="flex flex-wrap items-center justify-center gap-4 mt-5 pt-4 border-t border-[var(--border)] text-xs font-semibold text-[var(--text-secondary)]">
@@ -233,6 +237,129 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   return (
     <div className="pb-28 lg:pb-10">
+      {/* ============ MOBILE — compact native-app seat map ============ */}
+      <div className="lg:hidden">
+        <ScreenCard className="mb-2.5 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-[15px] font-bold text-[var(--text-primary)] truncate">{bus.from} → {bus.to}</h1>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+              {t('seats.confirmedSchedule')}
+            </span>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+            {bus.operator}{bus.sideNumber ? ` · Side ${bus.sideNumber}` : ''} · {bus.type}
+            {departure && (
+              <>
+                <br />
+                {departure.date} · {t('seats.departsAt', { time: departure.time })}
+              </>
+            )}
+          </p>
+          <span
+            className="inline-block rounded-full px-2.5 py-1 text-xs font-bold"
+            style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+          >
+            {t('seats.pricePerSeatMeta', { price: bus.price })}
+          </span>
+        </ScreenCard>
+
+        <div className="flex items-center justify-between px-0.5 mb-0.5">
+          <h2 className="text-[15px] font-bold text-[var(--text-primary)]">{t('seats.selectSeatTitle')}</h2>
+          <span
+            className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+          >
+            {bus.type}
+          </span>
+        </div>
+        <p className="text-xs text-[var(--text-muted)] mb-2.5 px-0.5">
+          {bus.operator} · {t('seats.maxSeatsNote', { count: 4 })} · {t('seats.totalSeatsNote', { count: totalBookableSeats })}
+        </p>
+
+        <ScreenCard className="p-3">
+          <div className="text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-2.5">
+            🪟 {t('seats.frontWindshield')}
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl bg-[var(--surface-muted)] px-3 py-2 mb-3">
+            <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide text-[var(--text-primary)]">
+              <span className="w-[26px] h-[26px] rounded-[7px] bg-slate-900 text-white flex items-center justify-center text-sm shrink-0">🚗</span>
+              {t('seats.driver')}
+            </div>
+            <span className="shrink-0 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-semibold px-2.5 py-1">
+              {t('seats.entryDoor')} 🚪
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            {rows.map(({ rowNumber, items }) => {
+              const cells = items.filter((item) => item.kind !== 'driver');
+              return (
+                <div key={rowNumber} className="flex items-center justify-center gap-1">
+                  {cells.map((item) => {
+                    if (item.kind === 'gap') {
+                      return (
+                        <span key={item.key} className="w-4 shrink-0 text-center text-[9px] font-semibold text-slate-400">
+                          {t('seats.rowShort', { row: rowNumber })}
+                        </span>
+                      );
+                    }
+                    const { seat } = item;
+                    const selected = selectedSeats.includes(seat.name);
+                    const sold = isUnavailableSeat(seat.type) && !selected;
+                    return (
+                      <button
+                        key={seat.id}
+                        type="button"
+                        onClick={() => toggleSeat(seat.name)}
+                        disabled={sold}
+                        aria-pressed={selected}
+                        aria-label={t(selected ? 'seats.ariaSelectedSeat' : 'seats.ariaAvailableSeat', { name: seat.name, price: bus.price })}
+                        className={`flex h-10 w-[34px] shrink-0 flex-col items-center justify-center rounded-t-[7px] rounded-b-[3px] text-[11px] font-bold transition disabled:cursor-not-allowed ${
+                          selected
+                            ? 'bg-amber-500 text-white ring-2 ring-amber-300'
+                            : sold
+                              ? 'bg-slate-200 text-slate-400'
+                              : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        <span className="text-[13px] leading-none">💺</span>
+                        <span className="mt-0.5 leading-none">{seat.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-dashed border-[var(--border)] text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+            {t('seats.rearBaggage')}
+          </div>
+        </ScreenCard>
+
+        <ScreenCard className="mt-2.5 flex items-center justify-around py-2.5">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-blue-100 shrink-0" />
+            {t('booking.legend.available')}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-amber-500 shrink-0" />
+            {t('booking.legend.selected')}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-slate-200 shrink-0" />
+            {t('seats.sold')}
+          </span>
+        </ScreenCard>
+
+        <p className="text-center text-xs text-[var(--text-muted)] px-4 py-3.5 leading-relaxed">
+          {t('seats.tapHint', { count: 4 })}
+        </p>
+      </div>
+
+      {/* ============ DESKTOP / TABLET — rich seat chrome + sidebar ============ */}
+      <div className="hidden lg:block">
       <ScreenCard className="mb-4 lg:p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0">
@@ -372,6 +499,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
             </div>
           </ScreenCard>
         </div>
+      </div>
       </div>
 
       {selectedSeats.length > 0 && (
