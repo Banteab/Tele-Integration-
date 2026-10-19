@@ -18,6 +18,7 @@ import { searchTrips } from '../../services/api';
 import { toast } from 'sonner';
 import { PrimaryButton, Skeleton } from '../ui/ScreenUI';
 import { THEME, BRAND } from '../../config/theme';
+import { formatDisplayDate, type DisplayLanguage } from '../../utils/ethiopianCalendar';
 
 interface Props {
   searchParams: SearchParams;
@@ -270,12 +271,11 @@ export default function SearchResults({
 
   const dateStrip = useMemo(() => Array.from({ length: 7 }, (_, i) => shiftDate(activeDate, i - 3)), [activeDate]);
 
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
+
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString(
-        i18n.language === 'am' ? 'am-ET' : 'en-ET',
-        { weekday: 'short', month: 'short', day: 'numeric' },
-      );
+      return formatDisplayDate(new Date(dateString), displayLang, { weekday: 'short', month: 'short', day: 'numeric' });
     } catch {
       return dateString;
     }
@@ -284,10 +284,7 @@ export default function SearchResults({
   /** Short "Wed 28" form for the compact mobile date pills — no month, no comma. */
   const formatDateCompact = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString(
-        i18n.language === 'am' ? 'am-ET' : 'en-ET',
-        { weekday: 'short', day: 'numeric' },
-      );
+      return formatDisplayDate(new Date(dateString), displayLang, { weekday: 'short', day: 'numeric' });
     } catch {
       return dateString;
     }

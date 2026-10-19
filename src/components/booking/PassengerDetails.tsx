@@ -11,6 +11,7 @@ import {
   labelClass,
 } from '../ui/ScreenUI';
 import { THEME, BRAND } from '../../config/theme';
+import { formatDisplayDate, type DisplayLanguage } from '../../utils/ethiopianCalendar';
 import { isSelectableSeat, isUnavailableSeat, type SeatData } from '../../hooks/useSeatLayout';
 
 interface Props {
@@ -74,12 +75,12 @@ function buildSeatMetaMap(seatLayout: SeatData[] | undefined): Map<string, SeatM
   return map;
 }
 
-function formatDateTime(value: string | undefined, locale: string): { date: string; time: string } | null {
+function formatDateTime(value: string | undefined, lang: DisplayLanguage): { date: string; time: string } | null {
   if (!value) return null;
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return {
-    date: d.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' }),
+    date: formatDisplayDate(d, lang, { weekday: 'short', month: 'short', day: 'numeric' }),
     time: d.toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }),
   };
 }
@@ -196,11 +197,11 @@ export default function PassengerDetails({
     toast.error(t('passenger.errors.fixForm'));
   };
 
-  const locale = i18n.language === 'am' ? 'am-ET' : 'en-ET';
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
   const seatMeta = buildSeatMetaMap(bus.seatLayout);
   const total = bus.price * selectedSeats.length;
-  const departure = formatDateTime(bus.departureTime, locale);
-  const arrival = formatDateTime(bus.arrivalTime, locale);
+  const departure = formatDateTime(bus.departureTime, displayLang);
+  const arrival = formatDateTime(bus.arrivalTime, displayLang);
   const duration = formatDuration(bus.departureTime, bus.arrivalTime);
 
   const seatSummary = (

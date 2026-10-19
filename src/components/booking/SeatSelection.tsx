@@ -16,6 +16,7 @@ import {
   StickyFooter,
 } from '../ui/ScreenUI';
 import { THEME } from '../../config/theme';
+import { formatDisplayDate, type DisplayLanguage } from '../../utils/ethiopianCalendar';
 
 interface Props {
   bus: Bus;
@@ -67,11 +68,11 @@ function buildRowItems(rowSeats: SeatData[]): RowItem[] {
   return items;
 }
 
-function formatDateTime(value: string, locale: string): { date: string; time: string } | null {
+function formatDateTime(value: string, lang: DisplayLanguage): { date: string; time: string } | null {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return {
-    date: d.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' }),
+    date: formatDisplayDate(d, lang, { weekday: 'short', month: 'short', day: 'numeric' }),
     time: d.toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }),
   };
 }
@@ -162,8 +163,9 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
   });
 
   const total = bus.price * selectedSeats.length;
-  const departure = formatDateTime(bus.departureTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
-  const arrival = formatDateTime(bus.arrivalTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
+  const departure = formatDateTime(bus.departureTime, displayLang);
+  const arrival = formatDateTime(bus.arrivalTime, displayLang);
   const totalBookableSeats = rows.reduce(
     (sum, { items }) => sum + items.filter((item) => item.kind === 'seat').length,
     0,

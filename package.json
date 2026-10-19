@@ -19,6 +19,7 @@
     "axios": "^1.20.0",
     "i18next": "^25.8.18",
     "i18next-browser-languagedetector": "^8.2.1",
+    "kenat": "^4.0.0",
     "lucide-react": "^0.546.0",
     "motion": "^12.23.24",
     "qrcode": "^1.5.4",

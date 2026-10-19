@@ -6,6 +6,7 @@ import { getTicketHistory } from '../services/api';
 import { API_CONFIG } from '../config/api';
 import { EmptyState, PageContainer, ScreenCard, Skeleton, StatusBadge } from './ui/ScreenUI';
 import { THEME, type StatusKind } from '../config/theme';
+import { formatDisplayDateNumeric, type DisplayLanguage } from '../utils/ethiopianCalendar';
 
 interface Ticket {
   id: string;
@@ -28,7 +29,8 @@ interface Props {
 }
 
 export default function TicketHistory({ embedded = false, onBack }: Props) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +102,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
       `${t('common.ref')}: ${ticket.refNumber}`,
       `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
       ticket.route,
-      `${t('common.date')}: ${new Date(ticket.departureDate).toLocaleDateString()}`,
+      `${t('common.date')}: ${formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}`,
       `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
       `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
       `${t('common.amount')}: ETB ${ticket.totalAmount}`,
@@ -195,7 +197,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <div>
                   <p className="text-[var(--text-muted)]">{t('common.date')}</p>
                   <p className="font-semibold text-[var(--text-primary)]">
-                    {new Date(ticket.departureDate).toLocaleDateString()}
+                    {formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}
                   </p>
                 </div>
                 <div>
@@ -290,7 +292,7 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                 <div>
                   <p className="text-[var(--text-muted)] text-xs">{t('common.date')}</p>
                   <p className="font-semibold">
-                    {new Date(selectedTicket.departureDate).toLocaleDateString()}
+                    {formatDisplayDateNumeric(new Date(selectedTicket.departureDate), displayLang)}
                   </p>
                 </div>
                 <div>
