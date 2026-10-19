@@ -184,6 +184,7 @@ export default {
     busCount: 'Baasii {{count}}',
     seatsLeft: 'Teessoo {{count}} hafe',
     sideNumber: 'Gama {{number}}',
+    scheduleTimeNotice: 'Yeroonni ilaalamaa jiru',
     searchFailed: 'Baasii barbaachuu hin dandeenye',
     oneWayTrip: 'Imala Karaa Tokko',
     oneWay: 'Karaa Tokko',

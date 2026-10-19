@@ -147,7 +147,6 @@ export default function Payment({
           setIsWaitingForPayment(false);
           const message = t('payment.paymentFailed') || 'Payment cancelled or failed';
           setPaymentError(message);
-          toast.error(message);
           return;
         }
 
@@ -167,7 +166,6 @@ export default function Payment({
       setIsWaitingForPayment(false);
       const message = t('payment.paymentTimeout') || 'Payment confirmation timed out';
       setPaymentError(message);
-      toast.error(message);
     }, 45 * 60 * 1000);
 
     pollCleanup.current = () => {
@@ -294,7 +292,6 @@ export default function Payment({
         (error as Error)?.message ||
         t('payment.failed');
       setPaymentError(message);
-      toast.error(message);
       setIsWaitingForPayment(false);
     } finally {
       setIsProcessing(false);

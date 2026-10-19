@@ -736,7 +736,11 @@ function BusResultCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
               <span className="block text-xs font-bold text-slate-700 mt-0.5 truncate">{bus.from}</span>
             </div>
             <div className="flex flex-1 flex-col items-center px-4">
-              {duration && <span className="text-[11px] font-semibold text-slate-400 mb-1 whitespace-nowrap">{duration}</span>}
+              {duration ? (
+                <span className="text-[11px] font-semibold text-slate-400 mb-1 whitespace-nowrap">{duration}</span>
+              ) : (
+                <span className="text-[11px] font-semibold text-amber-600 mb-1 whitespace-nowrap">{t('search.scheduleTimeNotice')}</span>
+              )}
               <div className="relative flex w-full items-center justify-center">
                 <div className="h-0.5 w-full bg-slate-200" />
                 <div className="absolute flex h-6 w-6 items-center justify-center rounded-full border-2 border-slate-300 bg-white">
@@ -784,6 +788,7 @@ function MobileBusCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
   const { t } = useTranslation();
   const showBadge = Boolean(bus.type) && !/^standard$/i.test(bus.type.trim());
   const noSeats = bus.availableSeats === 0;
+  const duration = formatDuration(bus.departureTime, bus.arrivalTime);
 
   return (
     <article className="rounded-xl bg-white px-3.5 py-3 shadow-sm">
@@ -814,6 +819,10 @@ function MobileBusCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
           <div className="truncate text-[11px] text-slate-500">{bus.to}</div>
         </div>
       </div>
+
+      {!duration && (
+        <p className="mb-2 text-[11px] font-semibold text-amber-600">{t('search.scheduleTimeNotice')}</p>
+      )}
 
       <div className="flex items-center justify-between gap-2">
         <span className="min-w-0 truncate text-xs text-slate-500">

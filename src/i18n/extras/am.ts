@@ -184,6 +184,7 @@ export default {
     busCount: '{{count}} አውቶቡሶች',
     seatsLeft: '{{count}} ወንበሮች ቀርተዋል',
     sideNumber: 'ጎን {{number}}',
+    scheduleTimeNotice: 'ሰዓታት በግምገማ ላይ',
     searchFailed: 'አውቶቡሶችን መፈለግ አልተሳካም',
     oneWayTrip: 'ባለ አንድ አቅጣጫ ጉዞ',
     oneWay: 'ባለ አንድ አቅጣጫ',

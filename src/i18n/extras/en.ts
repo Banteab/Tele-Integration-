@@ -184,6 +184,7 @@ export default {
     busCount: '{{count}} buses',
     seatsLeft: '{{count}} seats left',
     sideNumber: 'Side {{number}}',
+    scheduleTimeNotice: 'Times under review',
     searchFailed: 'Failed to search buses',
     oneWayTrip: 'One Way Trip',
     oneWay: 'One Way',
