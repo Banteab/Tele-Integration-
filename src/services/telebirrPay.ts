@@ -1,5 +1,5 @@
 /**
- * Telebirr H5 bridge — payment_flow.txt only
+ * telebirr H5 bridge — payment_flow.txt only
  * Step 2 (H5 Get Access Token): js_fun_h5GetAccessToken via consumerapp.evaluate
  * Step 4.2 (Start Pay): js_fun_start_pay via consumerapp.evaluate
  */
@@ -53,13 +53,13 @@ function evaluateConsumerApp(
 ): Promise<unknown> {
   return new Promise((resolve, reject) => {
     if (!window.consumerapp?.evaluate) {
-      reject(new Error('Telebirr consumerapp bridge not available'));
+      reject(new Error('telebirr consumerapp bridge not available'));
       return;
     }
 
     const timer = setTimeout(() => {
       cleanup();
-      reject(new Error('Telebirr callback timed out'));
+      reject(new Error('telebirr callback timed out'));
     }, timeoutMs);
 
     const cleanup = () => {
@@ -148,7 +148,7 @@ export function startTelebirrPay(rawRequest: string): Promise<void> {
   if (!window.consumerapp?.evaluate) {
     return Promise.reject(
       new Error(
-        'Open Menahariya inside the Telebirr Super App (H5) to complete payment.',
+        'Open Menahariya inside the telebirr Super App (H5) to complete payment.',
       ),
     );
   }
@@ -160,7 +160,7 @@ export function startTelebirrPay(rawRequest: string): Promise<void> {
   ).then(() => undefined);
 }
 
-/** Return the raw Telebirr/backend error message for debugging. */
+/** Return the raw telebirr/backend error message for debugging. */
 export function extractTelebirrAuthError(err: unknown): string {
   const data = (err as { response?: { data?: { message?: string; msg?: string } } })
     ?.response?.data;
@@ -177,5 +177,5 @@ export function extractTelebirrAuthError(err: unknown): string {
     return err.message.trim();
   }
 
-  return 'Telebirr sign-in failed.';
+  return 'telebirr sign-in failed.';
 }

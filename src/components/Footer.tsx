@@ -126,7 +126,7 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-500">{t('footer.payment')}:</span>
               <div className="flex gap-2">
-                <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">Telebirr</div>
+                <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">telebirr</div>
                 <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">CBE Birr</div>
               </div>
             </div>

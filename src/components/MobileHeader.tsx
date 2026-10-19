@@ -174,7 +174,7 @@ export default function MobileHeader({
                 {BRAND.nameAm}
               </span>
             </div>
-            <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{BRAND.tagline}</p>
+            <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{t('common.poweredByTelebirr')}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 min-[375px]:gap-2 shrink-0">

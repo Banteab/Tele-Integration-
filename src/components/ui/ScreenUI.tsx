@@ -1,4 +1,5 @@
 import { ReactNode, CSSProperties } from 'react';
+import { useTranslation } from 'react-i18next';
 import { THEME, STATUS, type StatusKind } from '../../config/theme';
 
 interface Props {
@@ -26,6 +27,7 @@ interface TripBannerProps {
 
 /** Light-blue "you're booking this trip" context banner — supporting color, not a CTA. */
 export function TripBanner({ from, to, meta }: TripBannerProps) {
+  const { t } = useTranslation();
   return (
     <div
       className="rounded-2xl px-4 py-3 mb-4 flex items-center justify-between gap-3"
@@ -41,7 +43,7 @@ export function TripBanner({ from, to, meta }: TripBannerProps) {
         className="shrink-0 text-eyebrow px-2.5 py-1 rounded-full bg-white/80"
         style={{ color: THEME.brandDeep, boxShadow: '0 2px 6px rgba(16,39,71,0.08)' }}
       >
-        Trip
+        {t('common.trip')}
       </span>
     </div>
   );
@@ -175,13 +177,13 @@ export function TertiaryButton({
   );
 }
 
-const STATUS_LABEL_FALLBACK: Record<StatusKind, string> = {
-  pending: 'Pending',
-  processing: 'Processing',
-  success: 'Successful',
-  failed: 'Failed',
-  cancelled: 'Cancelled',
-  expired: 'Expired',
+const STATUS_LABEL_FALLBACK_KEY: Record<StatusKind, string> = {
+  pending: 'common.statusPending',
+  processing: 'common.statusProcessing',
+  success: 'common.statusSuccess',
+  failed: 'common.statusFailed',
+  cancelled: 'common.statusCancelled',
+  expired: 'common.statusExpired',
 };
 
 interface StatusBadgeProps {
@@ -192,6 +194,7 @@ interface StatusBadgeProps {
 
 /** Consistent pill used for payment/ticket/booking status everywhere. */
 export function StatusBadge({ status, label, className = '' }: StatusBadgeProps) {
+  const { t } = useTranslation();
   const tone = STATUS[status];
   return (
     <span
@@ -199,7 +202,7 @@ export function StatusBadge({ status, label, className = '' }: StatusBadgeProps)
       style={{ backgroundColor: tone.bg, color: tone.fg, boxShadow: `0 2px 8px -2px ${tone.fg}33` }}
     >
       <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: tone.fg }} />
-      {label ?? STATUS_LABEL_FALLBACK[status]}
+      {label ?? t(STATUS_LABEL_FALLBACK_KEY[status])}
     </span>
   );
 }

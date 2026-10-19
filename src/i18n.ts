@@ -135,7 +135,7 @@ const resources = {
         other: 'Other',
         confirm: 'Confirm & Pay',
         paymentMethod: 'Payment Method',
-        telebirr: 'Telebirr',
+        telebirr: 'telebirr',
         cbeBirr: 'CBE Birr',
         orderSummary: 'Order Summary',
         ticketPrice: 'Ticket Price',
@@ -180,7 +180,7 @@ const resources = {
         subtitle: 'Choose your preferred payment method and complete the booking.',
         selectMethod: 'Select Payment Method',
         methods: {
-          telebirr: 'Telebirr',
+          telebirr: 'telebirr',
           cbebirr: 'CBE Birr',
           card: 'Credit / Debit Card'
         },
@@ -641,7 +641,7 @@ const resources = {
         other: 'Kan biraa',
         confirm: 'Mirkaneessi & Kaffali',
         paymentMethod: 'Mala Kaffaltii',
-        telebirr: 'Telebirr',
+        telebirr: 'telebirr',
         cbeBirr: 'CBE Birr',
         orderSummary: 'Guduunfaa Ajajaa',
         ticketPrice: 'Gatii Tikkeettii',
@@ -686,7 +686,7 @@ const resources = {
         subtitle: 'Mala kaffaltii filattan filachuun qabannaa keessan xumuraa.',
         selectMethod: 'Mala Kaffaltii Filadhu',
         methods: {
-          telebirr: 'Telebirr',
+          telebirr: 'telebirr',
           cbebirr: 'CBE Birr',
           card: 'Kaardii Kireeditii / Deebitii'
         },

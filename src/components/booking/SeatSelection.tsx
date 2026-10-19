@@ -247,7 +247,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
             </span>
           </div>
           <p className="text-xs text-[var(--text-muted)] leading-relaxed">
-            {bus.operator}{bus.sideNumber ? ` · Side ${bus.sideNumber}` : ''} · {bus.type}
+            {bus.operator}{bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''} · {bus.type}
             {departure && (
               <>
                 <br />
@@ -370,7 +370,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
               </span>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-1">
-              {bus.operator}{bus.sideNumber ? ` · Side ${bus.sideNumber}` : ''} · {bus.type}
+              {bus.operator}{bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''} · {bus.type}
               {departure ? ` · ${departure.date} · ${t('seats.departsAt', { time: departure.time })}` : ''}
             </p>
           </div>

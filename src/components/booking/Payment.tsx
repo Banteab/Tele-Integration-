@@ -43,7 +43,7 @@ interface Props {
  * 2. POST /payment/preorder → rawRequest (backend: fabric token + preOrder + sign)
  * 3. js_fun_start_pay via consumerapp.evaluate (user PIN in Super App)
  * 4. Poll GET /tickets/status/:reference until issued or cancelled
- * 5. Telebirr notify → backend confirms ticket (notify-only; query-order fallback disabled)
+ * 5. telebirr notify → backend confirms ticket (notify-only; query-order fallback disabled)
  */
 export default function Payment({
   bus,
@@ -151,7 +151,7 @@ export default function Payment({
           return;
         }
 
-        // Query-order fallback disabled — wait for Telebirr POST /payment/notify only.
+        // Query-order fallback disabled — wait for telebirr POST /payment/notify only.
         // queryAttempts += 1;
         // if (queryAttempts % 3 === 0) {
         //   const queried = await queryPaymentOrder(reference);

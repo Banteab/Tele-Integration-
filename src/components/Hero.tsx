@@ -686,7 +686,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
               </div>
             </section>
 
-            {/* Telebirr trust CTA — real product copy; fabricated vanity stats (passenger counts,
+            {/* telebirr trust CTA — real product copy; fabricated vanity stats (passenger counts,
                 star ratings, "N partner fleets") from the mockup are deliberately omitted. */}
             <section className="py-16 bg-white border-t border-slate-100" ref={telebirrRef}>
               <div className="page-container-web px-6">

@@ -265,7 +265,7 @@ export default function PassengerDetails({
                 </span>
               </div>
               <p className="text-xs text-[var(--text-muted)] mt-1">
-                {bus.operator}{bus.sideNumber ? ` · Side ${bus.sideNumber}` : ''}
+                {bus.operator}{bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''}
                 {departure ? ` · ${departure.date} · ${t('seats.departsAt', { time: departure.time })}` : ''}
                 {duration ? ` · ${duration}` : ''}
               </p>

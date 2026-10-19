@@ -7,7 +7,7 @@ export const API_CONFIG = {
   baseUrl: normalizeBaseUrl(import.meta.env.VITE_API_BASE_URL),
   apiKey: (import.meta.env.VITE_API_KEY ?? '').trim(),
   authTokenKey: 'telebirr_auth_token',
-  /** Telebirr merchant app id (portal) — must match backend TELEBIRR_MERCHANT_APP_ID */
+  /** telebirr merchant app id (portal) — must match backend TELEBIRR_MERCHANT_APP_ID */
   telebirrMerchantAppId: (
     import.meta.env.VITE_TELEBIRR_MERCHANT_APP_ID ?? '1655506416947201'
   ).trim(),

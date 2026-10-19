@@ -20,11 +20,11 @@ export async function performTelebirrAutoLogin(options?: {
   forceToken?: boolean;
 }): Promise<AuthInitResult> {
   if (!isTelebirrH5Host()) {
-    throw new Error('Telebirr consumerapp bridge not available');
+    throw new Error('telebirr consumerapp bridge not available');
   }
 
   if (!API_CONFIG.telebirrMerchantAppId) {
-    throw new Error('Telebirr merchant app id is not configured');
+    throw new Error('telebirr merchant app id is not configured');
   }
 
   const accessToken = await getH5AccessToken(API_CONFIG.telebirrMerchantAppId, {
@@ -54,7 +54,7 @@ export async function tryTelebirrAutoLogin(options?: {
   try {
     return await performTelebirrAutoLogin(options);
   } catch (error) {
-    console.warn('Telebirr auto-login failed:', error);
+    console.warn('telebirr auto-login failed:', error);
     return { user: null };
   }
 }
@@ -85,11 +85,11 @@ async function tryTelebirrAutoLoginWithTimeout(
     return await Promise.race([
       performTelebirrAutoLogin(),
       new Promise<AuthInitResult>((_, reject) => {
-        setTimeout(() => reject(new Error('Telebirr auth init timed out')), timeoutMs);
+        setTimeout(() => reject(new Error('telebirr auth init timed out')), timeoutMs);
       }),
     ]);
   } catch (error) {
-    console.warn('Telebirr auto-login failed:', error);
+    console.warn('telebirr auto-login failed:', error);
     return { user: null };
   }
 }
