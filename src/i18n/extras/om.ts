@@ -138,7 +138,7 @@ export default {
     featureInfoTitle: 'Odeeffannoo Imalaa Amanamaa',
     companySectionTitle: 'Geejjiba Addunyaa Walitti Hidhuu, Imala Tokko Tokkoon',
     companyMissionP1:
-      "LiyuBus kaayyoo geejjiba imaltootaa furmaata imalaa argamuu danda'u, kan ifa ta'e, teeknooloojiidhaan deeggaramu jijjiiruuf hundeeffame. Waggoota torban darban keessatti imaltoota miliyoona 5 ol tajaajilleerra, akkasumas gaggeessaa (transactions) biliyoona 1 ol adeemsifnee, jijjiirama dijitaalaa damee geejjibaatiif gumaacha goone.",
+      "LiyuBus kaayyoo geejjiba imaltootaa furmaata imalaa argamuu danda'u, kan ifa ta'e, teeknooloojiidhaan deeggaramu jijjiiruuf hundeeffame. Waggoota torban darban keessatti imaltoota miliyoona 5 ol tajaajilleerra, akkasumas gaggeessaa biliyoona 1 ol adeemsifnee, jijjiirama dijitaalaa damee geejjibaatiif gumaacha goone.",
     companyMissionP2:
       "Itoophiyaa irraa ka'uun, mul'anni keenya Afrikaa, Ameerikaa Kibbaa, fi Eeshiyaa Kibba-bahaa maraaf babal'ata, Taanzaaniyaa, Ugaandaa, Ruwaandaa, Naayijeeriyaa, Gaanaa, Filippiinsii, Kaamboodiyaa, Peeruu, fi Boliiviyaa keessatti hojiiwwan geejjiba dijitaalaa deeggaruuf kakannee jirra.",
     companyMissionP3:
