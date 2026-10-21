@@ -1,10 +1,16 @@
-import { Bus, Shield, Smartphone } from 'lucide-react';
+import { Bus, Shield, Smartphone, Phone, Globe } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { BRAND, THEME } from '../../config/theme';
 import { PageContainer, ScreenCard } from '../ui/ScreenUI';
 
 export default function AboutPanel() {
   const { t } = useTranslation();
+
+  const impactStats = [
+    { value: '5M+', label: t('about.impactPassengers') },
+    { value: '1B+', label: t('about.impactTransactions') },
+    { value: '7', label: t('about.impactExperience') },
+  ];
 
   const features = [
     { icon: Bus, textKey: 'about.featureSearch' },
@@ -47,7 +53,62 @@ export default function AboutPanel() {
         </div>
       </ScreenCard>
 
-      <p className="text-center text-[11px] text-[var(--text-muted)] pt-2">{BRAND.tagline}</p>
+      <ScreenCard className="space-y-4 lg:p-8">
+        <h3 className="text-center font-display text-base lg:text-xl font-bold text-[var(--text-primary)]">
+          {t('about.companySectionTitle')}
+        </h3>
+        <div className="space-y-3 text-sm text-[var(--text-secondary)] leading-relaxed">
+          <p>{t('about.companyMissionP1')}</p>
+          <p>{t('about.companyMissionP2')}</p>
+          <p>{t('about.companyMissionP3')}</p>
+        </div>
+
+        <div className="pt-1">
+          <h4 className="text-center text-xs font-extrabold uppercase tracking-wider text-[var(--text-muted)] mb-3">
+            {t('about.ourImpact')}
+          </h4>
+          <div className="grid grid-cols-3 gap-3">
+            {impactStats.map(({ value, label }) => (
+              <div
+                key={label}
+                className="rounded-xl text-center p-3"
+                style={{ backgroundColor: THEME.brandSoft }}
+              >
+                <p className="font-display text-lg lg:text-xl font-black" style={{ color: THEME.brand }}>{value}</p>
+                <p className="text-[10.5px] lg:text-xs font-semibold text-[var(--text-secondary)] leading-tight mt-0.5">{label}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </ScreenCard>
+
+      <ScreenCard className="space-y-3 text-center lg:p-8">
+        <h3 className="font-display text-sm lg:text-base font-bold text-[var(--text-primary)]">{t('about.travelWithUsTitle')}</h3>
+        <p className="text-sm text-[var(--text-secondary)] leading-relaxed">
+          {t('about.travelWithUsBody')}
+        </p>
+        <a
+          href="https://www.liyubus.com"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 font-bold text-sm"
+          style={{ color: THEME.brand }}
+        >
+          <Globe className="w-4 h-4" />
+          {t('about.visitWebsite', { url: 'www.liyubus.com' })}
+        </a>
+        <a
+          href={`tel:${BRAND.phone}`}
+          className="inline-flex items-center gap-2 font-bold text-sm"
+          style={{ color: THEME.brand }}
+        >
+          <Phone className="w-4 h-4" />
+          {t('about.callTollFree', { phone: BRAND.phone })}
+        </a>
+        <p className="text-xs font-semibold text-[var(--text-muted)] pt-1">{t('about.closingTagline')}</p>
+      </ScreenCard>
+
+      <p className="text-center text-[11px] text-[var(--text-muted)] pt-2">{t('common.poweredByTelebirr')}</p>
     </PageContainer>
   );
 }

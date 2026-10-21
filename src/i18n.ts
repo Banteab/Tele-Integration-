@@ -6,10 +6,6 @@ import { mergeDeep } from './i18n/mergeDeep';
 import extraEn from './i18n/extras/en';
 import extraAm from './i18n/extras/am';
 import extraOm from './i18n/extras/om';
-import extraTi from './i18n/extras/ti';
-import extraSo from './i18n/extras/so';
-import ti from './i18n/ti';
-import so from './i18n/so';
 
 const resources = {
   en: {
@@ -139,7 +135,7 @@ const resources = {
         other: 'Other',
         confirm: 'Confirm & Pay',
         paymentMethod: 'Payment Method',
-        telebirr: 'Telebirr',
+        telebirr: 'telebirr',
         cbeBirr: 'CBE Birr',
         orderSummary: 'Order Summary',
         ticketPrice: 'Ticket Price',
@@ -184,7 +180,7 @@ const resources = {
         subtitle: 'Choose your preferred payment method and complete the booking.',
         selectMethod: 'Select Payment Method',
         methods: {
-          telebirr: 'Telebirr',
+          telebirr: 'telebirr',
           cbebirr: 'CBE Birr',
           card: 'Credit / Debit Card'
         },
@@ -645,7 +641,7 @@ const resources = {
         other: 'Kan biraa',
         confirm: 'Mirkaneessi & Kaffali',
         paymentMethod: 'Mala Kaffaltii',
-        telebirr: 'Telebirr',
+        telebirr: 'telebirr',
         cbeBirr: 'CBE Birr',
         orderSummary: 'Guduunfaa Ajajaa',
         ticketPrice: 'Gatii Tikkeettii',
@@ -690,7 +686,7 @@ const resources = {
         subtitle: 'Mala kaffaltii filattan filachuun qabannaa keessan xumuraa.',
         selectMethod: 'Mala Kaffaltii Filadhu',
         methods: {
-          telebirr: 'Telebirr',
+          telebirr: 'telebirr',
           cbebirr: 'CBE Birr',
           card: 'Kaardii Kireeditii / Deebitii'
         },
@@ -770,12 +766,6 @@ const resources = {
         payment: 'Malleen Kaffaltii'
       }
     }
-  },
-  ti: {
-    translation: ti
-  },
-  so: {
-    translation: so
   }
 };
 
@@ -783,8 +773,6 @@ const extrasByLang: Record<string, Record<string, unknown>> = {
   en: extraEn,
   am: extraAm,
   om: extraOm,
-  ti: extraTi,
-  so: extraSo,
 };
 
 for (const [lang, extra] of Object.entries(extrasByLang)) {
@@ -809,5 +797,16 @@ i18n
     },
     pluralSeparator: '_',
   });
+
+// Keep the document's language attribute in sync with the selected site
+// language — some browsers (notably Chromium) use it, not just the OS/browser
+// locale, to decide which language native form controls (e.g. the
+// `<input type="date">` popup calendar) render themselves in.
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = i18n.language;
+  i18n.on('languageChanged', (lng) => {
+    document.documentElement.lang = lng;
+  });
+}
 
 export default i18n;
