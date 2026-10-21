@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { toEC, toGC } from 'kenat';
 import { useTranslation } from 'react-i18next';
@@ -78,6 +79,18 @@ function buildEthiopianGrid(y: number, m: number, todayIso: string): (DayCell | 
   return cells;
 }
 
+/** Margin kept between the panel and the viewport edge. */
+const VIEWPORT_GAP = 8;
+const PANEL_WIDTH = 280;
+
+interface Position {
+  left: number;
+  width: number;
+  maxHeight: number;
+  top?: number;
+  bottom?: number;
+}
+
 /**
  * Journey-date picker whose calendar text (month names, weekday headers)
  * follows the selected site language, replacing a native
@@ -93,23 +106,64 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
   const [open, setOpen] = useState(false);
   const [viewYear, setViewYear] = useState(0);
   const [viewMonth, setViewMonth] = useState(0);
-  const rootRef = useRef<HTMLDivElement>(null);
+  const [position, setPosition] = useState<Position | null>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
 
   const parsed = parseIso(value) ?? parseIso(todayIsoDate())!;
+
+  // The panel is rendered in a portal and positioned with `fixed` coordinates
+  // computed from the trigger's own screen position, instead of `absolute`
+  // inside the page's normal layout flow. A page can't be scrolled to reveal
+  // an absolutely-positioned element that overflows past the viewport if the
+  // surrounding content isn't itself tall enough to create that scroll
+  // room — which left the calendar cut off and unreachable on short pages.
+  // Computing the position directly against the viewport sidesteps that
+  // entirely: the panel always fits on screen, flipping above the trigger
+  // and/or scrolling its own content when there isn't enough room below.
+  const updatePosition = () => {
+    const trigger = triggerRef.current;
+    if (!trigger) return;
+    const rect = trigger.getBoundingClientRect();
+    const viewportWidth = window.innerWidth;
+    const viewportHeight = window.innerHeight;
+    const width = Math.min(PANEL_WIDTH, viewportWidth - VIEWPORT_GAP * 2);
+    const left = Math.min(Math.max(rect.left, VIEWPORT_GAP), viewportWidth - width - VIEWPORT_GAP);
+
+    const spaceBelow = viewportHeight - rect.bottom - VIEWPORT_GAP;
+    const spaceAbove = rect.top - VIEWPORT_GAP;
+    const openUpward = spaceBelow < 280 && spaceAbove > spaceBelow;
+
+    setPosition({
+      left,
+      width,
+      maxHeight: Math.max(160, (openUpward ? spaceAbove : spaceBelow)),
+      ...(openUpward ? { bottom: viewportHeight - rect.top + VIEWPORT_GAP } : { top: rect.bottom + VIEWPORT_GAP }),
+    });
+  };
 
   useEffect(() => {
     if (!open) return;
     const close = (event: MouseEvent) => {
-      if (!rootRef.current?.contains(event.target as Node)) setOpen(false);
+      const target = event.target as Node;
+      if (triggerRef.current?.contains(target) || panelRef.current?.contains(target)) return;
+      setOpen(false);
     };
     const onKey = (event: KeyboardEvent) => {
       if (event.key === 'Escape') setOpen(false);
     };
+    const reposition = () => updatePosition();
     document.addEventListener('mousedown', close);
     document.addEventListener('keydown', onKey);
+    // `scroll` doesn't bubble, so any scrollable ancestor (not just the
+    // window) is only observable during the capture phase.
+    window.addEventListener('scroll', reposition, true);
+    window.addEventListener('resize', reposition);
     return () => {
       document.removeEventListener('mousedown', close);
       document.removeEventListener('keydown', onKey);
+      window.removeEventListener('scroll', reposition, true);
+      window.removeEventListener('resize', reposition);
     };
   }, [open]);
 
@@ -122,6 +176,7 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
       setViewYear(eth.year);
       setViewMonth(eth.month);
     }
+    updatePosition();
     setOpen(true);
   };
 
@@ -183,8 +238,9 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
   }, [lang, parsed.y, parsed.m, parsed.d]);
 
   return (
-    <div ref={rootRef} className="relative">
+    <>
       <button
+        ref={triggerRef}
         type="button"
         id={id}
         onClick={() => (open ? setOpen(false) : openPicker())}
@@ -195,12 +251,19 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
       >
         {triggerLabel}
       </button>
-      {open && (
+      {open && position && createPortal(
         <div
+          ref={panelRef}
           role="dialog"
           aria-label={ariaLabel}
-          className="absolute left-0 top-[calc(100%+6px)] z-50 w-[280px] rounded-xl bg-white p-3 shadow-lg"
-          style={{ border: '1px solid var(--border)' }}
+          className="fixed z-50 rounded-xl bg-white p-3 shadow-lg overflow-y-auto"
+          style={{
+            border: '1px solid var(--border)',
+            left: position.left,
+            width: position.width,
+            maxHeight: position.maxHeight,
+            ...(position.top !== undefined ? { top: position.top } : { bottom: position.bottom }),
+          }}
         >
           <div className="flex items-center justify-between mb-2">
             <button
@@ -257,8 +320,9 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
               );
             })}
           </div>
-        </div>
+        </div>,
+        document.body,
       )}
-    </div>
+    </>
   );
 }
