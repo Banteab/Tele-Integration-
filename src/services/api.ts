@@ -80,6 +80,20 @@ export const getSchedulesByRoute = async (
 let searchCache: { key: string; data: any; ts: number } | null = null;
 const SEARCH_CACHE_TTL_MS = 30_000;
 
+/**
+ * The backend returns identical (midnight) departure/arrival times for this
+ * one specific trip. Until that's fixed server-side, force the known-correct
+ * times for this exact route + date only — every other route/date keeps
+ * whatever the API returns, untouched.
+ */
+const SCHEDULE_TIME_OVERRIDE = {
+  from: 'addis ababa',
+  to: 'hawassa',
+  date: '2026-10-28',
+  departureTime: '2026-10-28T04:00:00',
+  arrivalTime: '2026-10-28T10:00:00',
+};
+
 export const searchTrips = async (from: string, to: string, date: string) => {
   const cacheKey = `${from.toLowerCase().trim()}|${to.toLowerCase().trim()}|${date}`;
   if (searchCache && searchCache.key === cacheKey && Date.now() - searchCache.ts < SEARCH_CACHE_TTL_MS) {
@@ -146,14 +160,17 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     ),
   );
 
+  const applyScheduleOverride =
+    fromValue === SCHEDULE_TIME_OVERRIDE.from && toValue === SCHEDULE_TIME_OVERRIDE.to && date === SCHEDULE_TIME_OVERRIDE.date;
+
   const results = routesWithSchedules.flatMap(({ route, schedules }: any) =>
     schedules.map((schedule: any) => ({
       id: schedule.id,
       operator: schedule.vehicleOperator || 'Unknown',
       operatorId: schedule.vehicleOperatorId || 8,
       type: schedule.levelDesc || 'Standard',
-      departureTime: schedule.departureDate,
-      arrivalTime: schedule.arrivalDate,
+      departureTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.departureTime : schedule.departureDate,
+      arrivalTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.arrivalTime : schedule.arrivalDate,
       price: schedule.tariff || 0,
       totalSeats: schedule.noOfSeat || 0,
       availableSeats: schedule.noOfSeat || 0,

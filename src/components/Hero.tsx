@@ -33,6 +33,8 @@ import AboutPanel from './home/AboutPanel';
 import SupportPanel from './home/SupportPanel';
 import TicketHistory from './TicketHistory';
 import { PrimaryButton, EmptyState } from './ui/ScreenUI';
+import DatePicker from './ui/DatePicker';
+import { type DisplayLanguage } from '../utils/ethiopianCalendar';
 import { BRAND, THEME } from '../config/theme';
 
 const TAB_TITLE_KEYS: Record<HomeTab, string | undefined> = {
@@ -75,7 +77,8 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   );
   const [errors, setErrors] = useState<{ to?: string; date?: string }>({});
   const [recentSearches, setRecentSearches] = useState<RecentSearch[]>(() => getRecentSearches());
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
   const [toOptions, setToOptions] = useState<string[]>([]);
   const [popularRoutes, setPopularRoutes] = useState<RoutePair[]>([]);
   const [loadingRoutes, setLoadingRoutes] = useState(true);
@@ -345,13 +348,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
             </div>
             <div className="min-w-0 flex-1">
               <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">{t('common.date')}</label>
-              <input
-                type="date"
+              <DatePicker
                 value={date}
+                onChange={(value) => { setDate(value); setErrors((prev) => ({ ...prev, date: undefined })); }}
                 min={todayIsoDate()}
-                onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
-                className="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none"
-                aria-label={t('common.date')}
+                lang={displayLang}
+                ariaLabel={t('common.date')}
+                triggerClassName="border-0 bg-transparent text-slate-900 font-bold text-[15px] outline-none w-full p-0 appearance-none text-left"
               />
             </div>
           </div>
@@ -515,13 +518,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                   <label className="block text-[13px] font-black text-[var(--text-muted)] uppercase tracking-wide mb-1.5">{t('common.date')}</label>
                   <div className="relative">
                     <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-6 h-6 text-[var(--text-muted)]" />
-                    <input
-                      type="date"
+                    <DatePicker
                       value={date}
+                      onChange={(value) => { setDate(value); setErrors((prev) => ({ ...prev, date: undefined })); }}
                       min={todayIsoDate()}
-                      onChange={(e) => { setDate(e.target.value); setErrors((prev) => ({ ...prev, date: undefined })); }}
-                      className={`${fieldClass} ${errors.date ? 'border-red-300 bg-red-50' : ''}`}
-                      aria-label={t('common.date')}
+                      lang={displayLang}
+                      ariaLabel={t('common.date')}
+                      triggerClassName={`${fieldClass} ${errors.date ? 'border-red-300 bg-red-50' : ''} text-left`}
                     />
                   </div>
                   {errors.date && <FieldError message={errors.date} />}

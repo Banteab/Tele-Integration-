@@ -798,4 +798,15 @@ i18n
     pluralSeparator: '_',
   });
 
+// Keep the document's language attribute in sync with the selected site
+// language — some browsers (notably Chromium) use it, not just the OS/browser
+// locale, to decide which language native form controls (e.g. the
+// `<input type="date">` popup calendar) render themselves in.
+if (typeof document !== 'undefined') {
+  document.documentElement.lang = i18n.language;
+  i18n.on('languageChanged', (lng) => {
+    document.documentElement.lang = lng;
+  });
+}
+
 export default i18n;

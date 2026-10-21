@@ -16,9 +16,11 @@ import { toEC, monthNames as ETHIOPIAN_MONTH_NAMES } from 'kenat';
 
 export type DisplayLanguage = 'en' | 'am' | 'om';
 
-const WEEKDAYS_AM = ['እሁድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'ዓርብ', 'ቅዳሜ'];
+export const WEEKDAYS_AM = ['እሁድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'ዓርብ', 'ቅዳሜ'];
 // Standard Afaan Oromo weekday names; kenat has no Oromo locale to draw from.
-const WEEKDAYS_OM = ['Dilbata', 'Wiixata', 'Kibxata', 'Roobii', 'Kamiisa', 'Jimaata', 'Sanbata'];
+export const WEEKDAYS_OM = ['Dilbata', 'Wiixata', 'Kibxata', 'Roobii', 'Kamiisa', 'Jimaata', 'Sanbata'];
+
+export { ETHIOPIAN_MONTH_NAMES };
 
 interface FormatOptions {
   weekday?: 'short';

@@ -37,6 +37,11 @@ interface Props {
   onSeatConflict?: () => void;
 }
 
+/** Matches the Telebirr "insufficient balance" error regardless of exact wording. */
+function isInsufficientBalanceError(message: string): boolean {
+  return /insufficient[\s_-]*(service)?[\s_-]*(balance|fund)/i.test(message) || /balance[\s_-]*(is)?[\s_-]*insufficient/i.test(message);
+}
+
 /**
  * H5 payment flow per payment_flow.txt:
  * 1. Create bus ticket (merchant backend)
@@ -69,6 +74,10 @@ export default function Payment({
     null,
   );
   const [autoLoginChecked, setAutoLoginChecked] = useState(false);
+  // Set once ticket creation succeeds, so a "Try again" after a later failure
+  // (e.g. insufficient balance at the preorder step) resumes from the existing
+  // ticket instead of creating a second one for the same seats.
+  const [ticketReference, setTicketReference] = useState<string | null>(null);
   const pollCleanup = useRef<(() => void) | null>(null);
   const totalAmount = bus.price * selectedSeats.length;
   const inH5Host = isTelebirrH5Host();
@@ -222,42 +231,50 @@ export default function Payment({
         return;
       }
 
-      setStatusMessage(t('payment.status.creatingTicket'));
-
-      const paymentRefNumber = Math.random()
-        .toString(36)
-        .substring(2, 12)
-        .toUpperCase();
-
-      const ticketPayload = buildTicketPayload(
-        bus,
-        searchParams,
-        passengerInfo,
-        selectedSeats,
-        paymentRefNumber,
-      );
-
-      let ticketResponse: { reference?: { reference?: string }[] };
-      try {
-        ticketResponse = await telebirrCreateTicket(ticketPayload);
-      } catch (ticketError) {
-        const ticketMessage =
-          (ticketError as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-          (ticketError as Error)?.message ||
-          '';
-        // The seat a rider picked can be booked by someone else between
-        // selection and checkout — the backend rejects ticket creation for it.
-        if (/seat/i.test(ticketMessage)) {
-          setSeatConflict(true);
-          setIsWaitingForPayment(false);
-          return;
-        }
-        throw ticketError;
-      }
-      const reference = ticketResponse?.reference?.[0]?.reference;
+      // A retry after a later failure (e.g. insufficient balance at the
+      // preorder step) must not create a second ticket for the same seats —
+      // reuse the one already created for this session if we have it.
+      let reference = ticketReference;
 
       if (!reference) {
-        throw new Error('No ticket reference from server');
+        setStatusMessage(t('payment.status.creatingTicket'));
+
+        const paymentRefNumber = Math.random()
+          .toString(36)
+          .substring(2, 12)
+          .toUpperCase();
+
+        const ticketPayload = buildTicketPayload(
+          bus,
+          searchParams,
+          passengerInfo,
+          selectedSeats,
+          paymentRefNumber,
+        );
+
+        let ticketResponse: { reference?: { reference?: string }[] };
+        try {
+          ticketResponse = await telebirrCreateTicket(ticketPayload);
+        } catch (ticketError) {
+          const ticketMessage =
+            (ticketError as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            (ticketError as Error)?.message ||
+            '';
+          // The seat a rider picked can be booked by someone else between
+          // selection and checkout — the backend rejects ticket creation for it.
+          if (/seat/i.test(ticketMessage)) {
+            setSeatConflict(true);
+            setIsWaitingForPayment(false);
+            return;
+          }
+          throw ticketError;
+        }
+        reference = ticketResponse?.reference?.[0]?.reference;
+
+        if (!reference) {
+          throw new Error('No ticket reference from server');
+        }
+        setTicketReference(reference);
       }
 
       setStatusMessage(t('payment.status.requestingPreorder'));
@@ -285,12 +302,18 @@ export default function Payment({
       setIsWaitingForPayment(true);
       startConfirmationPoll(reference);
     } catch (error) {
+      // Logged for internal diagnosis only — never shown to the customer
+      // as-is, and nothing beyond the error itself (no PIN, card, or token
+      // data ever passes through this catch) is included.
       console.error('Payment failed:', error);
-      const message =
+      const rawMessage =
         (error as { response?: { data?: { message?: string } } })?.response
           ?.data?.message ||
         (error as Error)?.message ||
-        t('payment.failed');
+        '';
+      const message = isInsufficientBalanceError(rawMessage)
+        ? t('payment.insufficientBalance')
+        : rawMessage || t('payment.failed');
       setPaymentError(message);
       setIsWaitingForPayment(false);
     } finally {
