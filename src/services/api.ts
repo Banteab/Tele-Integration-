@@ -86,18 +86,27 @@ let searchCache: { key: string; data: any; ts: number } | null = null;
 const SEARCH_CACHE_TTL_MS = 30_000;
 
 /**
- * The backend returns identical (midnight) departure/arrival times for this
- * one specific trip. Until that's fixed server-side, force the known-correct
- * times for this exact route + date only — every other route/date keeps
+ * The backend returns wrong/identical departure/arrival times for these
+ * specific trips. Until that's fixed server-side, force the known-correct
+ * local times for each exact route + date — every other route/date keeps
  * whatever the API returns, untouched.
  */
-const SCHEDULE_TIME_OVERRIDE = {
-  from: 'addis ababa',
-  to: 'hawassa',
-  date: '2026-10-28',
-  departureTime: '2026-10-28T04:00:00',
-  arrivalTime: '2026-10-28T10:00:00',
-};
+const SCHEDULE_TIME_OVERRIDES = [
+  {
+    from: 'addis ababa',
+    to: 'hawassa',
+    date: '2026-10-28',
+    departureTime: '2026-10-28T04:00:00',
+    arrivalTime: '2026-10-28T10:00:00',
+  },
+  {
+    from: 'addis ababa',
+    to: 'arba minch',
+    date: '2026-11-30',
+    departureTime: '2026-11-30T10:30:00',
+    arrivalTime: '2026-11-30T20:00:00',
+  },
+];
 
 export const searchTrips = async (from: string, to: string, date: string) => {
   const cacheKey = `${from.toLowerCase().trim()}|${to.toLowerCase().trim()}|${date}`;
@@ -165,8 +174,9 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     ),
   );
 
-  const applyScheduleOverride =
-    fromValue === SCHEDULE_TIME_OVERRIDE.from && toValue === SCHEDULE_TIME_OVERRIDE.to && date === SCHEDULE_TIME_OVERRIDE.date;
+  const scheduleOverride = SCHEDULE_TIME_OVERRIDES.find(
+    (override) => fromValue === override.from && toValue === override.to && date === override.date,
+  );
 
   const results = routesWithSchedules.flatMap(({ route, schedules }: any) =>
     schedules.map((schedule: any) => ({
@@ -174,8 +184,8 @@ export const searchTrips = async (from: string, to: string, date: string) => {
       operator: schedule.vehicleOperator || 'Unknown',
       operatorId: schedule.vehicleOperatorId || 8,
       type: schedule.levelDesc || 'Standard',
-      departureTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.departureTime : schedule.departureDate,
-      arrivalTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.arrivalTime : schedule.arrivalDate,
+      departureTime: scheduleOverride ? scheduleOverride.departureTime : schedule.departureDate,
+      arrivalTime: scheduleOverride ? scheduleOverride.arrivalTime : schedule.arrivalDate,
       price: schedule.tariff || 0,
       totalSeats: schedule.noOfSeat || 0,
       availableSeats: schedule.noOfSeat || 0,
