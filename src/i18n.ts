@@ -368,7 +368,7 @@ const resources = {
         selectedSeats: 'የተመረጡ ወንበሮች',
         pricePerSeat: 'የአንድ ወንበር ዋጋ',
         totalFare: 'ጠቅላላ ክፍያ',
-        continueToDetails: 'ወደ ዝርዝር መረጃ ይቀጥሉ',
+        continueToDetails: 'የደንበኛ መረጃ ለማስገባት ይቀጥሉ',
         seatLimitTitle: 'የወንበር ገደብ ደርሷል',
         seatLimitMessage: 'በአንድ ጊዜ እስከ 4 ወንበሮችን ብቻ መምረጥ ይችላሉ።',
         close: 'ይዝጉ',
