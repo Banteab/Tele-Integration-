@@ -168,44 +168,42 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
   }, [open]);
 
   const openPicker = () => {
-    if (lang === 'en') {
-      setViewYear(parsed.y);
-      setViewMonth(parsed.m);
-    } else {
+    if (lang === 'am') {
       const eth = toEC(parsed.y, parsed.m, parsed.d);
       setViewYear(eth.year);
       setViewMonth(eth.month);
+    } else {
+      // English and Afaan Oromo both use the Gregorian calendar.
+      setViewYear(parsed.y);
+      setViewMonth(parsed.m);
     }
     updatePosition();
     setOpen(true);
   };
 
   const todayIso = todayIsoDate();
-  const monthCount = lang === 'en' ? 12 : 13;
+  const monthCount = lang === 'am' ? 13 : 12;
 
   const grid = useMemo(() => {
     if (!open || viewYear === 0) return [];
-    return lang === 'en'
-      ? buildGregorianGrid(viewYear, viewMonth, todayIso)
-      : buildEthiopianGrid(viewYear, viewMonth, todayIso);
+    return lang === 'am'
+      ? buildEthiopianGrid(viewYear, viewMonth, todayIso)
+      : buildGregorianGrid(viewYear, viewMonth, todayIso);
   }, [open, lang, viewYear, viewMonth, todayIso]);
 
   const monthLabel = useMemo(() => {
     if (!open || viewYear === 0) return '';
-    if (lang === 'en') {
-      return new Date(viewYear, viewMonth - 1, 1).toLocaleDateString('en-ET', { month: 'long', year: 'numeric' });
+    if (lang === 'am') {
+      return `${ETHIOPIAN_MONTH_NAMES.amharic[viewMonth - 1]} ${viewYear}`;
     }
-    const names = lang === 'am' ? ETHIOPIAN_MONTH_NAMES.amharic : ETHIOPIAN_MONTH_NAMES.english;
-    return `${names[viewMonth - 1]} ${viewYear}`;
+    return new Date(viewYear, viewMonth - 1, 1).toLocaleDateString('en-ET', { month: 'long', year: 'numeric' });
   }, [open, lang, viewYear, viewMonth]);
 
-  const weekdayHeaders = useMemo(
-    () =>
-      lang === 'en'
-        ? ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
-        : (lang === 'am' ? WEEKDAYS_AM : WEEKDAYS_OM).map((name) => name.slice(0, 2)),
-    [lang],
-  );
+  const weekdayHeaders = useMemo(() => {
+    if (lang === 'am') return WEEKDAYS_AM.map((name) => name.slice(0, 2));
+    if (lang === 'om') return WEEKDAYS_OM.map((name) => name.slice(0, 2));
+    return ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  }, [lang]);
 
   const goMonth = (delta: number) => {
     let m = viewMonth + delta;
@@ -222,19 +220,17 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
   };
 
   const triggerLabel = useMemo(() => {
-    if (lang === 'en') {
-      return new Date(parsed.y, parsed.m - 1, parsed.d).toLocaleDateString('en-ET', {
-        weekday: 'short',
-        month: 'short',
-        day: 'numeric',
-      });
+    if (lang === 'am') {
+      const eth = toEC(parsed.y, parsed.m, parsed.d);
+      const jsWeekday = new Date(parsed.y, parsed.m - 1, parsed.d).getDay();
+      return `${WEEKDAYS_AM[jsWeekday]}፣ ${ETHIOPIAN_MONTH_NAMES.amharic[eth.month - 1]} ${eth.day}`;
     }
-    const eth = toEC(parsed.y, parsed.m, parsed.d);
-    const names = lang === 'am' ? ETHIOPIAN_MONTH_NAMES.amharic : ETHIOPIAN_MONTH_NAMES.english;
-    const weekdays = lang === 'am' ? WEEKDAYS_AM : WEEKDAYS_OM;
-    const separator = lang === 'am' ? '፣' : ',';
-    const jsWeekday = new Date(parsed.y, parsed.m - 1, parsed.d).getDay();
-    return `${weekdays[jsWeekday]}${separator} ${names[eth.month - 1]} ${eth.day}`;
+    const d = new Date(parsed.y, parsed.m - 1, parsed.d);
+    if (lang === 'om') {
+      const monthDay = d.toLocaleDateString('en-ET', { month: 'short', day: 'numeric' });
+      return `${WEEKDAYS_OM[d.getDay()]}, ${monthDay}`;
+    }
+    return d.toLocaleDateString('en-ET', { weekday: 'short', month: 'short', day: 'numeric' });
   }, [lang, parsed.y, parsed.m, parsed.d]);
 
   return (

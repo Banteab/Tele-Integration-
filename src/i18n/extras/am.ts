@@ -400,6 +400,8 @@ export default {
     statusPending: 'በመጠባበቅ ላይ',
     statusCancelled: 'ተሰርዟል',
     payNow: 'አሁን ይክፈሉ',
+    pickup: 'መነሻ ቦታ',
+    destination: 'መድረሻ',
   },
   ticketSuccess: {
     reference: 'ማጣቀሻ',

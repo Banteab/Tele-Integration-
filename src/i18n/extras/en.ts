@@ -403,6 +403,8 @@ export default {
     statusPending: 'pending',
     statusCancelled: 'cancelled',
     payNow: 'Pay now',
+    pickup: 'Pickup location',
+    destination: 'Destination',
   },
   ticketSuccess: {
     reference: 'Reference',

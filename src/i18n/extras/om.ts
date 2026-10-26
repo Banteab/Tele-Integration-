@@ -400,6 +400,8 @@ export default {
     statusPending: 'eegaa jira',
     statusCancelled: 'haqameera',
     payNow: 'Amma Kaffali',
+    pickup: 'Bakka Ka\'umsaa',
+    destination: 'Gahumsa',
   },
   ticketSuccess: {
     reference: 'Wabii',

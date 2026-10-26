@@ -1,5 +1,8 @@
 /**
- * Ethiopian-calendar date *display* for Amharic and Afaan Oromo.
+ * Ethiopian-calendar date *display* for Amharic only. English and Afaan
+ * Oromo both use the ordinary Gregorian calendar — Oromo keeps its own
+ * weekday names, but the date itself is numbered the Gregorian way, same
+ * as English.
  *
  * Conversion itself is delegated to `kenat` (a dedicated, tested Ethiopian
  * calendar library) rather than hand-rolled — the Gregorian↔Ethiopian
@@ -30,8 +33,8 @@ interface FormatOptions {
 }
 
 /**
- * Formats `date` for display — the Ethiopian calendar for 'am'/'om', the
- * ordinary Gregorian calendar for 'en' — mirroring the
+ * Formats `date` for display — the Ethiopian calendar for 'am' only, the
+ * ordinary Gregorian calendar for 'en' and 'om' — mirroring the
  * `date.toLocaleDateString(locale, options)` calls this app used before,
  * for the same two option shapes it relies on: `{ weekday: 'short', day: 'numeric' }`
  * (compact pill form) and the same plus `month: 'short'` (full form).
@@ -41,20 +44,26 @@ export function formatDisplayDate(date: Date, lang: DisplayLanguage, options: Fo
     return date.toLocaleDateString('en-ET', options);
   }
 
-  const eth = toEC(date.getFullYear(), date.getMonth() + 1, date.getDate());
-  const months = lang === 'am' ? ETHIOPIAN_MONTH_NAMES.amharic : ETHIOPIAN_MONTH_NAMES.english;
-  const weekdays = lang === 'am' ? WEEKDAYS_AM : WEEKDAYS_OM;
-  const separator = lang === 'am' ? '፣' : ',';
+  if (lang === 'om') {
+    // Gregorian calendar, same as English, but with the Afaan Oromo weekday name.
+    const weekday = options.weekday ? WEEKDAYS_OM[date.getDay()] : undefined;
+    let dateBody = options.month
+      ? date.toLocaleDateString('en-ET', { month: options.month, day: options.day })
+      : `${date.getDate()}`;
+    if (options.year) dateBody += ` ${date.getFullYear()}`;
+    return weekday ? `${weekday}, ${dateBody}` : dateBody;
+  }
 
-  const weekday = options.weekday ? weekdays[date.getDay()] : undefined;
-  let dateBody = options.month ? `${months[eth.month - 1]} ${eth.day}` : `${eth.day}`;
+  const eth = toEC(date.getFullYear(), date.getMonth() + 1, date.getDate());
+  const weekday = options.weekday ? WEEKDAYS_AM[date.getDay()] : undefined;
+  let dateBody = options.month ? `${ETHIOPIAN_MONTH_NAMES.amharic[eth.month - 1]} ${eth.day}` : `${eth.day}`;
   if (options.year) dateBody += ` ${eth.year}`;
-  return weekday ? `${weekday}${separator} ${dateBody}` : dateBody;
+  return weekday ? `${weekday}፣ ${dateBody}` : dateBody;
 }
 
-/** Full numeric "day/month/year" Ethiopian date, for plain ticket/history records. */
+/** Full numeric "day/month/year" date, for plain ticket/history records — Gregorian for 'en'/'om', Ethiopian for 'am'. */
 export function formatDisplayDateNumeric(date: Date, lang: DisplayLanguage): string {
-  if (lang === 'en') return date.toLocaleDateString();
+  if (lang === 'en' || lang === 'om') return date.toLocaleDateString();
   const eth = toEC(date.getFullYear(), date.getMonth() + 1, date.getDate());
   return `${eth.day}/${eth.month}/${eth.year}`;
 }
