@@ -1,11 +1,11 @@
 import { CheckCircle, Home, Copy, Check, Download, Share2 } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
-import * as QRCode from 'qrcode';
 import { Bus, PassengerInfo } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { PageContainer, ScreenCard, PrimaryButton, SecondaryButton, StatusBadge } from '../ui/ScreenUI';
+import TicketQrCode from '../ui/TicketQrCode';
 import { BRAND, THEME } from '../../config/theme';
 
 interface Props {
@@ -14,41 +14,6 @@ interface Props {
   passengerInfo: PassengerInfo;
   reference: string;
   onHome: () => void;
-}
-
-/** A real, scannable QR code encoding the same plain-text ticket summary
- *  already shown on screen and offered via Download/Share — no fabricated
- *  verification link, since no backend endpoint exists to resolve one. */
-function TicketQrCode({ text }: { text: string }) {
-  const { t } = useTranslation();
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    QRCode.toDataURL(text, { width: 148, margin: 1, color: { dark: THEME.textPrimary, light: '#ffffff' } })
-      .then((url) => {
-        if (!cancelled) setDataUrl(url);
-      })
-      .catch((err) => {
-        console.error('Failed to generate QR code:', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [text]);
-
-  return (
-    <div
-      className="mx-auto flex items-center justify-center bg-white rounded-xl p-3"
-      style={{ width: 148, height: 148, boxShadow: 'var(--shadow-depth-sm)' }}
-    >
-      {dataUrl ? (
-        <img src={dataUrl} width={124} height={124} alt={t('ticketSuccess.qrAlt')} />
-      ) : (
-        <div className="w-full h-full rounded-lg animate-pulse" style={{ backgroundColor: 'var(--surface-muted)' }} />
-      )}
-    </div>
-  );
 }
 
 export default function TicketSuccess({

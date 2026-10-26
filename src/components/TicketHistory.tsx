@@ -5,7 +5,8 @@ import { toast } from 'sonner';
 import { getTicketHistory } from '../services/api';
 import { API_CONFIG } from '../config/api';
 import { EmptyState, PageContainer, ScreenCard, Skeleton, StatusBadge } from './ui/ScreenUI';
-import { THEME, type StatusKind } from '../config/theme';
+import TicketQrCode from './ui/TicketQrCode';
+import { BRAND, THEME, type StatusKind } from '../config/theme';
 import { formatDisplayDateNumeric, type DisplayLanguage } from '../utils/ethiopianCalendar';
 import type { Ticket } from '../types';
 
@@ -84,17 +85,19 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
   };
 
   /** Builds a plain-text ticket summary from data already on screen — no fabricated fields, no server round-trip. */
+  const ticketLines = (ticket: Ticket) => [
+    `${BRAND.name} — ${t('ticketHistory.title')} — ${ticket.operator}`,
+    `${t('common.ref')}: ${ticket.refNumber}`,
+    `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
+    ticket.route,
+    `${t('common.date')}: ${formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}`,
+    `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
+    `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
+    `${t('common.amount')}: ETB ${ticket.totalAmount}`,
+  ];
+
   const handleDownload = (ticket: Ticket) => {
-    const lines = [
-      `${t('ticketHistory.title')} — ${ticket.operator}`,
-      `${t('common.ref')}: ${ticket.refNumber}`,
-      `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
-      ticket.route,
-      `${t('common.date')}: ${formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}`,
-      `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
-      `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
-      `${t('common.amount')}: ETB ${ticket.totalAmount}`,
-    ];
+    const lines = ticketLines(ticket);
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
@@ -318,6 +321,12 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
                   ETB {selectedTicket.totalAmount}
                 </span>
               </div>
+
+              {selectedTicket.status === 'completed' && (
+                <div className="border-t border-[var(--border)] pt-3">
+                  <TicketQrCode text={ticketLines(selectedTicket).join('\n')} size={132} />
+                </div>
+              )}
 
               {selectedTicket.status === 'pending' && onPayNow && (
                 <button
