@@ -266,7 +266,7 @@ const resources = {
       nav: {
         home: 'መነሻ',
         myTickets: 'ትኬቶቼ',
-        cancelTicket: 'ትኬት ሰርዝ',
+        cancelTicket: 'ትኬት ይሰርዙ',
         contact: 'ያግኙን'
       },
       hero: {
@@ -371,12 +371,12 @@ const resources = {
         continueToDetails: 'ወደ ዝርዝር መረጃ ይቀጥሉ',
         seatLimitTitle: 'የወንበር ገደብ ደርሷል',
         seatLimitMessage: 'በአንድ ጊዜ እስከ 4 ወንበሮችን ብቻ መምረጥ ይችላሉ።',
-        close: 'ዝጋ',
+        close: 'ይዝጉ',
         seat: 'ወንበር',
         summary: 'የቦታ ማስያዣ ማጠቃለያ',
         total: 'ጠቅላላ ክፍያ',
-        continue: 'ቀጥል',
-        back: 'ተመለስ',
+        continue: 'ይቀጥሉ',
+        back: 'ይመለሱ',
         passengerDetails: 'የተጓዥ መረጃ',
         name: 'ሙሉ ስም',
         email: 'ኢሜይል',
@@ -386,7 +386,7 @@ const resources = {
         male: 'ወንድ',
         female: 'ሴት',
         other: 'ሌላ',
-        confirm: 'አረጋግጥ እና ክፈል',
+        confirm: 'ያረጋግጡ እና ይክፈሉ',
         paymentMethod: 'የክፍያ ዘዴ',
         telebirr: 'ቴሌብር',
         cbeBirr: 'ሲቢኢ ብር',
@@ -459,13 +459,13 @@ const resources = {
         }
       },
       auth: {
-        login: 'ግባ',
-        register: 'ተመዝገብ',
+        login: 'ይግቡ',
+        register: 'ይመዝገቡ',
         loginSuccess: 'በተሳካ ሁኔታ ገብተዋል!',
         registerSuccess: 'ምዝገባው ተሳክቷል!',
         phoneNumber: 'ስልክ ቁጥር',
         password: 'የይለፍ ቃል',
-        confirmPassword: 'የይለፍ ቃል አረጋግጥ',
+        confirmPassword: 'የይለፍ ቃል ያረጋግጡ',
         noAccount: 'መለያ የለዎትም?',
         haveAccount: 'መለያ አለዎት?',
         loginRequired: 'እባክዎ ስልክ ቁጥር እና የይለፍ ቃል ያስገቡ',
@@ -494,16 +494,16 @@ const resources = {
         backHome: 'ወደ መነሻ ይመለሱ'
       },
       cancel: {
-        title: 'ትኬት ሰርዝ',
+        title: 'ትኬት ይሰርዙ',
         subtitle: 'ለተያዘው ትኬትዎ የገንዘብ ተመላሽ ይጠይቁ',
         ticketId: 'የትኬት መታወቂያ / PNR',
         phone: 'ስልክ ቁጥር',
-        search: 'ትኬት ፈልግ',
+        search: 'ትኬት ይፈልጉ',
         policy: 'የስረዛ ፖሊሲ',
         policy1: 'ከመነሻው 24 ሰዓት በፊት ከተሰረዘ፡ 90% ተመላሽ',
         policy2: 'ከመነሻው ከ12-24 ሰዓት በፊት ከተሰረዘ፡ 50% ተመላሽ',
         policy3: 'ከመነሻው ከ12 ሰዓት ባነሰ ጊዜ ውስጥ ከተሰረዘ፡ ተመላሽ የለውም',
-        confirm: 'ስረዛውን አረጋግጥ',
+        confirm: 'ስረዛውን ያረጋግጡ',
         success: 'ትኬቱ በተሳካ ሁኔታ ተሰርዟል። ተመላሽ ገንዘቡ በ3-5 የስራ ቀናት ውስጥ ይከናወናል።'
       },
       footer: {
