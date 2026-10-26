@@ -457,7 +457,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
                 so the booking card (the actual job of this screen) gets the space. */}
             <section
               className="relative overflow-hidden shrink-0 pt-5 min-[375px]:pt-6 pb-10 min-[375px]:pb-11"
-              style={{ backgroundImage: 'linear-gradient(180deg, #bfe3fa 0%, #7bbbe8 100%)' }}
+              style={{ backgroundImage: `linear-gradient(180deg, ${THEME.brand} 0%, ${THEME.brandDeep} 100%)` }}
             >
               <div className="relative flex flex-col items-center text-center app-gutter-x">
                 <span className="text-white/95 font-bold text-[10px] min-[375px]:text-[11px] uppercase tracking-wider mb-1.5">
