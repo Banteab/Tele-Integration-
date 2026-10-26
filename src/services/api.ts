@@ -3,6 +3,11 @@ import { API_CONFIG, API_ENDPOINTS, getApiKeyHeaders } from '../config/api';
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.baseUrl,
+  // Without this, a stalled request (a weak connection, or the backend's own
+  // upstream call hanging) never fails — it just sits there, which is what
+  // made a search look "stuck for 10 minutes" instead of erroring out with
+  // the existing connectivity-failure/Retry UI.
+  timeout: 25_000,
   headers: {
     'Content-Type': 'application/json',
     ...getApiKeyHeaders(),
