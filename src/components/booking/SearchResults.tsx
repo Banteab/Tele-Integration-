@@ -8,6 +8,8 @@ import {
   ShieldCheck,
   Zap,
   RefreshCw,
+  WifiOff,
+  CalendarSearch,
 } from 'lucide-react';
 import { SearchParams, Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
@@ -16,6 +18,7 @@ import { searchTrips } from '../../services/api';
 import { toast } from 'sonner';
 import { PrimaryButton, Skeleton } from '../ui/ScreenUI';
 import { THEME, BRAND } from '../../config/theme';
+import { formatDisplayDate, type DisplayLanguage } from '../../utils/ethiopianCalendar';
 
 interface Props {
   searchParams: SearchParams;
@@ -120,6 +123,8 @@ export default function SearchResults({
   const [buses, setBuses] = useState<Bus[]>([]);
   const [loading, setLoading] = useState(isLoading || false);
   const [error, setError] = useState<string | null>(null);
+  const [isNetworkError, setIsNetworkError] = useState(false);
+  const [retryToken, setRetryToken] = useState(0);
   const [sortBy, setSortBy] = useState<SortKey>('cheapest');
   const [selectedOperators, setSelectedOperators] = useState<Set<string> | null>(null);
   const [selectedWindows, setSelectedWindows] = useState<Set<WindowKey> | null>(null);
@@ -137,6 +142,7 @@ export default function SearchResults({
       try {
         setLoading(true);
         setError(null);
+        setIsNetworkError(false);
         const dateObj = new Date(activeDate);
         const formattedDate = `${dateObj.getFullYear()}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${String(dateObj.getDate()).padStart(2, '0')}`;
         const response = await searchTrips(
@@ -167,18 +173,20 @@ export default function SearchResults({
         setSelectedOperators(null);
         setSelectedWindows(null);
         setSelectedTerminals(null);
-        if (transformedBuses.length === 0) {
-          setError(t('booking.noResults'));
-        }
       } catch (err: unknown) {
         if (cancelled) return;
+        const axiosErr = err as { response?: { data?: { message?: string } }; request?: unknown; code?: string };
+        // No `response` at all (request never got a reply) means a real
+        // connectivity failure, distinct from the server answering "no buses".
+        const networkFailure = !axiosErr.response && (Boolean(axiosErr.request) || axiosErr.code === 'ERR_NETWORK');
         const message =
-          (err as { response?: { data?: { message?: string } } })?.response?.data
-            ?.message ||
+          axiosErr.response?.data?.message ||
           (err as Error)?.message ||
           t('search.searchFailed');
-        setError(message);
-        toast.error(message);
+        setBuses([]);
+        setIsNetworkError(networkFailure);
+        setError(networkFailure ? t('search.networkError') : message);
+        if (!networkFailure) toast.error(message);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -191,7 +199,7 @@ export default function SearchResults({
     return () => {
       cancelled = true;
     };
-  }, [searchParams.from, searchParams.to, activeDate, t]);
+  }, [searchParams.from, searchParams.to, activeDate, retryToken, t]);
 
   /** Cheapest real fare per real operator appearing in this result set. */
   const operatorGroups = useMemo(() => {
@@ -263,12 +271,20 @@ export default function SearchResults({
 
   const dateStrip = useMemo(() => Array.from({ length: 7 }, (_, i) => shiftDate(activeDate, i - 3)), [activeDate]);
 
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
+
   const formatDate = (dateString: string) => {
     try {
-      return new Date(dateString).toLocaleDateString(
-        i18n.language === 'am' ? 'am-ET' : 'en-ET',
-        { weekday: 'short', month: 'short', day: 'numeric' },
-      );
+      return formatDisplayDate(new Date(dateString), displayLang, { weekday: 'short', month: 'short', day: 'numeric' });
+    } catch {
+      return dateString;
+    }
+  };
+
+  /** Short "Wed 28" form for the compact mobile date pills — no month, no comma. */
+  const formatDateCompact = (dateString: string) => {
+    try {
+      return formatDisplayDate(new Date(dateString), displayLang, { weekday: 'short', day: 'numeric' });
     } catch {
       return dateString;
     }
@@ -277,6 +293,10 @@ export default function SearchResults({
   if (loading) {
     return (
       <div className="pb-6">
+        <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-slate-500">
+          <span className="h-4 w-4 rounded-full border-2 border-sky-200 border-t-sky-600 animate-spin" />
+          {t('common.searching')}
+        </div>
         <div className="rounded-xl border border-slate-200 bg-white p-4 mb-4">
           <Skeleton className="h-5 w-48 mb-2" />
           <Skeleton className="h-3.5 w-32" />
@@ -296,35 +316,105 @@ export default function SearchResults({
     );
   }
 
-  if (error && buses.length === 0) {
-    return (
-      <div className="pb-6">
-        <div className="rounded-xl border border-slate-200 bg-white p-4 mb-4">
-          <p className="text-sm font-bold text-slate-900">{searchParams.from} → {searchParams.to}</p>
-          <p className="text-xs text-slate-500 mt-0.5">{formatDate(activeDate)}</p>
-        </div>
-        <div className="rounded-xl border border-slate-200 bg-white p-5">
-          <div className="flex gap-3 text-red-700">
-            <AlertCircle className="w-5 h-5 shrink-0" />
-            <div>
-              <p className="font-semibold text-sm">{t('search.noBusesFound')}</p>
-              <p className="text-xs mt-1">{error}</p>
-            </div>
-          </div>
-          <PrimaryButton className="mt-4" onClick={onBack}>
-            {t('search.changeSearch')}
-          </PrimaryButton>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       className="pb-6"
     >
+      {/* ============ MOBILE — compact native-app list ============ */}
+      <div className="lg:hidden -mx-[var(--gutter)]">
+        <div className="border-b border-slate-100 bg-white px-3.5 pb-3 pt-2.5">
+          <div className="truncate text-[15px] font-bold text-slate-900">
+            {searchParams.from} → {searchParams.to}
+          </div>
+          <div className="mt-0.5 flex items-center gap-2 text-xs text-slate-500">
+            <span
+              className="rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide"
+              style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+            >
+              {t('search.oneWay')}
+            </span>
+            <span>{formatDate(activeDate)}</span>
+          </div>
+          <button
+            type="button"
+            onClick={onBack}
+            className="mt-1.5 text-xs font-semibold"
+            style={{ color: THEME.brand }}
+          >
+            ↻ {t('search.modifySearch')}
+          </button>
+        </div>
+
+        <div className="flex gap-1.5 overflow-x-auto border-b border-slate-100 bg-white px-3.5 py-2.5">
+          {dateStrip.map((d) => {
+            const selected = d === activeDate;
+            const past = d < todayIsoDate();
+            return (
+              <button
+                key={d}
+                type="button"
+                disabled={past}
+                onClick={() => setActiveDate(d)}
+                className={`shrink-0 whitespace-nowrap rounded-[10px] px-3 py-1.5 text-xs font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                  selected ? 'text-white' : 'bg-slate-100 text-slate-600'
+                }`}
+                style={selected ? { backgroundColor: THEME.brand } : undefined}
+              >
+                {formatDateCompact(d)}
+              </button>
+            );
+          })}
+        </div>
+
+        <div className="px-3 py-2.5">
+          {isNetworkError ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <WifiOff className="mx-auto h-7 w-7 text-red-500" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.networkError')}</p>
+              <p className="mt-1 text-xs text-slate-500">{t('search.networkErrorHint')}</p>
+              <PrimaryButton fullWidth={false} className="mx-auto mt-3.5 px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="h-4 w-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <AlertCircle className="mx-auto h-7 w-7 text-red-500" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.searchFailed')}</p>
+              <p className="mt-1 text-xs text-slate-500">{error}</p>
+              <PrimaryButton fullWidth={false} className="mx-auto mt-3.5 px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="h-4 w-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : buses.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-6 text-center">
+              <CalendarSearch className="mx-auto h-7 w-7 text-slate-400" />
+              <p className="mt-2.5 text-sm font-semibold text-slate-700">{t('search.noBusesFound')}</p>
+              <p className="mx-auto mt-1 max-w-xs text-xs text-slate-500">{t('search.noBusesFoundHint')}</p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {visibleBuses.map((bus) => (
+                <Fragment key={bus.id}>
+                  <MobileBusCard bus={bus} onSelect={() => onSelectBus(bus)} />
+                </Fragment>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {buses.length > 0 && (
+          <div className="px-3.5 py-3 text-center text-[11px] text-slate-500">
+            🛡️ {t('search.trustCompact')}
+          </div>
+        )}
+      </div>
+
+      {/* ============ DESKTOP / TABLET — rich grid with filters + sort ============ */}
+      <div className="hidden lg:block">
       {/* Route context banner */}
       <div className="mb-4 rounded-xl border border-sky-100 bg-gradient-to-r from-sky-50/80 via-white to-sky-50/50 p-4 shadow-sm">
         <div className="flex flex-wrap items-center justify-between gap-4">
@@ -451,25 +541,63 @@ export default function SearchResults({
 
         {/* Results */}
         <section className="space-y-4 lg:col-span-3">
-          <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
-            <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
-              <span className="font-bold text-slate-700">{t('search.sortBy')}</span>
-              <SortButton active={sortBy === 'cheapest'} onClick={() => setSortBy('cheapest')}>
-                {t('search.sortCheapest')}{cheapestPrice !== null ? ` (${cheapestPrice} ETB)` : ''}
-              </SortButton>
-              <SortButton active={sortBy === 'fastest'} onClick={() => setSortBy('fastest')}>
-                {t('search.sortFastest')}{fastestLabel ? ` (~${fastestLabel})` : ''}
-              </SortButton>
-              <SortButton active={sortBy === 'earliest'} onClick={() => setSortBy('earliest')}>
-                {t('search.sortEarliest')}{earliestBus ? ` (${formatBusTime(earliestBus.departureTime)})` : ''}
-              </SortButton>
+          {buses.length > 0 && (
+            <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-slate-200 bg-white p-3 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2 text-xs font-medium text-slate-500">
+                <span className="font-bold text-slate-700">{t('search.sortBy')}</span>
+                <SortButton active={sortBy === 'cheapest'} onClick={() => setSortBy('cheapest')}>
+                  {t('search.sortCheapest')}{cheapestPrice !== null ? ` (${cheapestPrice} ETB)` : ''}
+                </SortButton>
+                <SortButton active={sortBy === 'fastest'} onClick={() => setSortBy('fastest')}>
+                  {t('search.sortFastest')}{fastestLabel ? ` (~${fastestLabel})` : ''}
+                </SortButton>
+                <SortButton active={sortBy === 'earliest'} onClick={() => setSortBy('earliest')}>
+                  {t('search.sortEarliest')}{earliestBus ? ` (${formatBusTime(earliestBus.departureTime)})` : ''}
+                </SortButton>
+              </div>
+              <div className="text-xs font-bold text-slate-500">
+                {t('search.showingCount', { count: visibleBuses.length })}
+              </div>
             </div>
-            <div className="text-xs font-bold text-slate-500">
-              {t('search.showingCount', { count: visibleBuses.length })}
-            </div>
-          </div>
+          )}
 
-          {visibleBuses.length === 0 ? (
+          {isNetworkError ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <WifiOff className="w-8 h-8 mx-auto text-red-500" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.networkError')}</p>
+              <p className="mt-1 text-xs text-slate-500">{t('search.networkErrorHint')}</p>
+              <PrimaryButton fullWidth={false} className="mt-4 mx-auto px-8" onClick={() => setRetryToken((n) => n + 1)}>
+                <RefreshCw className="w-4 h-4" />
+                {t('search.retry')}
+              </PrimaryButton>
+            </div>
+          ) : error ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <AlertCircle className="w-8 h-8 mx-auto text-red-500" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.searchFailed')}</p>
+              <p className="mt-1 text-xs text-slate-500">{error}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <PrimaryButton fullWidth={false} className="px-6" onClick={() => setRetryToken((n) => n + 1)}>
+                  <RefreshCw className="w-4 h-4" />
+                  {t('search.retry')}
+                </PrimaryButton>
+                <button type="button" onClick={onBack} className="text-xs font-bold text-sky-600 hover:text-sky-700 px-4 py-2">
+                  {t('search.changeSearch')}
+                </button>
+              </div>
+            </div>
+          ) : buses.length === 0 ? (
+            <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
+              <CalendarSearch className="w-8 h-8 mx-auto text-slate-400" />
+              <p className="mt-3 text-sm font-semibold text-slate-700">{t('search.noBusesFound')}</p>
+              <p className="mt-1 text-xs text-slate-500 max-w-sm mx-auto">{t('search.noBusesFoundHint')}</p>
+              <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
+                <button type="button" onClick={onBack} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-xs font-bold text-slate-700 hover:bg-slate-50">
+                  {t('search.changeSearch')}
+                </button>
+              </div>
+            </div>
+          ) : visibleBuses.length === 0 ? (
             <div className="rounded-xl border border-slate-200 bg-white p-8 text-center">
               <p className="text-sm font-semibold text-slate-700">{t('search.noMatchFilters')}</p>
               <button
@@ -489,30 +617,33 @@ export default function SearchResults({
           )}
 
           {/* Trust banner */}
-          <div className="mt-8 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-6 text-white shadow-lg">
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30">
-                  <ShieldCheck className="h-6 w-6" />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-white">{t('search.trustTitle')}</h4>
-                  <p className="text-xs text-slate-300 mt-1 max-w-xl">{t('search.trustBody')}</p>
-                </div>
-              </div>
-              {terminalGroups.length > 0 && (
-                <div className="flex flex-col items-center sm:items-end gap-1.5">
-                  <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t('search.trustBoarding')}</span>
-                  <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs font-semibold text-slate-300">
-                    {terminalGroups.slice(0, 4).map(([term]) => (
-                      <span key={term} className="rounded-lg bg-white/10 px-3 py-1.5 border border-white/10">{term}</span>
-                    ))}
+          {buses.length > 0 && (
+            <div className="mt-8 rounded-2xl bg-gradient-to-r from-slate-900 via-sky-950 to-slate-900 p-6 text-white shadow-lg">
+              <div className="flex flex-col sm:flex-row items-center justify-between gap-6">
+                <div className="flex items-center gap-4">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-sky-500/20 text-sky-400 border border-sky-400/30">
+                    <ShieldCheck className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h4 className="text-base font-bold text-white">{t('search.trustTitle')}</h4>
+                    <p className="text-xs text-slate-300 mt-1 max-w-xl">{t('search.trustBody')}</p>
                   </div>
                 </div>
-              )}
+                {terminalGroups.length > 0 && (
+                  <div className="flex flex-col items-center sm:items-end gap-1.5">
+                    <span className="text-[10px] uppercase tracking-wider text-slate-400 font-bold">{t('search.trustBoarding')}</span>
+                    <div className="flex flex-wrap items-center justify-center sm:justify-end gap-2 text-xs font-semibold text-slate-300">
+                      {terminalGroups.slice(0, 4).map(([term]) => (
+                        <span key={term} className="rounded-lg bg-white/10 px-3 py-1.5 border border-white/10">{term}</span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </section>
+      </div>
       </div>
     </motion.div>
   );
@@ -605,7 +736,11 @@ function BusResultCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
               <span className="block text-xs font-bold text-slate-700 mt-0.5 truncate">{bus.from}</span>
             </div>
             <div className="flex flex-1 flex-col items-center px-4">
-              {duration && <span className="text-[11px] font-semibold text-slate-400 mb-1 whitespace-nowrap">{duration}</span>}
+              {duration ? (
+                <span className="text-[11px] font-semibold text-slate-400 mb-1 whitespace-nowrap">{duration}</span>
+              ) : (
+                <span className="text-[11px] font-semibold text-amber-600 mb-1 whitespace-nowrap">{t('search.scheduleTimeNotice')}</span>
+              )}
               <div className="relative flex w-full items-center justify-center">
                 <div className="h-0.5 w-full bg-slate-200" />
                 <div className="absolute flex h-6 w-6 items-center justify-center rounded-full border-2 border-slate-300 bg-white">
@@ -641,6 +776,68 @@ function BusResultCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
             {bus.availableSeats === 0 ? t('booking.noSeats') : t('search.selectSeats')}
           </button>
         </div>
+      </div>
+    </article>
+  );
+}
+
+/** Compact, native-app-style bus card for the mobile result list — dense,
+ *  no duration label on the connector line, badge only for a non-standard
+ *  bus class, to match the approved compact mockup exactly. */
+function MobileBusCard({ bus, onSelect }: { bus: Bus; onSelect: () => void }) {
+  const { t } = useTranslation();
+  const showBadge = Boolean(bus.type) && !/^standard$/i.test(bus.type.trim());
+  const noSeats = bus.availableSeats === 0;
+  const duration = formatDuration(bus.departureTime, bus.arrivalTime);
+
+  return (
+    <article className="rounded-xl bg-white px-3.5 py-3 shadow-sm">
+      <div className="mb-2 flex items-start justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <h3 className="truncate text-sm font-bold text-slate-900">{bus.operator}</h3>
+          {showBadge && (
+            <span className={`shrink-0 rounded-lg px-1.5 py-0.5 text-[10px] font-bold uppercase ${typeBadgeClasses(bus.type)}`}>
+              {bus.type}
+            </span>
+          )}
+        </div>
+        <div className="shrink-0 text-lg font-extrabold" style={{ color: THEME.brand }}>
+          {bus.price} <span className="text-sm">ETB</span>
+        </div>
+      </div>
+
+      <div className="mb-2 flex items-center justify-between">
+        <div className="min-w-0">
+          <div className="text-base font-bold text-slate-900 tnum">{formatBusTime(bus.departureTime)}</div>
+          <div className="truncate text-[11px] text-slate-500">{bus.from}</div>
+        </div>
+        <div className="relative mx-2.5 h-px flex-1 bg-slate-200">
+          <span className="absolute -top-2 left-1/2 -translate-x-1/2 text-xs leading-none text-slate-300">•</span>
+        </div>
+        <div className="min-w-0 text-right">
+          <div className="text-base font-bold text-slate-900 tnum">{formatBusTime(bus.arrivalTime)}</div>
+          <div className="truncate text-[11px] text-slate-500">{bus.to}</div>
+        </div>
+      </div>
+
+      {!duration && (
+        <p className="mb-2 text-[11px] font-semibold text-amber-600">{t('search.scheduleTimeNotice')}</p>
+      )}
+
+      <div className="flex items-center justify-between gap-2">
+        <span className="min-w-0 truncate text-xs text-slate-500">
+          {t('search.seatsLeft', { count: bus.availableSeats })}
+          {bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''}
+        </span>
+        <button
+          type="button"
+          onClick={onSelect}
+          disabled={noSeats}
+          className="shrink-0 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-white disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ backgroundColor: THEME.primary }}
+        >
+          {noSeats ? t('booking.noSeats') : t('search.selectSeats')}
+        </button>
       </div>
     </article>
   );

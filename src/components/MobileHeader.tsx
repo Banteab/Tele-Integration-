@@ -115,24 +115,22 @@ export default function MobileHeader({
     const isLoggedIn = Boolean(userName || userPhone);
     const initials = getInitials(userName);
     return (
-      <header className="lg:hidden relative app-gutter-x py-3 bg-white border-b border-slate-100">
+      <header className="lg:hidden relative app-gutter-x py-2.5 bg-white border-b border-slate-100">
         <div className="flex items-center justify-between gap-2 min-[375px]:gap-3">
           <div className="flex items-center gap-2 min-w-0">
             <div className="w-9 h-9 rounded-xl bg-sky-50 border border-sky-100 flex items-center justify-center shrink-0">
               <Bus className="w-4 h-4 text-sky-600" />
             </div>
-            <div className="min-w-0">
-              <p className="font-display font-bold text-[14px] leading-tight flex items-center gap-1.5" style={{ color: THEME.textPrimary }}>
-                {BRAND.name}
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block" />
-              </p>
-              <span className="inline-flex items-center px-1 py-0.5 rounded bg-amber-50 border border-amber-200/60 text-[8px] font-bold text-amber-700 leading-none">
-                telebirr
-              </span>
-            </div>
+            <p className="font-display font-bold text-[14px] min-[375px]:text-[15px] leading-tight flex items-center gap-1.5 min-w-0 truncate" style={{ color: THEME.textPrimary }}>
+              {BRAND.name}
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 inline-block shrink-0" />
+            </p>
           </div>
-          <div className="flex items-center gap-2 shrink-0">
-            <LanguageSelector />
+          <div className="flex items-center gap-1.5 min-[375px]:gap-2 shrink-0">
+            <span className="inline-flex items-center px-1.5 py-0.5 rounded bg-amber-50 border border-amber-200/60 text-[8px] font-bold text-amber-700 leading-none">
+              telebirr
+            </span>
+            <LanguageSelector hideIcon />
             <div
               className="w-8 h-8 rounded-full flex items-center justify-center font-display font-bold text-[11px] shrink-0"
               style={
@@ -176,7 +174,7 @@ export default function MobileHeader({
                 {BRAND.nameAm}
               </span>
             </div>
-            <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{BRAND.tagline}</p>
+            <p className="text-[10px] text-white/75 tracking-wide max-[360px]:hidden">{t('common.poweredByTelebirr')}</p>
           </div>
         </div>
         <div className="flex items-center gap-1.5 min-[375px]:gap-2 shrink-0">

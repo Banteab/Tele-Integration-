@@ -1,4 +1,4 @@
-import { AlertCircle, Loader2, DoorOpen, Gauge, MapPin, X, ShieldCheck } from 'lucide-react';
+import { AlertCircle, Loader2, DoorOpen, Gauge, MapPin, X, ShieldCheck, Armchair, Check } from 'lucide-react';
 import { Bus } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { Fragment, type ReactNode } from 'react';
@@ -16,6 +16,7 @@ import {
   StickyFooter,
 } from '../ui/ScreenUI';
 import { THEME } from '../../config/theme';
+import { formatDisplayDate, type DisplayLanguage } from '../../utils/ethiopianCalendar';
 
 interface Props {
   bus: Bus;
@@ -67,11 +68,11 @@ function buildRowItems(rowSeats: SeatData[]): RowItem[] {
   return items;
 }
 
-function formatDateTime(value: string, locale: string): { date: string; time: string } | null {
+function formatDateTime(value: string, lang: DisplayLanguage): { date: string; time: string } | null {
   const d = new Date(value);
   if (Number.isNaN(d.getTime())) return null;
   return {
-    date: d.toLocaleDateString(locale, { weekday: 'short', month: 'short', day: 'numeric' }),
+    date: formatDisplayDate(d, lang, { weekday: 'short', month: 'short', day: 'numeric' }),
     time: d.toLocaleTimeString('en-ET', { hour: '2-digit', minute: '2-digit' }),
   };
 }
@@ -82,9 +83,16 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   const toggleSeat = (seatName: string) => {
     const seat = seatLayout?.seats.find((s) => s.name === seatName);
-    if (!seat || !isSelectableSeat(seat.type)) return;
+    if (!seat) return;
+    const alreadySelected = selectedSeats.includes(seatName);
 
-    if (selectedSeats.includes(seatName)) {
+    // A seat already in this booking can look "pending/sold" on a fresh layout
+    // fetch simply because this booking itself is holding it — that must never
+    // block deselecting it. Only block newly selecting a seat genuinely held
+    // by someone else.
+    if (!alreadySelected && !isSelectableSeat(seat.type)) return;
+
+    if (alreadySelected) {
       onSeatSelect(selectedSeats.filter((s) => s !== seatName));
     } else {
       if (selectedSeats.length >= 4) {
@@ -155,8 +163,13 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
   });
 
   const total = bus.price * selectedSeats.length;
-  const departure = formatDateTime(bus.departureTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
-  const arrival = formatDateTime(bus.arrivalTime, i18n.language === 'am' ? 'am-ET' : 'en-ET');
+  const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
+  const departure = formatDateTime(bus.departureTime, displayLang);
+  const arrival = formatDateTime(bus.arrivalTime, displayLang);
+  const totalBookableSeats = rows.reduce(
+    (sum, { items }) => sum + items.filter((item) => item.kind === 'seat').length,
+    0,
+  );
 
   const legend = (
     <div className="flex flex-wrap items-center justify-center gap-4 mt-5 pt-4 border-t border-[var(--border)] text-xs font-semibold text-[var(--text-secondary)]">
@@ -226,6 +239,129 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
 
   return (
     <div className="pb-28 lg:pb-10">
+      {/* ============ MOBILE — compact native-app seat map ============ */}
+      <div className="lg:hidden">
+        <ScreenCard className="mb-2.5 space-y-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <h1 className="text-[15px] font-bold text-[var(--text-primary)] truncate">{bus.from} → {bus.to}</h1>
+            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-800">
+              {t('seats.confirmedSchedule')}
+            </span>
+          </div>
+          <p className="text-xs text-[var(--text-muted)] leading-relaxed">
+            {bus.operator}{bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''} · {bus.type}
+            {departure && (
+              <>
+                <br />
+                {departure.date} · {t('seats.departsAt', { time: departure.time })}
+              </>
+            )}
+          </p>
+          <span
+            className="inline-block rounded-full px-2.5 py-1 text-xs font-bold"
+            style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+          >
+            {t('seats.pricePerSeatMeta', { price: bus.price })}
+          </span>
+        </ScreenCard>
+
+        <div className="flex items-center justify-between px-0.5 mb-0.5">
+          <h2 className="text-[15px] font-bold text-[var(--text-primary)]">{t('seats.selectSeatTitle')}</h2>
+          <span
+            className="shrink-0 text-[11px] font-semibold px-2 py-0.5 rounded-full"
+            style={{ backgroundColor: 'var(--blue-50)', color: 'var(--blue-700)' }}
+          >
+            {bus.type}
+          </span>
+        </div>
+        <p className="text-xs text-[var(--text-muted)] mb-2.5 px-0.5">
+          {bus.operator} · {t('seats.maxSeatsNote', { count: 4 })} · {t('seats.totalSeatsNote', { count: totalBookableSeats })}
+        </p>
+
+        <ScreenCard className="p-3">
+          <div className="text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)] mb-2.5">
+            🪟 {t('seats.frontWindshield')}
+          </div>
+
+          <div className="flex items-center justify-between rounded-xl bg-[var(--surface-muted)] px-3 py-2 mb-3">
+            <div className="flex items-center gap-2 text-[13px] font-bold uppercase tracking-wide text-[var(--text-primary)]">
+              <span className="w-[26px] h-[26px] rounded-[7px] bg-slate-900 text-white flex items-center justify-center text-sm shrink-0">🚗</span>
+              {t('seats.driver')}
+            </div>
+            <span className="shrink-0 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-semibold px-2.5 py-1">
+              {t('seats.entryDoor')} 🚪
+            </span>
+          </div>
+
+          <div className="flex flex-col gap-1.5">
+            {rows.map(({ rowNumber, items }) => {
+              const cells = items.filter((item) => item.kind !== 'driver');
+              return (
+                <div key={rowNumber} className="flex items-center justify-center gap-1">
+                  {cells.map((item) => {
+                    if (item.kind === 'gap') {
+                      return (
+                        <span key={item.key} className="w-4 shrink-0 text-center text-[9px] font-semibold text-slate-400">
+                          {t('seats.rowShort', { row: rowNumber })}
+                        </span>
+                      );
+                    }
+                    const { seat } = item;
+                    const selected = selectedSeats.includes(seat.name);
+                    const sold = isUnavailableSeat(seat.type) && !selected;
+                    return (
+                      <button
+                        key={seat.id}
+                        type="button"
+                        onClick={() => toggleSeat(seat.name)}
+                        disabled={sold}
+                        aria-pressed={selected}
+                        aria-label={t(selected ? 'seats.ariaSelectedSeat' : 'seats.ariaAvailableSeat', { name: seat.name, price: bus.price })}
+                        className={`flex h-10 w-[34px] shrink-0 flex-col items-center justify-center rounded-t-[7px] rounded-b-[3px] text-[11px] font-bold transition disabled:cursor-not-allowed ${
+                          selected
+                            ? 'bg-amber-500 text-white ring-2 ring-amber-300'
+                            : sold
+                              ? 'bg-slate-200 text-slate-400'
+                              : 'bg-blue-100 text-blue-800'
+                        }`}
+                      >
+                        <span className="text-[13px] leading-none">💺</span>
+                        <span className="mt-0.5 leading-none">{seat.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-3 pt-2.5 border-t border-dashed border-[var(--border)] text-center text-[11px] font-semibold uppercase tracking-wide text-[var(--text-muted)]">
+            {t('seats.rearBaggage')}
+          </div>
+        </ScreenCard>
+
+        <ScreenCard className="mt-2.5 flex items-center justify-around py-2.5">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-blue-100 shrink-0" />
+            {t('booking.legend.available')}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-amber-500 shrink-0" />
+            {t('booking.legend.selected')}
+          </span>
+          <span className="flex items-center gap-1.5 text-xs font-medium text-[var(--text-secondary)]">
+            <span className="w-4 h-5 rounded-t-[4px] rounded-b-[2px] bg-slate-200 shrink-0" />
+            {t('seats.sold')}
+          </span>
+        </ScreenCard>
+
+        <p className="text-center text-xs text-[var(--text-muted)] px-4 py-3.5 leading-relaxed">
+          {t('seats.tapHint', { count: 4 })}
+        </p>
+      </div>
+
+      {/* ============ DESKTOP / TABLET — rich seat chrome + sidebar ============ */}
+      <div className="hidden lg:block">
       <ScreenCard className="mb-4 lg:p-5">
         <div className="flex items-start justify-between gap-3 flex-wrap">
           <div className="min-w-0">
@@ -236,7 +372,7 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
               </span>
             </div>
             <p className="text-xs text-[var(--text-muted)] mt-1">
-              {bus.operator}{bus.sideNumber ? ` · Side ${bus.sideNumber}` : ''} · {bus.type}
+              {bus.operator}{bus.sideNumber ? ` · ${t('search.sideNumber', { number: bus.sideNumber })}` : ''} · {bus.type}
               {departure ? ` · ${departure.date} · ${t('seats.departsAt', { time: departure.time })}` : ''}
             </p>
           </div>
@@ -340,13 +476,13 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
                 </div>
 
                 <div className="space-y-2 text-xs">
-                  <div className="flex justify-between text-[var(--text-secondary)]">
-                    <span>{t('seats.baseFare', { count: selectedSeats.length })}</span>
-                    <span className="font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
+                  <div className="flex justify-between gap-2 text-[var(--text-secondary)]">
+                    <span className="min-w-0 truncate">{t('seats.baseFare', { count: selectedSeats.length })}</span>
+                    <span className="shrink-0 whitespace-nowrap font-bold text-[var(--text-primary)] tnum">ETB {total}</span>
                   </div>
-                  <div className="pt-2.5 flex justify-between items-baseline border-t border-[var(--border)]">
-                    <span className="text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('seats.totalAmount')}</span>
-                    <span className="font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
+                  <div className="pt-2.5 flex justify-between items-baseline gap-2 border-t border-[var(--border)]">
+                    <span className="min-w-0 truncate text-xs uppercase font-extrabold tracking-wider text-[var(--text-muted)]">{t('seats.totalAmount')}</span>
+                    <span className="shrink-0 whitespace-nowrap font-display text-xl font-black tnum" style={{ color: THEME.brand }}>ETB {total}</span>
                   </div>
                 </div>
 
@@ -366,14 +502,15 @@ export default function SeatSelection({ bus, selectedSeats, onSeatSelect, onCont
           </ScreenCard>
         </div>
       </div>
+      </div>
 
       {selectedSeats.length > 0 && (
         <StickyFooter>
-          <div className="flex items-center justify-between mb-2 text-sm">
-            <span className="text-[var(--text-muted)]">
+          <div className="flex items-center justify-between gap-3 mb-2 text-sm">
+            <span className="min-w-0 truncate text-[var(--text-muted)]">
               {t('common.seatShort', { count: selectedSeats.length, seats: selectedSeats.join(', ') })}
             </span>
-            <span className="font-display font-bold tnum" style={{ color: THEME.brand }}>
+            <span className="shrink-0 whitespace-nowrap font-display font-bold tnum" style={{ color: THEME.brand }}>
               ETB {total}
             </span>
           </div>
@@ -423,19 +560,22 @@ function renderCell(
 
   const { seat, label } = item;
   const { selected, onToggle, price, t } = opts;
-  const sold = isUnavailableSeat(seat.type);
+  // A seat this booking already holds must always render as the rider's own
+  // selection (yellow), even if a fresh layout fetch now reports it as
+  // sold/pending — that status only means someone (this booking) is holding it.
+  const sold = isUnavailableSeat(seat.type) && !selected;
 
   if (sold) {
     return (
       <span className="bus-seat seat-sold" title={t('seats.sold')}>
-        <span className="seat-headrest w-9 h-3 rounded-t-lg mx-auto relative z-10" />
+        <span className="seat-headrest w-10 h-3 rounded-t-lg mx-auto relative z-10" />
         <span className="w-full flex items-center justify-center relative">
           <span className="seat-armrest w-1.5 h-9 rounded-full -mr-0.5 z-20" />
           <span className="flex-1 flex flex-col">
             <span className="seat-backrest h-4 rounded-t-sm block" />
-            <span className="seat-cushion h-8 rounded-b-xl flex flex-col items-center justify-center">
-              <span className="text-xs font-black text-slate-200 leading-none">{seat.name}</span>
-              <span className="text-[7px] font-bold text-slate-300 uppercase tracking-tight mt-0.5">{t('seats.sold')}</span>
+            <span className="seat-cushion h-9 rounded-b-xl flex flex-col items-center justify-center gap-0.5">
+              <Armchair className="w-3.5 h-3.5 text-slate-300" aria-hidden="true" />
+              <span className="text-[13px] font-black text-slate-200 leading-none">{seat.name}</span>
             </span>
           </span>
           <span className="seat-armrest w-1.5 h-9 rounded-full -ml-0.5 z-20" />
@@ -448,21 +588,25 @@ function renderCell(
     <button
       type="button"
       onClick={onToggle}
+      aria-pressed={selected}
+      aria-label={t(selected ? 'seats.ariaSelectedSeat' : 'seats.ariaAvailableSeat', { name: seat.name, price })}
       className={`bus-seat cursor-pointer ${selected ? 'seat-selected' : 'seat-available'}`}
       title={seat.name}
     >
-      <span className="seat-headrest w-9 h-3 rounded-t-lg mx-auto relative z-10 flex items-center justify-center">
+      <span className="seat-headrest w-10 h-3 rounded-t-lg mx-auto relative z-10 flex items-center justify-center">
         {label && <span className={`text-[7px] font-black ${selected ? 'text-amber-100' : 'text-sky-200'}`}>{label === 'window' ? 'W' : 'A'}</span>}
       </span>
       <span className="w-full flex items-center justify-center relative">
         <span className="seat-armrest w-1.5 h-9 rounded-full -mr-0.5 z-20" />
         <span className="flex-1 flex flex-col">
           <span className="seat-backrest h-4 rounded-t-sm block" />
-          <span className="seat-cushion h-8 rounded-b-xl flex flex-col items-center justify-center">
-            <span className="text-xs font-black text-white leading-none">{seat.name}</span>
-            <span className={`text-[7px] font-bold uppercase tracking-tight mt-0.5 ${selected ? 'text-amber-100' : 'text-sky-200'}`}>
-              {selected ? t('seats.selectedBadge') : `ETB ${price}`}
-            </span>
+          <span className="seat-cushion h-9 rounded-b-xl flex flex-col items-center justify-center gap-0.5">
+            {selected ? (
+              <Check className="w-3.5 h-3.5 text-amber-100" aria-hidden="true" />
+            ) : (
+              <Armchair className="w-3.5 h-3.5 text-sky-200" aria-hidden="true" />
+            )}
+            <span className="text-[13px] font-black text-white leading-none">{seat.name}</span>
           </span>
         </span>
         <span className="seat-armrest w-1.5 h-9 rounded-full -ml-0.5 z-20" />

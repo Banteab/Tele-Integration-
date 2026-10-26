@@ -10,12 +10,13 @@ import AppShell from './components/AppShell';
 import Hero from './components/Hero';
 import MobileHeader from './components/MobileHeader';
 import DesktopNav from './components/DesktopNav';
-import { SearchParams, Bus, PassengerInfo, User } from './types';
+import { SearchParams, Bus, PassengerInfo, User, Ticket } from './types';
 import BookingSteps from './components/booking/BookingSteps';
 import SearchResults from './components/booking/SearchResults';
 import SeatSelection from './components/booking/SeatSelection';
 import PassengerDetails from './components/booking/PassengerDetails';
 import Payment from './components/booking/Payment';
+import ResumePayment from './components/booking/ResumePayment';
 import TicketSuccess from './components/booking/TicketSuccess';
 import {
   buildPassengerPrefill,
@@ -31,19 +32,21 @@ const STEP_TITLE_KEYS: Record<string, string> = {
   seats: 'steps.seats',
   passenger: 'steps.passenger',
   payment: 'steps.payment',
+  resumePayment: 'steps.payment',
   success: 'steps.success',
 };
 
 export default function App() {
   const { t } = useTranslation();
   const [step, setStep] = useState<
-    'home' | 'search' | 'seats' | 'passenger' | 'payment' | 'success'
+    'home' | 'search' | 'seats' | 'passenger' | 'payment' | 'resumePayment' | 'success'
   >('home');
   const [searchParams, setSearchParams] = useState<SearchParams | null>(null);
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
   const [passengerInfo, setPassengerInfo] = useState<PassengerInfo | null>(null);
   const [ticketReference, setTicketReference] = useState('');
+  const [resumeTicket, setResumeTicket] = useState<Ticket | null>(null);
   const [isSearching, setIsSearching] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [telebirrProfile, setTelebirrProfile] = useState<TelebirrProfile | undefined>();
@@ -91,19 +94,47 @@ export default function App() {
     setSelectedSeats([]);
     setPassengerInfo(null);
     setTicketReference('');
+    setResumeTicket(null);
     setIsSearching(false);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /** Returning from the results list to Home keeps the searched from/to/date
+   *  intact (Hero prefills from it) instead of wiping the search entirely. */
+  const backToHome = () => {
+    setStep('home');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const goBack = () => {
     const flow: Record<string, () => void> = {
-      search: resetBooking,
+      search: backToHome,
       seats: () => setStep('search'),
       passenger: () => setStep('seats'),
       payment: () => setStep('passenger'),
+      resumePayment: () => {
+        setResumeTicket(null);
+        backToHome();
+      },
       success: resetBooking,
     };
     flow[step]?.();
+  };
+
+  /** "Pay now" on a pending ticket from the Tickets tab — resume payment for
+   *  that existing ticket instead of starting a brand-new booking, since the
+   *  backend rejects a new ticket while one is already pending. */
+  const handleResumePayment = (ticket: Ticket) => {
+    setResumeTicket(ticket);
+    setStep('resumePayment');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  /** A seat the rider picked was taken by someone else before checkout completed —
+   *  send them back to pick a different one instead of leaving them stuck on a dead payment. */
+  const handleSeatConflict = () => {
+    setSelectedSeats([]);
+    setStep('seats');
   };
 
   const handleSelectBus = (bus: Bus) => {
@@ -121,7 +152,7 @@ export default function App() {
             <SearchResults
               searchParams={searchParams!}
               onSelectBus={handleSelectBus}
-              onBack={resetBooking}
+              onBack={backToHome}
               isLoading={isSearching}
             />
           </>
@@ -176,8 +207,24 @@ export default function App() {
               }}
               onBack={() => setStep('passenger')}
               onAuthSuccess={applyAuth}
+              onSeatConflict={handleSeatConflict}
             />
           </>
+        );
+      case 'resumePayment':
+        return (
+          <ResumePayment
+            ticket={resumeTicket!}
+            onPaid={() => {
+              setResumeTicket(null);
+              setStep('home');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onBack={() => {
+              setResumeTicket(null);
+              backToHome();
+            }}
+          />
         );
       case 'success':
         return (
@@ -208,6 +255,8 @@ export default function App() {
             userPhone={displayPhone}
             onSearch={handleSearch}
             has3DBackground={false}
+            initialSearch={searchParams ?? undefined}
+            onResumePayment={handleResumePayment}
           />
         ) : (
           <div

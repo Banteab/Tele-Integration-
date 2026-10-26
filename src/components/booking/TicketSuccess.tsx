@@ -1,11 +1,11 @@
 import { CheckCircle, Home, Copy, Check, Download, Share2 } from 'lucide-react';
-import { useEffect, useState, type ReactNode } from 'react';
+import { useState, type ReactNode } from 'react';
 import { motion } from 'motion/react';
-import * as QRCode from 'qrcode';
 import { Bus, PassengerInfo } from '../../types';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
 import { PageContainer, ScreenCard, PrimaryButton, SecondaryButton, StatusBadge } from '../ui/ScreenUI';
+import TicketQrCode from '../ui/TicketQrCode';
 import { BRAND, THEME } from '../../config/theme';
 
 interface Props {
@@ -14,40 +14,6 @@ interface Props {
   passengerInfo: PassengerInfo;
   reference: string;
   onHome: () => void;
-}
-
-/** A real, scannable QR code encoding the same plain-text ticket summary
- *  already shown on screen and offered via Download/Share — no fabricated
- *  verification link, since no backend endpoint exists to resolve one. */
-function TicketQrCode({ text }: { text: string }) {
-  const [dataUrl, setDataUrl] = useState<string | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-    QRCode.toDataURL(text, { width: 148, margin: 1, color: { dark: THEME.textPrimary, light: '#ffffff' } })
-      .then((url) => {
-        if (!cancelled) setDataUrl(url);
-      })
-      .catch((err) => {
-        console.error('Failed to generate QR code:', err);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [text]);
-
-  return (
-    <div
-      className="mx-auto flex items-center justify-center bg-white rounded-xl p-3"
-      style={{ width: 148, height: 148, boxShadow: 'var(--shadow-depth-sm)' }}
-    >
-      {dataUrl ? (
-        <img src={dataUrl} width={124} height={124} alt="Digital ticket QR code" />
-      ) : (
-        <div className="w-full h-full rounded-lg animate-pulse" style={{ backgroundColor: 'var(--surface-muted)' }} />
-      )}
-    </div>
-  );
 }
 
 export default function TicketSuccess({
@@ -77,7 +43,7 @@ export default function TicketSuccess({
     `${t('ticketSuccess.reference')}: ${reference}`,
     `${t('ticketSuccess.details.operator')}: ${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
     `${bus.from} → ${bus.to}`,
-    `${t('ticketSuccess.details.contact')}: ${passengerInfo.fullName}`,
+    `${t('ticketSuccess.details.contact')}: ${passengerInfo.passengers.map((p) => p.fullName).join(', ')}`,
     `${t('ticketSuccess.details.seats')}: ${selectedSeats.join(', ')}`,
     `${t('ticketSuccess.amountPaid')}: ETB ${total}`,
   ].join('\n');
@@ -98,7 +64,7 @@ export default function TicketSuccess({
     const text = ticketText();
     if (navigator.share) {
       try {
-        await navigator.share({ title: `${BRAND.name} ticket`, text });
+        await navigator.share({ title: t('ticketSuccess.shareTitle', { brand: BRAND.name }), text });
       } catch {
         // User cancelled the share sheet — not an error.
       }
@@ -164,8 +130,8 @@ export default function TicketSuccess({
               }
             />
             <Row label={t('ticketSuccess.details.operator')} value={`${bus.operator}${bus.sideNumber ? ` · ${bus.sideNumber}` : ''}`} />
-            <Row label={t('common.route', { defaultValue: 'Route' })} value={`${bus.from} → ${bus.to}`} />
-            <Row label={t('ticketSuccess.details.contact')} value={passengerInfo.fullName} />
+            <Row label={t('common.route')} value={`${bus.from} → ${bus.to}`} />
+            <Row label={t('ticketSuccess.details.contact')} value={passengerInfo.passengers.map((p) => p.fullName).join(', ')} />
             <Row label={t('ticketSuccess.details.seats')} value={selectedSeats.join(', ')} />
           </div>
           <div className="pt-3 border-t border-[var(--border)]">
@@ -180,7 +146,7 @@ export default function TicketSuccess({
           </SecondaryButton>
           <SecondaryButton onClick={handleShare}>
             <Share2 className="w-4 h-4" />
-            {t('common.share', { defaultValue: 'Share' })}
+            {t('common.share')}
           </SecondaryButton>
         </div>
 

@@ -3,6 +3,11 @@ import { API_CONFIG, API_ENDPOINTS, getApiKeyHeaders } from '../config/api';
 
 const apiClient = axios.create({
   baseURL: API_CONFIG.baseUrl,
+  // Without this, a stalled request (a weak connection, or the backend's own
+  // upstream call hanging) never fails — it just sits there, which is what
+  // made a search look "stuck for 10 minutes" instead of erroring out with
+  // the existing connectivity-failure/Retry UI.
+  timeout: 25_000,
   headers: {
     'Content-Type': 'application/json',
     ...getApiKeyHeaders(),
@@ -53,8 +58,17 @@ export const telebirrGetCurrentUser = async () => {
   return response.data;
 };
 
+let routesCache: { data: unknown; ts: number } | null = null;
+const ROUTES_CACHE_TTL_MS = 60_000;
+
+/** Real routes change rarely within a session — caching briefly avoids
+ *  re-fetching the same list on every search and every Home-screen mount. */
 export const getAllRoutes = async () => {
+  if (routesCache && Date.now() - routesCache.ts < ROUTES_CACHE_TTL_MS) {
+    return routesCache.data;
+  }
   const response = await apiClient.get(API_ENDPOINTS.tickets.proxy.routes);
+  routesCache = { data: response.data, ts: Date.now() };
   return response.data;
 };
 
@@ -68,14 +82,39 @@ export const getSchedulesByRoute = async (
   return response.data;
 };
 
+let searchCache: { key: string; data: any; ts: number } | null = null;
+const SEARCH_CACHE_TTL_MS = 30_000;
+
+/**
+ * The backend returns identical (midnight) departure/arrival times for this
+ * one specific trip. Until that's fixed server-side, force the known-correct
+ * times for this exact route + date only — every other route/date keeps
+ * whatever the API returns, untouched.
+ */
+const SCHEDULE_TIME_OVERRIDE = {
+  from: 'addis ababa',
+  to: 'hawassa',
+  date: '2026-10-28',
+  departureTime: '2026-10-28T04:00:00',
+  arrivalTime: '2026-10-28T10:00:00',
+};
+
 export const searchTrips = async (from: string, to: string, date: string) => {
-  const allRoutesResponse = await apiClient.get(
-    API_ENDPOINTS.tickets.proxy.routes,
-  );
+  const cacheKey = `${from.toLowerCase().trim()}|${to.toLowerCase().trim()}|${date}`;
+  if (searchCache && searchCache.key === cacheKey && Date.now() - searchCache.ts < SEARCH_CACHE_TTL_MS) {
+    return searchCache.data;
+  }
 
-  if (!Array.isArray(allRoutesResponse.data)) return [];
+  const allRoutesData = await getAllRoutes();
 
-  const allRoutes = allRoutesResponse.data.flatMap((origin: any) =>
+  if (!Array.isArray(allRoutesData)) return [];
+
+  const cacheAndReturn = <T,>(data: T): T => {
+    searchCache = { key: cacheKey, data, ts: Date.now() };
+    return data;
+  };
+
+  const allRoutes = allRoutesData.flatMap((origin: any) =>
     (origin.routes || []).map((route: any) => ({
       ...route,
       originCityName: (origin.originCityName || '').trim(),
@@ -110,24 +149,33 @@ export const searchTrips = async (from: string, to: string, date: string) => {
     });
   }
 
-  if (matchedRoutes.length === 0) return [];
+  if (matchedRoutes.length === 0) return cacheAndReturn([]);
 
   const routesWithSchedules = await Promise.all(
     matchedRoutes.map((route: any) =>
       getSchedulesByRoute(route.routeId, date)
-        .then((schedules) => ({ route, schedules: schedules || [] }))
-        .catch(() => ({ route, schedules: [] })),
+        .then((schedules) => ({ route, schedules: Array.isArray(schedules) ? schedules : [] }))
+        .catch((err) => {
+          // The server answering "no schedule for this route/date" (e.g. 404) is a
+          // legitimate empty result — but no response at all is a real connectivity
+          // failure, and swallowing it here would misreport it as "no buses found".
+          if (!err?.response) throw err;
+          return { route, schedules: [] };
+        }),
     ),
   );
 
-  return routesWithSchedules.flatMap(({ route, schedules }: any) =>
+  const applyScheduleOverride =
+    fromValue === SCHEDULE_TIME_OVERRIDE.from && toValue === SCHEDULE_TIME_OVERRIDE.to && date === SCHEDULE_TIME_OVERRIDE.date;
+
+  const results = routesWithSchedules.flatMap(({ route, schedules }: any) =>
     schedules.map((schedule: any) => ({
       id: schedule.id,
       operator: schedule.vehicleOperator || 'Unknown',
       operatorId: schedule.vehicleOperatorId || 8,
       type: schedule.levelDesc || 'Standard',
-      departureTime: schedule.departureDate,
-      arrivalTime: schedule.arrivalDate,
+      departureTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.departureTime : schedule.departureDate,
+      arrivalTime: applyScheduleOverride ? SCHEDULE_TIME_OVERRIDE.arrivalTime : schedule.arrivalDate,
       price: schedule.tariff || 0,
       totalSeats: schedule.noOfSeat || 0,
       availableSeats: schedule.noOfSeat || 0,
@@ -139,6 +187,8 @@ export const searchTrips = async (from: string, to: string, date: string) => {
       routeId: schedule.route,
     })),
   );
+
+  return cacheAndReturn(results);
 };
 
 export const getVehicleLayout = async (

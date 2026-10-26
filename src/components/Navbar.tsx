@@ -68,7 +68,7 @@ export default function Navbar({ onHomeClick, onCancelClick }: Props) {
 
             <div className="flex items-center gap-2 text-[#7a1f35] font-semibold bg-amber-50 px-4 py-2 rounded-full border border-[#e8dcc8]">
               <Phone className="w-4 h-4" />
-              <span>8000</span>
+              <span>9439</span>
             </div>
           </div>
 
@@ -129,7 +129,7 @@ export default function Navbar({ onHomeClick, onCancelClick }: Props) {
               ))}
               <div className="flex items-center gap-2 text-[#7a1f35] font-semibold px-3 py-2">
                 <Phone className="w-4 h-4" />
-                <span>8000</span>
+                <span>9439</span>
               </div>
             </div>
           </motion.div>

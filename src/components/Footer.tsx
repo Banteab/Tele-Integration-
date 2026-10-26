@@ -103,7 +103,7 @@ export default function Footer() {
                     <Phone className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
                     <div>
                       <p className="text-sm leading-6">Call Center</p>
-                      <a href="tel:8000" className="text-lg font-semibold text-white hover:text-blue-400 transition-colors">8000</a>
+                      <a href="tel:9439" className="text-lg font-semibold text-white hover:text-blue-400 transition-colors">9439</a>
                       <p className="text-sm text-gray-400 mt-1">0911-000333</p>
                       <p className="text-sm text-gray-400">+251 911444222</p>
                     </div>
@@ -126,7 +126,7 @@ export default function Footer() {
             <div className="flex items-center gap-4">
               <span className="text-xs text-gray-500">{t('footer.payment')}:</span>
               <div className="flex gap-2">
-                <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">Telebirr</div>
+                <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">telebirr</div>
                 <div className="w-10 h-6 bg-gray-800 rounded border border-gray-700 flex items-center justify-center text-[10px] font-bold">CBE Birr</div>
               </div>
             </div>

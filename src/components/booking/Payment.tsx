@@ -1,4 +1,4 @@
-import { ShieldCheck, Loader2, Clock, Smartphone, LogIn, UserPlus } from 'lucide-react';
+import { ShieldCheck, Loader2, Clock, Smartphone, LogIn, UserPlus, AlertTriangle, RefreshCw, Armchair } from 'lucide-react';
 import { Bus, PassengerInfo, SearchParams } from '../../types';
 import { useState, useEffect, useRef } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -13,6 +13,7 @@ import { buildTicketPayload } from '../../services/ticketPayload';
 import { isTelebirrH5Host, startTelebirrPay } from '../../services/telebirrPay';
 import { tryTelebirrAutoLogin, type TelebirrProfile } from '../../services/telebirrAuth';
 import { API_CONFIG } from '../../config/api';
+import { isInsufficientBalanceError } from '../../utils/paymentErrors';
 import type { User } from '../../types';
 import {
   ScreenCard,
@@ -33,6 +34,8 @@ interface Props {
   onPaid: (reference: string) => void;
   onBack: () => void;
   onAuthSuccess?: (user: User, telebirrProfile?: TelebirrProfile) => void;
+  /** A selected seat was booked by someone else before checkout finished. */
+  onSeatConflict?: () => void;
 }
 
 /**
@@ -41,7 +44,7 @@ interface Props {
  * 2. POST /payment/preorder → rawRequest (backend: fabric token + preOrder + sign)
  * 3. js_fun_start_pay via consumerapp.evaluate (user PIN in Super App)
  * 4. Poll GET /tickets/status/:reference until issued or cancelled
- * 5. Telebirr notify → backend confirms ticket (notify-only; query-order fallback disabled)
+ * 5. telebirr notify → backend confirms ticket (notify-only; query-order fallback disabled)
  */
 export default function Payment({
   bus,
@@ -51,12 +54,15 @@ export default function Payment({
   onPaid,
   onBack,
   onAuthSuccess,
+  onSeatConflict,
 }: Props) {
   const { t } = useTranslation();
   const [isProcessing, setIsProcessing] = useState(false);
   const [isWaitingForPayment, setIsWaitingForPayment] = useState(false);
   const [statusMessage, setStatusMessage] = useState('');
   const [timeRemaining, setTimeRemaining] = useState(45 * 60);
+  const [paymentError, setPaymentError] = useState<string | null>(null);
+  const [seatConflict, setSeatConflict] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(() =>
     Boolean(localStorage.getItem(API_CONFIG.authTokenKey)),
   );
@@ -64,6 +70,10 @@ export default function Payment({
     null,
   );
   const [autoLoginChecked, setAutoLoginChecked] = useState(false);
+  // Set once ticket creation succeeds, so a "Try again" after a later failure
+  // (e.g. insufficient balance at the preorder step) resumes from the existing
+  // ticket instead of creating a second one for the same seats.
+  const [ticketReference, setTicketReference] = useState<string | null>(null);
   const pollCleanup = useRef<(() => void) | null>(null);
   const totalAmount = bus.price * selectedSeats.length;
   const inH5Host = isTelebirrH5Host();
@@ -71,9 +81,11 @@ export default function Payment({
   const paymentStatus: StatusKind =
     timeRemaining <= 0
       ? 'expired'
-      : isWaitingForPayment || isProcessing
-        ? 'processing'
-        : 'pending';
+      : seatConflict || paymentError
+        ? 'failed'
+        : isWaitingForPayment || isProcessing
+          ? 'processing'
+          : 'pending';
   const paymentStatusLabel = t(`payment.statusLabel.${paymentStatus}`);
 
   useEffect(() => {
@@ -138,11 +150,12 @@ export default function Payment({
           clearInterval(pollInterval);
           clearTimeout(timeoutTimer);
           setIsWaitingForPayment(false);
-          toast.error(t('payment.paymentFailed') || 'Payment cancelled or failed');
+          const message = t('payment.paymentFailed') || 'Payment cancelled or failed';
+          setPaymentError(message);
           return;
         }
 
-        // Query-order fallback disabled — wait for Telebirr POST /payment/notify only.
+        // Query-order fallback disabled — wait for telebirr POST /payment/notify only.
         // queryAttempts += 1;
         // if (queryAttempts % 3 === 0) {
         //   const queried = await queryPaymentOrder(reference);
@@ -156,7 +169,8 @@ export default function Payment({
     const timeoutTimer = setTimeout(() => {
       clearInterval(pollInterval);
       setIsWaitingForPayment(false);
-      toast.error(t('payment.paymentTimeout') || 'Payment confirmation timed out');
+      const message = t('payment.paymentTimeout') || 'Payment confirmation timed out';
+      setPaymentError(message);
     }, 45 * 60 * 1000);
 
     pollCleanup.current = () => {
@@ -201,6 +215,9 @@ export default function Payment({
       return;
     }
 
+    setPaymentError(null);
+    setSeatConflict(false);
+
     try {
       setIsProcessing(true);
       setStatusMessage(t('payment.status.checkingSignIn'));
@@ -210,26 +227,50 @@ export default function Payment({
         return;
       }
 
-      setStatusMessage(t('payment.status.creatingTicket'));
-
-      const paymentRefNumber = Math.random()
-        .toString(36)
-        .substring(2, 12)
-        .toUpperCase();
-
-      const ticketPayload = buildTicketPayload(
-        bus,
-        searchParams,
-        passengerInfo,
-        selectedSeats,
-        paymentRefNumber,
-      );
-
-      const ticketResponse = await telebirrCreateTicket(ticketPayload);
-      const reference = ticketResponse?.reference?.[0]?.reference;
+      // A retry after a later failure (e.g. insufficient balance at the
+      // preorder step) must not create a second ticket for the same seats —
+      // reuse the one already created for this session if we have it.
+      let reference = ticketReference;
 
       if (!reference) {
-        throw new Error('No ticket reference from server');
+        setStatusMessage(t('payment.status.creatingTicket'));
+
+        const paymentRefNumber = Math.random()
+          .toString(36)
+          .substring(2, 12)
+          .toUpperCase();
+
+        const ticketPayload = buildTicketPayload(
+          bus,
+          searchParams,
+          passengerInfo,
+          selectedSeats,
+          paymentRefNumber,
+        );
+
+        let ticketResponse: { reference?: { reference?: string }[] };
+        try {
+          ticketResponse = await telebirrCreateTicket(ticketPayload);
+        } catch (ticketError) {
+          const ticketMessage =
+            (ticketError as { response?: { data?: { message?: string } } })?.response?.data?.message ||
+            (ticketError as Error)?.message ||
+            '';
+          // The seat a rider picked can be booked by someone else between
+          // selection and checkout — the backend rejects ticket creation for it.
+          if (/seat/i.test(ticketMessage)) {
+            setSeatConflict(true);
+            setIsWaitingForPayment(false);
+            return;
+          }
+          throw ticketError;
+        }
+        reference = ticketResponse?.reference?.[0]?.reference;
+
+        if (!reference) {
+          throw new Error('No ticket reference from server');
+        }
+        setTicketReference(reference);
       }
 
       setStatusMessage(t('payment.status.requestingPreorder'));
@@ -257,13 +298,19 @@ export default function Payment({
       setIsWaitingForPayment(true);
       startConfirmationPoll(reference);
     } catch (error) {
+      // Logged for internal diagnosis only — never shown to the customer
+      // as-is, and nothing beyond the error itself (no PIN, card, or token
+      // data ever passes through this catch) is included.
       console.error('Payment failed:', error);
-      const message =
+      const rawMessage =
         (error as { response?: { data?: { message?: string } } })?.response
           ?.data?.message ||
         (error as Error)?.message ||
-        t('payment.failed');
-      toast.error(message);
+        '';
+      const message = isInsufficientBalanceError(rawMessage)
+        ? t('payment.insufficientBalance')
+        : rawMessage || t('payment.failed');
+      setPaymentError(message);
       setIsWaitingForPayment(false);
     } finally {
       setIsProcessing(false);
@@ -305,6 +352,37 @@ export default function Payment({
         <ScreenCard className="space-y-4 mb-3 lg:mb-0 lg:p-8">
           <StatusBadge status={paymentStatus} label={paymentStatusLabel} />
 
+          {seatConflict && (
+            <div
+              className="p-3 rounded-xl border text-sm space-y-3"
+              style={{ backgroundColor: 'var(--status-failed-bg)', borderColor: 'var(--status-failed-fg)', color: 'var(--status-failed-fg)' }}
+            >
+              <div className="flex items-start gap-2.5">
+                <Armchair className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>{t('payment.seatConflict')}</p>
+              </div>
+              <PrimaryButton fullWidth={false} className="!py-2.5" onClick={onSeatConflict}>
+                {t('payment.chooseAnotherSeat')}
+              </PrimaryButton>
+            </div>
+          )}
+
+          {!seatConflict && paymentError && (
+            <div
+              className="p-3 rounded-xl border text-sm space-y-3"
+              style={{ backgroundColor: 'var(--status-failed-bg)', borderColor: 'var(--status-failed-fg)', color: 'var(--status-failed-fg)' }}
+            >
+              <div className="flex items-start gap-2.5">
+                <AlertTriangle className="w-5 h-5 shrink-0 mt-0.5" />
+                <p>{paymentError}</p>
+              </div>
+              <PrimaryButton fullWidth={false} className="!py-2.5" onClick={handlePayment} disabled={isProcessing || timeRemaining <= 0}>
+                <RefreshCw className="w-4 h-4" />
+                {t('payment.tryAgain')}
+              </PrimaryButton>
+            </div>
+          )}
+
           {autoLoginChecked && !isAuthenticated && (
             <div
               className="p-3 rounded-xl border text-sm space-y-3"
@@ -341,7 +419,10 @@ export default function Payment({
           <div className="space-y-2 text-sm">
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">{t('payment.passengerLabel')}</span>
-              <span className="font-medium">{passengerInfo.fullName}</span>
+              <span className="font-medium">
+                {passengerInfo.passengers[0]?.fullName}
+                {passengerInfo.passengers.length > 1 ? ` +${passengerInfo.passengers.length - 1}` : ''}
+              </span>
             </div>
             <div className="flex justify-between">
               <span className="text-[var(--text-muted)]">{t('payment.seatsLabel')}</span>
