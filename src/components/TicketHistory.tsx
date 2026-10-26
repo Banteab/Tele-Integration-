@@ -84,17 +84,27 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
     return t(key, { defaultValue: status });
   };
 
+  // The backend doesn't always include these on a history record — only
+  // ever show/encode them when it actually sent a value.
+  const busNumber = (ticket: Ticket) => ticket.sideNumber || ticket.vehiclePlateNumber;
+  const pickupLocation = (ticket: Ticket) => ticket.pickupLocation || ticket.originTerminalName;
+  const destinationLocation = (ticket: Ticket) => ticket.destinationTerminalName;
+
   /** Builds a plain-text ticket summary from data already on screen — no fabricated fields, no server round-trip. */
-  const ticketLines = (ticket: Ticket) => [
-    `${BRAND.name} — ${t('ticketHistory.title')} — ${ticket.operator}`,
-    `${t('common.ref')}: ${ticket.refNumber}`,
-    `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
-    ticket.route,
-    `${t('common.date')}: ${formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}`,
-    `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
-    `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
-    `${t('common.amount')}: ETB ${ticket.totalAmount}`,
-  ];
+  const ticketLines = (ticket: Ticket) =>
+    [
+      `${BRAND.name} — ${t('ticketHistory.title')} — ${ticket.operator}`,
+      `${t('common.ref')}: ${ticket.refNumber}`,
+      `${t('ticketHistory.title')} ${t('common.status')}: ${getStatusLabel(ticket.status)}`,
+      ticket.route,
+      busNumber(ticket) ? `${t('search.sideNumber', { number: busNumber(ticket) })}` : null,
+      pickupLocation(ticket) ? `${t('ticketHistory.pickup')}: ${pickupLocation(ticket)}` : null,
+      destinationLocation(ticket) ? `${t('ticketHistory.destination')}: ${destinationLocation(ticket)}` : null,
+      `${t('common.date')}: ${formatDisplayDateNumeric(new Date(ticket.departureDate), displayLang)}`,
+      `${t('common.time')}: ${ticket.departureTime} - ${ticket.arrivalTime}`,
+      `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
+      `${t('common.amount')}: ETB ${ticket.totalAmount}`,
+    ].filter((line): line is string => Boolean(line));
 
   const handleDownload = (ticket: Ticket) => {
     const lines = ticketLines(ticket);
@@ -179,8 +189,17 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
                 <h3 className="font-display font-bold text-[var(--text-primary)] text-[15px]">{ticket.operator}</h3>
                 <StatusBadge status={getStatusKind(ticket.status)} label={getStatusLabel(ticket.status)} />
               </div>
-              <p className="text-sm text-[var(--text-secondary)]">{ticket.route}</p>
+              <p className="text-sm text-[var(--text-secondary)]">
+                {ticket.route}
+                {busNumber(ticket) && <span className="text-[var(--text-muted)]"> · {t('search.sideNumber', { number: busNumber(ticket) })}</span>}
+              </p>
               <div className="grid grid-cols-2 gap-2 text-xs">
+                {pickupLocation(ticket) && (
+                  <div className="col-span-2">
+                    <p className="text-[var(--text-muted)]">{t('ticketHistory.pickup')}</p>
+                    <p className="font-semibold text-[var(--text-primary)]">{pickupLocation(ticket)}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-[var(--text-muted)]">{t('common.ref')}</p>
                   <p className="font-semibold text-[var(--text-primary)] tnum">{ticket.refNumber}</p>
@@ -269,7 +288,10 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
             <div className="flex justify-between items-start mb-4">
               <div>
                 <h3 className="font-display text-lg font-bold text-[var(--text-primary)]">{selectedTicket.operator}</h3>
-                <p className="text-sm text-[var(--text-muted)]">{selectedTicket.route}</p>
+                <p className="text-sm text-[var(--text-muted)]">
+                  {selectedTicket.route}
+                  {busNumber(selectedTicket) && ` · ${t('search.sideNumber', { number: busNumber(selectedTicket) })}`}
+                </p>
               </div>
               <button
                 type="button"
@@ -282,6 +304,22 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
             </div>
 
             <div className="space-y-4 text-sm">
+              {(pickupLocation(selectedTicket) || destinationLocation(selectedTicket)) && (
+                <div className="grid grid-cols-2 gap-3">
+                  {pickupLocation(selectedTicket) && (
+                    <div>
+                      <p className="text-[var(--text-muted)] text-xs">{t('ticketHistory.pickup')}</p>
+                      <p className="font-semibold">{pickupLocation(selectedTicket)}</p>
+                    </div>
+                  )}
+                  {destinationLocation(selectedTicket) && (
+                    <div>
+                      <p className="text-[var(--text-muted)] text-xs">{t('ticketHistory.destination')}</p>
+                      <p className="font-semibold">{destinationLocation(selectedTicket)}</p>
+                    </div>
+                  )}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-3">
                 <div>
                   <p className="text-[var(--text-muted)] text-xs">{t('common.reference')}</p>

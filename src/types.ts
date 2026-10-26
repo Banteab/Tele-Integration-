@@ -91,6 +91,13 @@ export interface Ticket {
   totalAmount: number;
   status: 'completed' | 'pending' | 'cancelled';
   createdAt: string;
+  // Not every backend response includes these — render only when present,
+  // never fabricated.
+  sideNumber?: string;
+  vehiclePlateNumber?: string;
+  pickupLocation?: string;
+  originTerminalName?: string;
+  destinationTerminalName?: string;
 }
 
 export interface Booking {
