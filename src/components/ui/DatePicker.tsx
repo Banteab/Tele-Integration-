@@ -5,6 +5,7 @@ import { toEC, toGC } from 'kenat';
 import { useTranslation } from 'react-i18next';
 import {
   ETHIOPIAN_MONTH_NAMES,
+  MONTHS_OM,
   WEEKDAYS_AM,
   WEEKDAYS_OM,
   type DisplayLanguage,
@@ -196,6 +197,9 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
     if (lang === 'am') {
       return `${ETHIOPIAN_MONTH_NAMES.amharic[viewMonth - 1]} ${viewYear}`;
     }
+    if (lang === 'om') {
+      return `${MONTHS_OM[viewMonth - 1]} ${viewYear}`;
+    }
     return new Date(viewYear, viewMonth - 1, 1).toLocaleDateString('en-ET', { month: 'long', year: 'numeric' });
   }, [open, lang, viewYear, viewMonth]);
 
@@ -227,8 +231,7 @@ export default function DatePicker({ value, onChange, lang, min, max, ariaLabel,
     }
     const d = new Date(parsed.y, parsed.m - 1, parsed.d);
     if (lang === 'om') {
-      const monthDay = d.toLocaleDateString('en-ET', { month: 'short', day: 'numeric' });
-      return `${WEEKDAYS_OM[d.getDay()]}, ${monthDay}`;
+      return `${WEEKDAYS_OM[d.getDay()]}, ${MONTHS_OM[d.getMonth()]} ${d.getDate()}`;
     }
     return d.toLocaleDateString('en-ET', { weekday: 'short', month: 'short', day: 'numeric' });
   }, [lang, parsed.y, parsed.m, parsed.d]);

@@ -1,8 +1,8 @@
 /**
  * Ethiopian-calendar date *display* for Amharic only. English and Afaan
  * Oromo both use the ordinary Gregorian calendar — Oromo keeps its own
- * weekday names, but the date itself is numbered the Gregorian way, same
- * as English.
+ * weekday and month names (Qubee), but the date is numbered the Gregorian
+ * way, same as English.
  *
  * Conversion itself is delegated to `kenat` (a dedicated, tested Ethiopian
  * calendar library) rather than hand-rolled — the Gregorian↔Ethiopian
@@ -22,6 +22,11 @@ export type DisplayLanguage = 'en' | 'am' | 'om';
 export const WEEKDAYS_AM = ['እሁድ', 'ሰኞ', 'ማክሰኞ', 'ረቡዕ', 'ሐሙስ', 'ዓርብ', 'ቅዳሜ'];
 // Standard Afaan Oromo weekday names; kenat has no Oromo locale to draw from.
 export const WEEKDAYS_OM = ['Dilbata', 'Wiixata', 'Kibxata', 'Roobii', 'Kamiisa', 'Jimaata', 'Sanbata'];
+// Afaan Oromo (Qubee) names for the Gregorian months; kenat has no Oromo locale to draw from.
+export const MONTHS_OM = [
+  'Amajjii', 'Guraandhala', 'Bitootessa', 'Caamsaa', 'Eebila', 'Waxabajjii',
+  'Adoolessa', 'Hagayya', 'Fuulbana', 'Onkololeessa', 'Sadaasa', 'Muddee',
+];
 
 export { ETHIOPIAN_MONTH_NAMES };
 
@@ -45,10 +50,10 @@ export function formatDisplayDate(date: Date, lang: DisplayLanguage, options: Fo
   }
 
   if (lang === 'om') {
-    // Gregorian calendar, same as English, but with the Afaan Oromo weekday name.
+    // Gregorian calendar, same as English, but with Afaan Oromo weekday and month names.
     const weekday = options.weekday ? WEEKDAYS_OM[date.getDay()] : undefined;
     let dateBody = options.month
-      ? date.toLocaleDateString('en-ET', { month: options.month, day: options.day })
+      ? `${MONTHS_OM[date.getMonth()]} ${date.getDate()}`
       : `${date.getDate()}`;
     if (options.year) dateBody += ` ${date.getFullYear()}`;
     return weekday ? `${weekday}, ${dateBody}` : dateBody;
