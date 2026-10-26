@@ -13,6 +13,7 @@ import { buildTicketPayload } from '../../services/ticketPayload';
 import { isTelebirrH5Host, startTelebirrPay } from '../../services/telebirrPay';
 import { tryTelebirrAutoLogin, type TelebirrProfile } from '../../services/telebirrAuth';
 import { API_CONFIG } from '../../config/api';
+import { isInsufficientBalanceError } from '../../utils/paymentErrors';
 import type { User } from '../../types';
 import {
   ScreenCard,
@@ -35,11 +36,6 @@ interface Props {
   onAuthSuccess?: (user: User, telebirrProfile?: TelebirrProfile) => void;
   /** A selected seat was booked by someone else before checkout finished. */
   onSeatConflict?: () => void;
-}
-
-/** Matches the Telebirr "insufficient balance" error regardless of exact wording. */
-function isInsufficientBalanceError(message: string): boolean {
-  return /insufficient[\s_-]*(service)?[\s_-]*(balance|fund)/i.test(message) || /balance[\s_-]*(is)?[\s_-]*insufficient/i.test(message);
 }
 
 /**

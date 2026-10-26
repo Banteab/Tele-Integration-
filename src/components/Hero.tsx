@@ -22,7 +22,7 @@ import {
   AlertCircle,
   History,
 } from 'lucide-react';
-import { SearchParams } from '../types';
+import { SearchParams, type Ticket as TicketRecord } from '../types';
 import { useTranslation } from 'react-i18next';
 import { getAllRoutes } from '../services/api';
 import { getRecentSearches, addRecentSearch, resolveSearchDate, type RecentSearch } from '../services/recentSearches';
@@ -65,9 +65,11 @@ interface Props {
   has3DBackground?: boolean;
   /** Carries the last search (from the booking flow going back) so fields don't reset to blank. */
   initialSearch?: SearchParams;
+  /** A pending ticket's "Pay now" was tapped from the Tickets tab. */
+  onResumePayment?: (ticket: TicketRecord) => void;
 }
 
-export default function Hero({ userName, userPhone, onSearch, has3DBackground = false, initialSearch }: Props) {
+export default function Hero({ userName, userPhone, onSearch, has3DBackground = false, initialSearch, onResumePayment }: Props) {
   const [activeTab, setActiveTab] = useState<HomeTab>('home');
   // Departure is fixed — the network only departs from Addis Ababa.
   const from = DEPARTURE_CITY;
@@ -788,7 +790,7 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         </>
       )}
 
-      {activeTab === 'tickets' && <TicketHistory embedded />}
+      {activeTab === 'tickets' && <TicketHistory embedded onPayNow={onResumePayment} />}
       {activeTab === 'support' && <SupportPanel />}
       {activeTab === 'about' && <AboutPanel />}
 

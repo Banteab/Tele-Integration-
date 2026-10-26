@@ -399,6 +399,7 @@ export default {
     statusCompleted: 'ተጠናቋል',
     statusPending: 'በመጠባበቅ ላይ',
     statusCancelled: 'ተሰርዟል',
+    payNow: 'አሁን ይክፈሉ',
   },
   ticketSuccess: {
     reference: 'ማጣቀሻ',

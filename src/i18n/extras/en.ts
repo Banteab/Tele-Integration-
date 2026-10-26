@@ -402,6 +402,7 @@ export default {
     statusCompleted: 'completed',
     statusPending: 'pending',
     statusCancelled: 'cancelled',
+    payNow: 'Pay now',
   },
   ticketSuccess: {
     reference: 'Reference',

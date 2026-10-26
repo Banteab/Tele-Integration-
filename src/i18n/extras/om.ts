@@ -399,6 +399,7 @@ export default {
     statusCompleted: "xumurameera",
     statusPending: 'eegaa jira',
     statusCancelled: 'haqameera',
+    payNow: 'Amma Kaffali',
   },
   ticketSuccess: {
     reference: 'Wabii',

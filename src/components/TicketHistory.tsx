@@ -1,4 +1,4 @@
-import { ArrowLeft, Download, Eye, Printer, TicketX, X } from 'lucide-react';
+import { ArrowLeft, CreditCard, Download, Eye, Printer, TicketX, X } from 'lucide-react';
 import { useState, useEffect, Fragment } from 'react';
 import { useTranslation } from 'react-i18next';
 import { toast } from 'sonner';
@@ -7,28 +7,16 @@ import { API_CONFIG } from '../config/api';
 import { EmptyState, PageContainer, ScreenCard, Skeleton, StatusBadge } from './ui/ScreenUI';
 import { THEME, type StatusKind } from '../config/theme';
 import { formatDisplayDateNumeric, type DisplayLanguage } from '../utils/ethiopianCalendar';
-
-interface Ticket {
-  id: string;
-  refNumber: string;
-  operator: string;
-  route: string;
-  departureDate: string;
-  departureTime: string;
-  arrivalTime: string;
-  seats: string[];
-  passengers: string[];
-  totalAmount: number;
-  status: 'completed' | 'pending' | 'cancelled';
-  createdAt: string;
-}
+import type { Ticket } from '../types';
 
 interface Props {
   embedded?: boolean;
   onBack?: () => void;
+  /** A pending ticket's "Pay now" was tapped — resume payment for it instead of booking a new trip. */
+  onPayNow?: (ticket: Ticket) => void;
 }
 
-export default function TicketHistory({ embedded = false, onBack }: Props) {
+export default function TicketHistory({ embedded = false, onBack, onPayNow }: Props) {
   const { t, i18n } = useTranslation();
   const displayLang = (i18n.language === 'am' || i18n.language === 'om' ? i18n.language : 'en') as DisplayLanguage;
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -211,6 +199,17 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                   </p>
                 </div>
               </div>
+              {ticket.status === 'pending' && onPayNow && (
+                <button
+                  type="button"
+                  onClick={() => onPayNow(ticket)}
+                  className="w-full py-2.5 text-xs font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  style={{ backgroundColor: THEME.brand, color: '#fff' }}
+                >
+                  <CreditCard className="w-3.5 h-3.5" />
+                  {t('ticketHistory.payNow')}
+                </button>
+              )}
               <div className="flex gap-2 pt-1 border-t border-[var(--border)]">
                 <button
                   type="button"
@@ -319,6 +318,18 @@ export default function TicketHistory({ embedded = false, onBack }: Props) {
                   ETB {selectedTicket.totalAmount}
                 </span>
               </div>
+
+              {selectedTicket.status === 'pending' && onPayNow && (
+                <button
+                  type="button"
+                  onClick={() => onPayNow(selectedTicket)}
+                  className="w-full py-2.5 text-sm font-bold rounded-lg transition-colors flex items-center justify-center gap-1.5"
+                  style={{ backgroundColor: THEME.brand, color: '#fff' }}
+                >
+                  <CreditCard className="w-4 h-4" />
+                  {t('ticketHistory.payNow')}
+                </button>
+              )}
             </div>
           </div>
         </div>
