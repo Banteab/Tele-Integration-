@@ -48,6 +48,19 @@ export default function TicketSuccess({
     `${t('ticketSuccess.amountPaid')}: ETB ${total}`,
   ].join('\n');
 
+  /** Shorter summary just for the QR code itself — the reference alone is
+   *  enough to look the ticket up, so dropping passenger name and amount
+   *  keeps the encoded data (and so the QR's module density) low enough to
+   *  scan reliably off a phone screen. The full summary above still covers
+   *  download/share, where density doesn't matter. */
+  const qrText = () => [
+    `${BRAND.name} — ${t('ticketSuccess.title')}`,
+    `${t('ticketSuccess.reference')}: ${reference}`,
+    `${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
+    `${bus.from} → ${bus.to}`,
+    `${t('ticketSuccess.details.seats')}: ${selectedSeats.join(', ')}`,
+  ].join('\n');
+
   const handleDownload = () => {
     const blob = new Blob([ticketText()], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -135,7 +148,7 @@ export default function TicketSuccess({
             <Row label={t('ticketSuccess.details.seats')} value={selectedSeats.join(', ')} />
           </div>
           <div className="pt-3 border-t border-[var(--border)]">
-            <TicketQrCode text={ticketText()} />
+            <TicketQrCode text={qrText()} />
           </div>
         </ScreenCard>
 
