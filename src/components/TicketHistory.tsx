@@ -106,6 +106,20 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
       `${t('common.amount')}: ETB ${ticket.totalAmount}`,
     ].filter((line): line is string => Boolean(line));
 
+  /** Shorter summary just for the QR code — the reference alone is enough
+   *  to look the ticket up, so dropping pickup/destination/date/amount
+   *  keeps the encoded data (and so the QR's module density) low enough to
+   *  scan reliably off a phone screen. `ticketLines` above still covers the
+   *  full download, where density doesn't matter. */
+  const qrLines = (ticket: Ticket) =>
+    [
+      `${BRAND.name} — ${ticket.operator}`,
+      `${t('common.ref')}: ${ticket.refNumber}`,
+      busNumber(ticket) ? `${t('search.sideNumber', { number: busNumber(ticket) })}` : null,
+      ticket.route,
+      `${t('payment.seatsLabel')}: ${ticket.seats.join(', ')}`,
+    ].filter((line): line is string => Boolean(line));
+
   const handleDownload = (ticket: Ticket) => {
     const lines = ticketLines(ticket);
     const blob = new Blob([lines.join('\n')], { type: 'text/plain;charset=utf-8' });
@@ -362,7 +376,7 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
 
               {selectedTicket.status === 'completed' && (
                 <div className="border-t border-[var(--border)] pt-3">
-                  <TicketQrCode text={ticketLines(selectedTicket).join('\n')} size={132} />
+                  <TicketQrCode text={qrLines(selectedTicket).join('\n')} size={220} />
                 </div>
               )}
 

@@ -5,14 +5,20 @@ import { THEME } from '../../config/theme';
 
 /** A real, scannable QR code encoding the same plain-text ticket summary
  *  already shown on screen — no fabricated verification link, since no
- *  backend endpoint exists to resolve one. */
-export default function TicketQrCode({ text, size = 148 }: { text: string; size?: number }) {
+ *  backend endpoint exists to resolve one.
+ *
+ *  `margin: 1` (below the spec-recommended 4-module quiet zone) and a small
+ *  render size previously made this unreadable by real phone cameras —
+ *  scanning it just did nothing. The quiet zone is restored to the library's
+ *  own default and the default size raised so each module is large enough
+ *  to resolve reliably off a phone screen. */
+export default function TicketQrCode({ text, size = 220 }: { text: string; size?: number }) {
   const { t } = useTranslation();
   const [dataUrl, setDataUrl] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    QRCode.toDataURL(text, { width: size, margin: 1, color: { dark: THEME.textPrimary, light: '#ffffff' } })
+    QRCode.toDataURL(text, { width: size, margin: 4, color: { dark: THEME.textPrimary, light: '#ffffff' } })
       .then((url) => {
         if (!cancelled) setDataUrl(url);
       })
