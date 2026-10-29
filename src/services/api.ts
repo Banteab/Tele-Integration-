@@ -106,6 +106,13 @@ const SCHEDULE_TIME_OVERRIDES = [
     departureTime: '2026-11-30T10:30:00',
     arrivalTime: '2026-11-30T20:00:00',
   },
+  {
+    from: 'addis ababa',
+    to: 'arba minch',
+    date: '2026-11-27',
+    departureTime: '2026-11-27T10:30:00',
+    arrivalTime: '2026-11-27T20:00:00',
+  },
 ];
 
 export const searchTrips = async (from: string, to: string, date: string) => {
