@@ -7,6 +7,7 @@ import { toast } from 'sonner';
 import { PageContainer, ScreenCard, PrimaryButton, SecondaryButton, StatusBadge } from '../ui/ScreenUI';
 import TicketQrCode from '../ui/TicketQrCode';
 import { BRAND, THEME } from '../../config/theme';
+import { buildTicketQrUrl } from '../../utils/ticketQrLink';
 
 interface Props {
   bus: Bus;
@@ -48,18 +49,21 @@ export default function TicketSuccess({
     `${t('ticketSuccess.amountPaid')}: ETB ${total}`,
   ].join('\n');
 
-  /** Shorter summary just for the QR code itself — the reference alone is
-   *  enough to look the ticket up, so dropping passenger name and amount
-   *  keeps the encoded data (and so the QR's module density) low enough to
+  /** A real link back into this app's own standalone ticket view (see
+   *  RootApp/TicketQrView) — scanning the QR opens a browser page showing
+   *  the ticket, instead of a camera app just showing raw text. Carries the
+   *  same short set of fields as before (reference, operator/plate, route,
+   *  seats) — the reference alone is enough to look the ticket up, and
+   *  keeping the payload short keeps the QR's module density low enough to
    *  scan reliably off a phone screen. The full summary above still covers
    *  download/share, where density doesn't matter. */
-  const qrText = () => [
-    `${BRAND.name} — ${t('ticketSuccess.title')}`,
-    `${t('ticketSuccess.reference')}: ${reference}`,
-    `${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
-    `${bus.from} → ${bus.to}`,
-    `${t('ticketSuccess.details.seats')}: ${selectedSeats.join(', ')}`,
-  ].join('\n');
+  const qrUrl = () =>
+    buildTicketQrUrl({
+      ref: reference,
+      operator: `${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
+      route: `${bus.from} - ${bus.to}`,
+      seats: selectedSeats.join(', '),
+    });
 
   const handleDownload = () => {
     const blob = new Blob([ticketText()], { type: 'text/plain;charset=utf-8' });
@@ -148,7 +152,7 @@ export default function TicketSuccess({
             <Row label={t('ticketSuccess.details.seats')} value={selectedSeats.join(', ')} />
           </div>
           <div className="pt-3 border-t border-[var(--border)]">
-            <TicketQrCode text={qrText()} />
+            <TicketQrCode text={qrUrl()} />
           </div>
         </ScreenCard>
 

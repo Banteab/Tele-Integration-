@@ -411,6 +411,11 @@ export default {
     shareTitle: 'የ{{brand}} ትኬት',
     qrAlt: 'የዲጂታል ትኬት QR ኮድ',
   },
+  ticketQrView: {
+    title: 'የተቃኘ ትኬት',
+    hint: 'ይህ ከተቃኘ QR ኮድ የተገኘ ፈጣን እይታ ነው። ሙሉ ዝርዝር ለማየት አፑን ይክፈቱ።',
+    openApp: 'መናህሪያን ይክፈቱ',
+  },
   routes: {
     eyebrow: 'የኢትዮጵያ ብሔራዊ መረብ',
     title: 'ታዋቂ የአውቶቡስ መስመሮች እና ዕለታዊ መርሃ ግብሮች',

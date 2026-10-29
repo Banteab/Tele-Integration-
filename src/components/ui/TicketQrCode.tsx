@@ -3,9 +3,11 @@ import * as QRCode from 'qrcode';
 import { useTranslation } from 'react-i18next';
 import { THEME } from '../../config/theme';
 
-/** A real, scannable QR code encoding the same plain-text ticket summary
- *  already shown on screen — no fabricated verification link, since no
- *  backend endpoint exists to resolve one.
+/** A real, scannable QR code. `text` is a link into this app's own
+ *  standalone ticket view (see RootApp/ticketQrLink) built from data already
+ *  on screen — no backend round-trip, since no endpoint exists to resolve a
+ *  ticket by reference. Scanning it with a phone camera opens that page in
+ *  the browser, instead of the camera app just showing raw text.
  *
  *  `margin: 1` (below the spec-recommended 4-module quiet zone) and a small
  *  render size previously made this unreadable by real phone cameras —

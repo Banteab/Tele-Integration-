@@ -411,6 +411,11 @@ export default {
     shareTitle: 'Tikkeettii {{brand}}',
     qrAlt: 'Koodii QR tikkeettii dijitaalaa',
   },
+  ticketQrView: {
+    title: 'Tikkeettii Iskaanigame',
+    hint: 'Kun ilaalcha saffisaa koodii QR iskaanigame irraa argame. Odeeffannoo guutuu argachuuf appii bani.',
+    openApp: 'Menahariya Bani',
+  },
   routes: {
     eyebrow: 'Sararra Biyyoolessaa Itoophiyaa',
     title: 'Sararoota Baasii Beekamoo fi Sagantaa Guyyaa Guyyaa',
