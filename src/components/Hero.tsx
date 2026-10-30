@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, Fragment } from 'react';
+import { useState, useEffect, useMemo, useRef, Fragment, lazy, Suspense } from 'react';
 import {
   MapPin,
   Navigation,
@@ -24,18 +24,22 @@ import {
 } from 'lucide-react';
 import { SearchParams, type Ticket as TicketRecord } from '../types';
 import { useTranslation } from 'react-i18next';
-import { getAllRoutes } from '../services/api';
+import { getAllRoutes, getCachedRoutesSnapshot } from '../services/api';
 import { getRecentSearches, addRecentSearch, resolveSearchDate, type RecentSearch } from '../services/recentSearches';
 import MobileHeader from './MobileHeader';
 import DesktopNav from './DesktopNav';
 import BottomNav, { type HomeTab } from './BottomNav';
-import AboutPanel from './home/AboutPanel';
-import SupportPanel from './home/SupportPanel';
-import TicketHistory from './TicketHistory';
-import { PrimaryButton, EmptyState } from './ui/ScreenUI';
+import { PrimaryButton, EmptyState, LoadingScreen } from './ui/ScreenUI';
 import DatePicker from './ui/DatePicker';
 import { type DisplayLanguage } from '../utils/ethiopianCalendar';
 import { BRAND, THEME } from '../config/theme';
+
+// Lazy-loaded: each only renders once the rider actually switches off the
+// Home tab, so keeping them out of the main bundle shrinks what the Home
+// screen itself has to download and parse before it's interactive.
+const AboutPanel = lazy(() => import('./home/AboutPanel'));
+const SupportPanel = lazy(() => import('./home/SupportPanel'));
+const TicketHistory = lazy(() => import('./TicketHistory'));
 
 const TAB_TITLE_KEYS: Record<HomeTab, string | undefined> = {
   home: undefined,
@@ -56,6 +60,52 @@ function todayIsoDate(): string {
 /** The network currently only departs from Addis Ababa — the origin field
  *  is fixed rather than user-selectable. */
 const DEPARTURE_CITY = 'Addis Ababa';
+
+interface ParsedRouteOptions {
+  toOptions: string[];
+  popularRoutes: RoutePair[];
+}
+
+/** Derives destination options + popular pairs from a raw /routes response
+ *  (live or a cached snapshot of one) — shared so a cached snapshot and a
+ *  fresh fetch are parsed identically. Returns null when the response
+ *  doesn't actually contain any usable Addis-Ababa-origin routes. */
+function deriveRouteOptions(response: unknown): ParsedRouteOptions | null {
+  if (!Array.isArray(response) || response.length === 0) return null;
+
+  const toSet = new Set<string>();
+  const pairs: RoutePair[] = [];
+  const seenPairs = new Set<string>();
+
+  // Departure is fixed to Addis Ababa — only destinations reachable
+  // from an Addis Ababa origin are offered.
+  response.forEach((origin: { originCityName?: string; originTerminalName?: string; routes?: { destinationCityName?: string; destinationTerminalName?: string }[] }) => {
+    const originName = (origin.originCityName || origin.originTerminalName || '').trim();
+    if (originName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) return;
+
+    origin.routes?.forEach((route) => {
+      if (route.destinationCityName) toSet.add(route.destinationCityName.trim());
+      if (route.destinationTerminalName) toSet.add(route.destinationTerminalName.trim());
+
+      const destName = (route.destinationCityName || route.destinationTerminalName || '').trim();
+      if (destName && destName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) {
+        const key = `${DEPARTURE_CITY}→${destName}`;
+        if (!seenPairs.has(key)) {
+          seenPairs.add(key);
+          pairs.push({ from: DEPARTURE_CITY, to: destName });
+        }
+      }
+    });
+  });
+
+  if (toSet.size === 0) return null;
+
+  return {
+    toOptions: Array.from(toSet).sort(),
+    // Real route pairs only — never fabricated when the API has none.
+    popularRoutes: pairs.slice(0, 6),
+  };
+}
 
 interface Props {
   userName?: string;
@@ -94,10 +144,23 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
   useEffect(() => {
     let cancelled = false;
 
+    // Show a previous visit's routes immediately — instant Home screen
+    // instead of a blank "Loading..." wait — while the live list is
+    // re-validated in the background below. Never the only source: a fresh
+    // fetch still runs every time and replaces this once it lands.
+    const cached = deriveRouteOptions(getCachedRoutesSnapshot());
+    if (cached) {
+      setToOptions(cached.toOptions);
+      setPopularRoutes(cached.popularRoutes);
+      setLoadingRoutes(false);
+    }
+
     const fetchRoutes = async () => {
       try {
-        setLoadingRoutes(true);
-        setRoutesError(false);
+        if (!cached) {
+          setLoadingRoutes(true);
+          setRoutesError(false);
+        }
 
         // The external API is the only source of truth for routes — wait up to
         // 3 minutes for it, but never fall back to a hardcoded city list.
@@ -109,53 +172,31 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         ]);
         if (cancelled) return;
 
-        if (!Array.isArray(response) || response.length === 0) {
-          setRoutesError(true);
-          setToOptions([]);
-          setPopularRoutes([]);
+        const parsed = deriveRouteOptions(response);
+        if (!parsed) {
+          // A previous-visit list is still more useful than a blank error
+          // screen — keep showing it rather than clearing it over one bad
+          // (or empty) live response.
+          if (!cached) {
+            setRoutesError(true);
+            setToOptions([]);
+            setPopularRoutes([]);
+          }
           return;
         }
 
-        const toSet = new Set<string>();
-        const pairs: RoutePair[] = [];
-        const seenPairs = new Set<string>();
-
-        // Departure is fixed to Addis Ababa — only destinations reachable
-        // from an Addis Ababa origin are offered.
-        response.forEach((origin: { originCityName?: string; originTerminalName?: string; routes?: { destinationCityName?: string; destinationTerminalName?: string }[] }) => {
-          const originName = (origin.originCityName || origin.originTerminalName || '').trim();
-          if (originName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) return;
-
-          origin.routes?.forEach((route) => {
-            if (route.destinationCityName) toSet.add(route.destinationCityName.trim());
-            if (route.destinationTerminalName) toSet.add(route.destinationTerminalName.trim());
-
-            const destName = (route.destinationCityName || route.destinationTerminalName || '').trim();
-            if (destName && destName.toLowerCase() !== DEPARTURE_CITY.toLowerCase()) {
-              const key = `${DEPARTURE_CITY}→${destName}`;
-              if (!seenPairs.has(key)) {
-                seenPairs.add(key);
-                pairs.push({ from: DEPARTURE_CITY, to: destName });
-              }
-            }
-          });
-        });
-
-        if (toSet.size === 0) {
-          setRoutesError(true);
-          setToOptions([]);
-          setPopularRoutes([]);
-          return;
-        }
-
-        setToOptions(Array.from(toSet).sort());
-        // Real route pairs only — never fabricated when the API has none.
-        setPopularRoutes(pairs.slice(0, 6));
+        setToOptions(parsed.toOptions);
+        setPopularRoutes(parsed.popularRoutes);
+        setRoutesError(false);
       } catch {
         if (cancelled) return;
-        setRoutesError(true);
-        setToOptions([]);
-        setPopularRoutes([]);
+        // Same reasoning: don't blank out a working cached list just
+        // because this one background revalidation failed.
+        if (!cached) {
+          setRoutesError(true);
+          setToOptions([]);
+          setPopularRoutes([]);
+        }
       } finally {
         if (!cancelled) setLoadingRoutes(false);
       }
@@ -790,9 +831,13 @@ export default function Hero({ userName, userPhone, onSearch, has3DBackground = 
         </>
       )}
 
-      {activeTab === 'tickets' && <TicketHistory embedded onPayNow={onResumePayment} />}
-      {activeTab === 'support' && <SupportPanel />}
-      {activeTab === 'about' && <AboutPanel />}
+      {activeTab !== 'home' && (
+        <Suspense fallback={<LoadingScreen />}>
+          {activeTab === 'tickets' && <TicketHistory embedded onPayNow={onResumePayment} />}
+          {activeTab === 'support' && <SupportPanel />}
+          {activeTab === 'about' && <AboutPanel />}
+        </Suspense>
+      )}
 
       <BottomNav active={activeTab} onTabChange={handleTabChange} />
     </div>
