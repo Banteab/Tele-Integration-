@@ -63,6 +63,7 @@ export default function TicketSuccess({
       operator: `${bus.operator}${bus.sideNumber ? ` (${bus.sideNumber})` : ''}`,
       route: `${bus.from} - ${bus.to}`,
       seats: selectedSeats.join(', '),
+      passenger: passengerInfo.passengers.map((p) => p.fullName).join(', '),
     });
 
   const handleDownload = () => {

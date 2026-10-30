@@ -13,6 +13,9 @@ export interface ScannedTicket {
   operator: string;
   route: string;
   seats: string;
+  /** Not every caller has a passenger name available (e.g. ticket-history
+   *  records that never carried one) — omit rather than fabricate it. */
+  passenger?: string;
 }
 
 const TICKET_QUERY_KEY = 'ticket';
@@ -25,6 +28,7 @@ export function buildTicketQrUrl(ticket: ScannedTicket): string {
     route: ticket.route,
     seats: ticket.seats,
   });
+  if (ticket.passenger) params.set('pax', ticket.passenger);
   return `${window.location.origin}${window.location.pathname}?${params.toString()}`;
 }
 
@@ -39,5 +43,6 @@ export function parseScannedTicketFromUrl(
     operator: params.get('op') || '',
     route: params.get('route') || '',
     seats: params.get('seats') || '',
+    passenger: params.get('pax') || undefined,
   };
 }

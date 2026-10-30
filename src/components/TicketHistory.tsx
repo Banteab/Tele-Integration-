@@ -122,6 +122,7 @@ export default function TicketHistory({ embedded = false, onBack, onPayNow }: Pr
       operator: `${ticket.operator}${busNumber(ticket) ? ` (${busNumber(ticket)})` : ''}`,
       route: ticket.route,
       seats: ticket.seats.join(', '),
+      passenger: ticket.passengers?.join(', '),
     });
 
   const handleDownload = (ticket: Ticket) => {

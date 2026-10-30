@@ -2,8 +2,9 @@ import { CheckCircle, Home } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import AppShell from '../components/AppShell';
 import { PageContainer, ScreenCard, PrimaryButton } from '../components/ui/ScreenUI';
+import TicketQrCode from '../components/ui/TicketQrCode';
 import { BRAND, THEME } from '../config/theme';
-import type { ScannedTicket } from '../utils/ticketQrLink';
+import { buildTicketQrUrl, type ScannedTicket } from '../utils/ticketQrLink';
 
 /** Standalone, read-only page a ticket's QR code opens straight to — scanning
  *  it with a camera should land on a real page in the browser, not just show
@@ -35,7 +36,11 @@ export default function TicketQrView({ ticket }: { ticket: ScannedTicket }) {
           <Row label={t('ticketSuccess.reference')} value={ticket.ref} mono />
           {ticket.operator && <Row label={t('ticketSuccess.details.operator')} value={ticket.operator} />}
           {ticket.route && <Row label={t('common.route')} value={ticket.route} />}
+          {ticket.passenger && <Row label={t('ticketSuccess.details.contact')} value={ticket.passenger} />}
           {ticket.seats && <Row label={t('ticketSuccess.details.seats')} value={ticket.seats} />}
+          <div className="pt-3 border-t border-[var(--border)]">
+            <TicketQrCode text={buildTicketQrUrl(ticket)} />
+          </div>
         </ScreenCard>
 
         <p className="text-xs text-[var(--text-muted)] mb-6">{t('ticketQrView.hint')}</p>
