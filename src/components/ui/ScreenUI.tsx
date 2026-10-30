@@ -1,4 +1,5 @@
 import { ReactNode, CSSProperties } from 'react';
+import { Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { THEME, STATUS, type StatusKind } from '../../config/theme';
 
@@ -238,4 +239,16 @@ export function EmptyState({ icon, title, description, action, className = '', s
 /** Skeleton block for loading states — pairs with ScreenCard. */
 export function Skeleton({ className = '' }: { className?: string }) {
   return <div className={`animate-pulse rounded-lg bg-[var(--surface-muted)] ${className}`} />;
+}
+
+/** Suspense fallback for a lazy-loaded screen — shown only for the brief
+ *  moment its code chunk is being fetched/parsed, not a real loading state. */
+export function LoadingScreen() {
+  const { t } = useTranslation();
+  return (
+    <div className="flex flex-col items-center justify-center gap-3 py-24 text-[var(--text-muted)]">
+      <Loader2 className="w-6 h-6 animate-spin" style={{ color: THEME.brand }} />
+      <span className="text-sm font-semibold">{t('common.loading')}</span>
+    </div>
+  );
 }

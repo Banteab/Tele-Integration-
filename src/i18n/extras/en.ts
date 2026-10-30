@@ -414,6 +414,11 @@ export default {
     shareTitle: '{{brand}} ticket',
     qrAlt: 'Digital ticket QR code',
   },
+  ticketQrView: {
+    title: 'Scanned ticket',
+    hint: 'This is a quick view from a scanned QR code. Open the app for full details.',
+    openApp: 'Open Menahariya',
+  },
   routes: {
     eyebrow: 'Ethiopian National Network',
     title: 'Popular Bus Routes & Daily Schedules',
