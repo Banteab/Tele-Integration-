@@ -60,16 +60,69 @@ export const telebirrGetCurrentUser = async () => {
 
 let routesCache: { data: unknown; ts: number } | null = null;
 const ROUTES_CACHE_TTL_MS = 60_000;
+const ROUTES_STORAGE_KEY = 'menahariya_routes_snapshot_v1';
 
-/** Real routes change rarely within a session — caching briefly avoids
- *  re-fetching the same list on every search and every Home-screen mount. */
+function readPersistedRoutes(): unknown[] | null {
+  try {
+    const raw = localStorage.getItem(ROUTES_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : null;
+  } catch {
+    return null;
+  }
+}
+
+function persistRoutes(data: unknown): void {
+  try {
+    if (Array.isArray(data)) {
+      localStorage.setItem(ROUTES_STORAGE_KEY, JSON.stringify(data));
+    }
+  } catch {
+    // Storage full/unavailable (private browsing, quota) — safe to skip;
+    // this is only a perceived-speed optimization, never the only source.
+  }
+}
+
+/** Routes left over from an earlier visit, read synchronously with no
+ *  network round trip — lets the Home screen render something useful
+ *  immediately instead of a blank "Loading..." state, while getAllRoutes()
+ *  re-validates against the live API in the background. Never the only
+ *  source of truth — just removes the wait when there's a known-good
+ *  answer already sitting in storage. */
+export const getCachedRoutesSnapshot = (): unknown[] | null => readPersistedRoutes();
+
+/**
+ * Real routes change rarely within a session — caching briefly avoids
+ * re-fetching the same list on every search and every Home-screen mount.
+ *
+ * Retries a couple of times on connectivity failures (timeout, no
+ * response) before giving up: the backend's own upstream call is
+ * occasionally slow/flaky, and a single blip shouldn't blank out the whole
+ * Home screen when a short retry would likely succeed. A real error
+ * response from the server (4xx/5xx) isn't retried — that won't change.
+ */
 export const getAllRoutes = async () => {
   if (routesCache && Date.now() - routesCache.ts < ROUTES_CACHE_TTL_MS) {
     return routesCache.data;
   }
-  const response = await apiClient.get(API_ENDPOINTS.tickets.proxy.routes);
-  routesCache = { data: response.data, ts: Date.now() };
-  return response.data;
+
+  const maxAttempts = 3;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const response = await apiClient.get(API_ENDPOINTS.tickets.proxy.routes);
+      routesCache = { data: response.data, ts: Date.now() };
+      persistRoutes(response.data);
+      return response.data;
+    } catch (err: any) {
+      lastError = err;
+      const isConnectivityFailure = !err?.response;
+      if (!isConnectivityFailure || attempt === maxAttempts) break;
+      await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+    }
+  }
+  throw lastError;
 };
 
 export const getSchedulesByRoute = async (

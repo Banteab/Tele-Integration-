@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { Toaster } from 'sonner';
 import { useTranslation } from 'react-i18next';
 import AppShell from './components/AppShell';
@@ -12,12 +12,7 @@ import MobileHeader from './components/MobileHeader';
 import DesktopNav from './components/DesktopNav';
 import { SearchParams, Bus, PassengerInfo, User, Ticket } from './types';
 import BookingSteps from './components/booking/BookingSteps';
-import SearchResults from './components/booking/SearchResults';
-import SeatSelection from './components/booking/SeatSelection';
-import PassengerDetails from './components/booking/PassengerDetails';
-import Payment from './components/booking/Payment';
-import ResumePayment from './components/booking/ResumePayment';
-import TicketSuccess from './components/booking/TicketSuccess';
+import { LoadingScreen } from './components/ui/ScreenUI';
 import {
   buildPassengerPrefill,
   getDisplayName,
@@ -26,6 +21,17 @@ import {
   type TelebirrProfile,
 } from './services/telebirrAuth';
 import { API_CONFIG } from './config/api';
+
+// Lazy-loaded: none of these are needed for the initial Home-screen paint —
+// only once a search actually moves the rider past it — so keeping them out
+// of the main bundle shrinks what the Home screen has to download and parse
+// before it's interactive.
+const SearchResults = lazy(() => import('./components/booking/SearchResults'));
+const SeatSelection = lazy(() => import('./components/booking/SeatSelection'));
+const PassengerDetails = lazy(() => import('./components/booking/PassengerDetails'));
+const Payment = lazy(() => import('./components/booking/Payment'));
+const ResumePayment = lazy(() => import('./components/booking/ResumePayment'));
+const TicketSuccess = lazy(() => import('./components/booking/TicketSuccess'));
 
 const STEP_TITLE_KEYS: Record<string, string> = {
   search: 'steps.search',
@@ -278,7 +284,7 @@ export default function App() {
               userPhone={displayPhone}
             />
             <main className="relative z-10 -mt-4 lg:mt-0 app-gutter-x lg:px-6 flex-1 page-container lg:pt-8 w-full">
-              {renderBookingContent()}
+              <Suspense fallback={<LoadingScreen />}>{renderBookingContent()}</Suspense>
             </main>
           </div>
         )}
